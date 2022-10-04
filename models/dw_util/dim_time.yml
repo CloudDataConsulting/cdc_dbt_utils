@@ -1,0 +1,39 @@
+version: 2
+
+# reminder: Replace TBD descriptions with proper descriptions
+# reminder: Add tests  
+ 
+models:
+  - name: dim_time
+    description: "tbd"
+    columns:
+    - name: time_key
+      description: tbd
+    - name: time
+      description: tbd
+    - name: hour
+      description: tbd
+    - name: minute
+      description: tbd
+    - name: second
+      description: tbd
+    - name: time_12h
+      description: tbd
+    - name: hour_flag
+      description: tbd
+    - name: quarter_hour_flag
+      description: tbd
+    - name: day_shift_flag
+      description: tbd
+    - name: night_shift_flag
+      description: tbd
+    - name: time_period
+      description: tbd
+    - name: dw_created_by
+      description: tbd
+    - name: dw_created_ts
+      description: tbd
+    - name: dw_modified_by
+      description: tbd
+    - name: dw_modified_ts
+      description: tbd 

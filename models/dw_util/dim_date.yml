@@ -1,0 +1,94 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: This is our generic data dimension. No fiscal columns at the moment while we test the basic columns.  
+    columns:
+    - name: date_key
+      description: tbd
+      tests:
+        - unique
+        - not_null
+    - name: full_date
+      description: tbd
+      tests:
+        - unique
+        - not_null
+    - name: same_date_last_year
+      description: tbd
+    - name: day_name
+      description: tbd
+    - name: day_abbreviation
+      description: tbd
+    - name: day_of_week_number
+      description: tbd
+    - name: day_of_week_number_iso
+      description: tbd
+    - name: weekday_flag
+      description: tbd
+    - name: end_of_week_flag
+      description: tbd
+    - name: month_name
+      description: tbd
+    - name: day_of_month_number
+      description: tbd
+    - name: last_day_of_month
+      description: tbd
+    - name: end_of_month_flag
+      description: tbd
+    - name: day_number_suffix
+      description: tbd
+    - name: first_day_of_month
+      description: tbd
+    - name: first_day_of_month_flag
+      description: tbd
+    - name: day_of_quarter_number
+      description: tbd
+    - name: first_day_of_quarter
+      description: tbd
+    - name: last_day_of_quarter
+      description: tbd
+    - name: day_of_year_number
+      description: tbd
+    - name: first_day_of_year
+      description: tbd
+    - name: last_day_of_year
+      description: tbd
+    - name: day_number_overall
+      description: tbd
+    - name: week_of_month
+      description: tbd
+    - name: week_of_year_number
+      description: tbd
+    - name: week_of_year_number_iso
+      description: tbd
+    - name: week_num_overall
+      description: tbd
+    - name: week_begin_date
+      description: tbd
+    - name: week_begin_date_id
+      description: tbd
+    - name: week_end_date
+      description: tbd
+    - name: week_end_date_id
+      description: tbd
+    - name: quarter_number
+      description: tbd
+    - name: quarter_name
+      description: tbd
+    - name: year_number
+      description: tbd
+    - name: year_number_iso
+      description: tbd
+    - name: yearmonth_number
+      description: tbd
+    - name: end_of_year_flag
+      description: tbd
+    - name: epoch
+      description: tbd
+    - name: yyyymmdd
+      description: tbd
+    - name: create_user_id
+      description: tbd
+    - name: create_timestamp
+      description: tbd

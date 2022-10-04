@@ -1,0 +1,11 @@
+config-version: 2
+
+name: 'cdc_dbt_utils'
+version: '0.1.0'
+
+
+require-dbt-version: [">=1.0.0", "<2.0.0"]
+
+models:
+  dw_util:
+    materialized: table    
