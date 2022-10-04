@@ -7,9 +7,7 @@ Includes Macros and Date/Time Dimensions for use in a dbt project.
 ### drop_dev_scheama
 Allows the user to drop all user specific development databases.
 
-`dbt run-operation drop_dev_schemas`
-
-Note: this is a work in progress. Not tested.  
+`dbt run-operation drop_dev_schemas --args '{username: bpruss}' `
 
 ### generate_schema_name
 Allows for the creation of user-name specific development schemas in the target database.
