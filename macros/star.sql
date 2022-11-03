@@ -1,3 +1,10 @@
+/* Copyright (C) 2022 Cloud Data Consultants Inc. - All Rights Reserved - CONFIDENTIAL
+*
+* You may not copy, reproduce, distribute, transmit, modify, create derivative works, 
+* or in any other way exploit any part of copyrighted material without permission.
+* 
+*/
+
 {% macro star(from, relation_alias=False, column_alias=False, except=[]) -%}
 
     {%- do dbt_utils._is_relation(from, 'star') -%}
