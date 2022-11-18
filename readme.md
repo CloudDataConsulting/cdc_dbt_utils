@@ -2,6 +2,16 @@
 
 Includes Macros and Date/Time Dimensions for use in a dbt project.
 
+## Installation
+
+Include in the models code block reference to the cdc_dbt_utils:
+
+models:
+  cdc_dbt_utils:
+    dw_util:
+      +materialized: view
+      +schema: dw_util
+
 ## Macros
 
 ### drop_dev_scheama
