@@ -34,3 +34,11 @@ dim_start_date.sql <br>
 `select
    {{ star(from=ref('dim_date'), column_alias='start_') }}
 from {{ ref('dim_date') }}`
+
+### Last run fields
+This macro appends 4 columns:
+    ,current_user::varchar(50) as dw_created_by
+    ,current_timestamp dw_created_ts
+    ,current_user::varchar(50) as dw_modified_by
+    ,current_timestamp dw_modified_ts
+which record valuable timestamps related to when the database objects are created/modified.
