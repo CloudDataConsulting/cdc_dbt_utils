@@ -230,7 +230,7 @@ select
     then 'Third'
   when extract(quarter from datum) = 4
     then 'Fourth'
-  end                                                            as quarter_name,
+  end::varchar(20)                                               as quarter_name,
 
 /*
 -- FISCAL QUARTER Section
