@@ -42,3 +42,7 @@ This macro appends 4 columns:
     ,current_user::varchar(50) as dw_modified_by
     ,current_timestamp dw_modified_ts
 which record valuable timestamps related to when the database objects are created/modified.
+
+# Change Log
+- v 1.3.1 - change tests: to data_tests: per https://docs.getdbt.com/docs/build/data-tests#new-data_tests-syntax
+

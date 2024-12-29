@@ -6,12 +6,12 @@ models:
     columns:
     - name: date_key
       description: tbd
-      tests:
+      data_tests:
         - unique
         - not_null
     - name: full_date
       description: tbd
-      tests:
+      data_tests:
         - unique
         - not_null
     - name: same_date_last_year
