@@ -233,6 +233,82 @@ vars:
     log_level: 'info'
 ```
 
+## Error Handling Integration
+
+The CDC logging framework includes comprehensive error logging via the `write_error_log_p` procedure. We can integrate this for dbt error tracking:
+
+```sql
+{% macro process_stop() %}
+  {% if execute %}
+    {% set process_instance_id = var().get('process_instance_id', 0) %}
+    {% if process_instance_id > 0 %}
+      {% set model_status = 'completed' %}
+      {% set error_count = 0 %}
+      
+      -- Check if dbt detected any errors
+      {% if this.status == 'error' %}
+        {% set model_status = 'failed' %}
+        {% set error_count = 1 %}
+        
+        -- Log the error details
+        {% set error_log_query %}
+          CALL dw_util.write_error_log_p(
+            in_process_name => '{{ this.name }}',
+            in_module_name => '{{ this.schema }}',
+            in_process_instance_id => {{ process_instance_id }},
+            in_severity_level => 5,
+            in_error_code => -1,
+            in_error_message => '{{ adapter.get_message() }}',
+            in_reference_info => 'dbt model execution failed',
+            in_error_category => 'dbt',
+            in_application_name => '{{ project_name }}'
+          )
+        {% endset %}
+        {% do run_query(error_log_query) %}
+      {% endif %}
+      
+      -- Stop the process with appropriate status
+      {% set stop_query %}
+        CALL dw_util.process_stop_p(
+          {{ process_instance_id }},
+          '{{ model_status }}',
+          {{ adapter.get_relation(this).row_count or 'NULL' }},
+          NULL, NULL, 
+          {% if model_status == 'failed' %}1{% else %}NULL{% endif %},
+          NULL, NULL, 
+          {{ error_count }}
+        )
+      {% endset %}
+      
+      {% do run_query(stop_query) %}
+    {% endif %}
+  {% endif %}
+{% endmacro %}
+```
+
+### Error Logging for Test Failures
+
+```sql
+{% macro log_test_failure(test_name, test_results) %}
+  {% if execute %}
+    {% set error_log_query %}
+      CALL dw_util.write_error_log_p(
+        in_process_name => '{{ test_name }}',
+        in_module_name => 'dbt_test',
+        in_process_instance_id => {{ var().get('run_process_id', 0) }},
+        in_severity_level => 3,
+        in_error_code => -2,
+        in_error_message => 'Test failed with {{ test_results.failures }} failures',
+        in_reference_info => '{{ test_results.compiled_sql | truncate(3900) }}',
+        in_error_category => 'data_quality',
+        in_application_name => '{{ project_name }}'
+      )
+    {% endset %}
+    {% do run_query(error_log_query) %}
+  {% endif %}
+{% endmacro %}
+```
+
 ## Benefits
 
 1. **Automatic tracking** of all dbt model executions
@@ -241,6 +317,8 @@ vars:
 4. **Integration** with existing CDC logging infrastructure
 5. **Minimal overhead** - logging calls are fast
 6. **Configurable** - can be enabled/disabled per environment
+7. **Error tracking** - Comprehensive error logging with stack traces
+8. **Test failure logging** - Track data quality issues
 
 ## Considerations
 
