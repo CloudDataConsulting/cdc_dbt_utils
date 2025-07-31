@@ -43,6 +43,20 @@ This macro appends 4 columns:
     ,current_timestamp dw_modified_ts
 which record valuable timestamps related to when the database objects are created/modified.
 
+### logging_integration
+Comprehensive integration with CDC's Snowflake process logging framework. Provides automatic tracking of dbt model executions, performance metrics, and error handling.
+
+Key features:
+- `process_start` - Begin logging a model execution
+- `process_stop` - Complete logging with row counts and status
+- `log_error` - Log errors and data quality issues
+- `process_stop_with_error` - Convenience method for failure handling
+- Run-level operations for orchestration tools
+
+See [Logging Setup Guide](docs/logging-setup-guide.md) for detailed configuration and usage.
+
 # Change Log
+- v 0.3.2 - Add comprehensive logging integration with Snowflake process tracking
+- v 0.3.1 - Add dbt_utils dependency, fix documentation, add column descriptions
 - v 0.1.4 - change tests: to data_tests: per https://docs.getdbt.com/docs/build/data-tests#new-data_tests-syntax
 
