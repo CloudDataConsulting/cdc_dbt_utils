@@ -4,6 +4,14 @@ dbt_packages/
 logs/
 dbt.log
 
+# Integration test artifacts
+integration_tests/target/
+integration_tests/dbt_packages/
+integration_tests/logs/
+
+# Don't commit profiles.yml (contains credentials)
+profiles.yml
+
 # Python
 __pycache__/
 *.py[cod]

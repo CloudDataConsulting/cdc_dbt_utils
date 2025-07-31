@@ -1,0 +1,42 @@
+name: 'cdc_dbt_utils_integration_tests'
+version: '1.0.0'
+config-version: 2
+
+# This dbt project is for testing the cdc_dbt_utils package
+profile: 'cdc_dbt_utils'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["data"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  cdc_dbt_utils_integration_tests:
+    # Test models should create objects in a test schema
+    +schema: integration_test
+    +materialized: table
+    
+    # Enable logging for all test models
+    +pre-hook: "{{ cdc_dbt_utils.process_start() }}"
+    +post-hook: "{{ cdc_dbt_utils.process_stop() }}"
+
+vars:
+  # Configure CDC logging for tests
+  cdc_logging:
+    enabled: true
+    schema: 'dw_util'  # Where the logging procedures exist
+    capture_row_counts: true
+    log_tests: true
+  
+  # Test-specific variables
+  test_run_id: "{{ modules.datetime.datetime.now().strftime('%Y%m%d_%H%M%S') }}"
+
+# Reference the parent package (when testing locally)
+packages:
+  - local: ../
