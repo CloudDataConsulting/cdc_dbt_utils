@@ -2,93 +2,93 @@ version: 2
 
 models:
   - name: dim_date
-    description: This is our generic data dimension. No fiscal columns at the moment while we test the basic columns.  
+    description: Generic date dimension table containing one row per calendar date with extensive date attributes. Includes special handling for "Not Set" values with date_key = -1.  
     columns:
     - name: date_key
-      description: tbd
+      description: Surrogate key for the date dimension (YYYYMMDD format, -1 for "Not Set")
       data_tests:
         - unique
         - not_null
     - name: full_date
-      description: tbd
+      description: The actual date value in DATE format
       data_tests:
         - unique
         - not_null
     - name: same_date_last_year
-      description: tbd
+      description: The corresponding date from the previous year
     - name: day_name
-      description: tbd
+      description: Full name of the day (e.g., Monday, Tuesday)
     - name: day_abbreviation
-      description: tbd
+      description: Three-letter abbreviation of the day (e.g., Mon, Tue)
     - name: day_of_week_number
-      description: tbd
+      description: Day of week number (1=Sunday, 7=Saturday)
     - name: day_of_week_number_iso
-      description: tbd
+      description: ISO day of week number (1=Monday, 7=Sunday)
     - name: weekday_flag
-      description: tbd
+      description: Y if Monday-Friday, N if weekend
     - name: end_of_week_flag
-      description: tbd
+      description: Y if Saturday, N otherwise
     - name: month_name
-      description: tbd
+      description: Full name of the month (e.g., January, February)
     - name: day_of_month_number
-      description: tbd
+      description: Day of the month (1-31)
     - name: last_day_of_month
-      description: tbd
+      description: Last date of the current month
     - name: end_of_month_flag
-      description: tbd
+      description: Y if last day of month, N otherwise
     - name: day_number_suffix
-      description: tbd
+      description: Ordinal suffix for the day (st, nd, rd, th)
     - name: first_day_of_month
-      description: tbd
+      description: First date of the current month
     - name: first_day_of_month_flag
-      description: tbd
+      description: Y if first day of month, N otherwise
     - name: day_of_quarter_number
-      description: tbd
+      description: Day number within the quarter (1-92)
     - name: first_day_of_quarter
-      description: tbd
+      description: First date of the current quarter
     - name: last_day_of_quarter
-      description: tbd
+      description: Last date of the current quarter
     - name: day_of_year_number
-      description: tbd
+      description: Day number within the year (1-366)
     - name: first_day_of_year
-      description: tbd
+      description: First date of the current year (January 1st)
     - name: last_day_of_year
-      description: tbd
+      description: Last date of the current year (December 31st)
     - name: day_number_overall
-      description: tbd
+      description: Sequential day number from the start of the date range
     - name: week_of_month
-      description: tbd
+      description: Week number within the month (1-5)
     - name: week_of_year_number
-      description: tbd
+      description: Week number within the year (1-53)
     - name: week_of_year_number_iso
-      description: tbd
+      description: ISO week number within the year (1-53)
     - name: week_num_overall
-      description: tbd
+      description: Sequential week number from the start of the date range
     - name: week_begin_date
-      description: tbd
+      description: Sunday of the current week
     - name: week_begin_date_id
-      description: tbd
+      description: Date key for the beginning of the week (YYYYMMDD)
     - name: week_end_date
-      description: tbd
+      description: Saturday of the current week
     - name: week_end_date_id
-      description: tbd
+      description: Date key for the end of the week (YYYYMMDD)
     - name: quarter_number
-      description: tbd
+      description: Quarter number (1-4)
     - name: quarter_name
-      description: tbd
+      description: Quarter name (e.g., Q1, Q2)
     - name: year_number
-      description: tbd
+      description: Four-digit year
     - name: year_number_iso
-      description: tbd
+      description: ISO year number (may differ from calendar year for dates near year boundaries)
     - name: yearmonth_number
-      description: tbd
+      description: Year and month in YYYYMM format
     - name: end_of_year_flag
-      description: tbd
+      description: Y if December 31st, N otherwise
     - name: epoch
-      description: tbd
+      description: Unix timestamp (seconds since 1970-01-01)
     - name: yyyymmdd
-      description: tbd
+      description: Date in YYYYMMDD string format
     - name: create_user_id
-      description: tbd
+      description: User who created this record
     - name: create_timestamp
-      description: tbd
+      description: Timestamp when this record was created

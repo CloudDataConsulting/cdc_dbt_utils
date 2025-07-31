@@ -14,7 +14,7 @@ models:
 
 ## Macros
 
-### drop_dev_scheama
+### drop_dev_schemas
 Allows the user to drop all user specific development databases.
 
 `dbt run-operation drop_dev_schemas --args '{username: bpruss}' `

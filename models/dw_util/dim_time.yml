@@ -1,39 +1,52 @@
 version: 2
 
-# reminder: Replace TBD descriptions with proper descriptions
-# reminder: Add tests  
+  
  
 models:
   - name: dim_time
-    description: "tbd"
+    description: "Time dimension table containing one row per second of the day (86,400 rows total). Provides time-based attributes for analysis including shift indicators and time groupings."
     columns:
     - name: time_key
-      description: tbd
+      description: Surrogate key for the time dimension (seconds since midnight)
+      data_tests:
+        - unique
+        - not_null
     - name: time
-      description: tbd
+      description: Time value in HH:MM:SS format
+      data_tests:
+        - unique
+        - not_null
     - name: hour
-      description: tbd
+      description: Hour of the day (0-23)
+      data_tests:
+        - not_null
+        - accepted_values:
+            values: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
     - name: minute
-      description: tbd
+      description: Minute of the hour (0-59)
+      data_tests:
+        - not_null
     - name: second
-      description: tbd
+      description: Second of the minute (0-59)
+      data_tests:
+        - not_null
     - name: time_12h
-      description: tbd
+      description: Time in 12-hour format with AM/PM
     - name: hour_flag
-      description: tbd
+      description: Y if minute and second are 0 (top of the hour), N otherwise
     - name: quarter_hour_flag
-      description: tbd
+      description: Y if time is at 15-minute intervals (00, 15, 30, 45), N otherwise
     - name: day_shift_flag
-      description: tbd
+      description: Y if time is between 7:00 AM and 6:59 PM, N otherwise
     - name: night_shift_flag
-      description: tbd
+      description: Y if time is between 7:00 PM and 6:59 AM, N otherwise
     - name: time_period
-      description: tbd
+      description: Period of day (Morning, Afternoon, Evening, Night)
     - name: dw_created_by
-      description: tbd
+      description: User who created this record (from last_run_fields macro)
     - name: dw_created_ts
-      description: tbd
+      description: Timestamp when this record was created (from last_run_fields macro)
     - name: dw_modified_by
-      description: tbd
+      description: User who last modified this record (from last_run_fields macro)
     - name: dw_modified_ts
-      description: tbd 
+      description: Timestamp when this record was last modified (from last_run_fields macro)
