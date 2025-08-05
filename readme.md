@@ -59,5 +59,5 @@ See [Logging Setup Guide](docs/logging-setup-guide.md) for detailed configuratio
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
-**Latest Version: 0.2.0-beta.1** - Comprehensive logging integration (Beta - Testing Phase)
+**Latest Version: 0.2.0-beta.2** - Comprehensive logging integration (Beta - Testing Phase)
 
