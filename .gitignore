@@ -12,6 +12,11 @@ integration_tests/logs/
 # Don't commit profiles.yml (contains credentials)
 profiles.yml
 
+# AI and user-specific files
+ai-logs/
+.user.yml
+package-lock.yml
+
 # Python
 __pycache__/
 *.py[cod]
