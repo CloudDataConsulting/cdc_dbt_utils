@@ -56,7 +56,8 @@ Key features:
 See [Logging Setup Guide](docs/logging-setup-guide.md) for detailed configuration and usage.
 
 # Change Log
-- v 0.3.2 - Add comprehensive logging integration with Snowflake process tracking
-- v 0.3.1 - Add dbt_utils dependency, fix documentation, add column descriptions
-- v 0.1.4 - change tests: to data_tests: per https://docs.getdbt.com/docs/build/data-tests#new-data_tests-syntax
+
+See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
+
+**Latest Version: 0.2.0-beta.1** - Comprehensive logging integration (Beta - Testing Phase)
 
