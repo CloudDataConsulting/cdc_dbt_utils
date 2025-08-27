@@ -1,8 +1,8 @@
 {{ config(materialized='table') }}
 
 {# 
-Retail Calendar Dimension with All Patterns
-Provides trade_week_of_month calculations for all three common retail patterns (445, 454, 544)
+Trade Calendar Dimension with All Patterns
+Provides trade_week_of_month calculations for all three common trade/retail patterns (445, 454, 544)
 in a single table. Column names follow CDC standards with abbreviations (dt, num, ts, flg).
 #}
 
@@ -337,7 +337,7 @@ with date_sequence as (
         -- ETL metadata (using CDC abbreviations)
         false as dw_deleted_flg,
         current_timestamp as dw_synced_ts,
-        'dim_date_retail' as dw_source_nm,
+        'dim_date_trade' as dw_source_nm,
         current_user as create_user_id,
         current_timestamp as create_timestamp
         

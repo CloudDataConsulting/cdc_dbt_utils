@@ -60,15 +60,15 @@ month_aggregated as (
 ),
 
 month_with_retail as (
-    -- Add retail calendar from dim_date_retail if it exists
+    -- Add retail calendar from dim_date_trade if it exists
     select 
         m.*,
         
-        -- Pull retail/trade calendar attributes from dim_date_retail
+        -- Pull retail/trade calendar attributes from dim_date_trade
         -- Using the 15th of the month as the determinant
         coalesce(
             (select max(trade_year_num) 
-             from {{ ref('dim_date_retail') }} dr
+             from {{ ref('dim_date_trade') }} dr
              where dr.calendar_year_num = m.year_num
                and dr.calendar_month_num = m.month_num
                and dr.day_of_month_num = 15),
@@ -77,7 +77,7 @@ month_with_retail as (
         
         coalesce(
             (select max(trade_month_445_num)
-             from {{ ref('dim_date_retail') }} dr
+             from {{ ref('dim_date_trade') }} dr
              where dr.calendar_year_num = m.year_num
                and dr.calendar_month_num = m.month_num
                and dr.day_of_month_num = 15),
@@ -86,7 +86,7 @@ month_with_retail as (
         
         coalesce(
             (select max(calendar_quarter_num)
-             from {{ ref('dim_date_retail') }} dr
+             from {{ ref('dim_date_trade') }} dr
              where dr.calendar_year_num = m.year_num
                and dr.calendar_month_num = m.month_num
                and dr.day_of_month_num = 15),

@@ -21,9 +21,9 @@ This is a dbt utilities package that provides reusable macros and dimensional mo
 
 ### Models
 - **dim_date**: Daily grain date dimension with comprehensive date attributes (base for other date dimensions)
-- **dim_date_retail**: Daily grain with retail calendar support (4-4-5, 4-5-4, 5-4-4 patterns)
-- **dim_week**: Weekly grain dimension derived from dim_date, includes ISO week and retail calendar
-- **dim_month**: Monthly grain dimension derived from dim_date, includes fiscal and retail attributes
+- **dim_date_trade**: Daily grain with trade/retail calendar support (4-4-5, 4-5-4, 5-4-4 patterns)
+- **dim_week**: Weekly grain dimension derived from dim_date, includes ISO week and trade calendar
+- **dim_month**: Monthly grain dimension derived from dim_date, includes fiscal and trade attributes
 - **dim_quarter**: Quarterly grain dimension derived from dim_date, includes fiscal year support
 - **dim_time**: Time dimension for intraday analysis
 

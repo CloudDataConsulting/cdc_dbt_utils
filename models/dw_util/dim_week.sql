@@ -58,15 +58,15 @@ week_aggregated as (
 ),
 
 week_with_retail as (
-    -- Add retail calendar from dim_date_retail if it exists
+    -- Add retail calendar from dim_date_trade if it exists
     select 
         w.*,
         
-        -- Pull retail/trade calendar attributes from dim_date_retail
+        -- Pull retail/trade calendar attributes from dim_date_trade
         -- Using Thursday of the week to determine retail period
         coalesce(
             (select max(trade_year_num) 
-             from {{ ref('dim_date_retail') }} dr
+             from {{ ref('dim_date_trade') }} dr
              where dr.full_dt between w.week_start_dt and w.week_end_dt
                and dayofweek(dr.full_dt) = 5),
             w.year_num
@@ -74,7 +74,7 @@ week_with_retail as (
         
         coalesce(
             (select max(trade_week_num) 
-             from {{ ref('dim_date_retail') }} dr
+             from {{ ref('dim_date_trade') }} dr
              where dr.full_dt between w.week_start_dt and w.week_end_dt
                and dayofweek(dr.full_dt) = 5),
             w.week_of_year_num
