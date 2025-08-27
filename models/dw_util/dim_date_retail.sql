@@ -172,6 +172,7 @@ with date_sequence as (
         -- Keys
         date_key,
         calendar_date as full_dt,
+        calendar_date - interval '1 year' as same_dt_last_year,
         
         -- Standard calendar (using CDC abbreviations)
         calendar_year as calendar_year_num,
@@ -179,7 +180,76 @@ with date_sequence as (
         calendar_month as calendar_month_num,
         calendar_week as calendar_week_num,
         day_of_week as day_of_week_num,
+        dayofweekiso(calendar_date) as iso_day_of_week_num,
         day_name as day_nm,
+        left(day_name, 3) as day_abbr,
+        case 
+            when day_of_week in (1, 7) then 'Weekend'
+            else 'Weekday'
+        end as weekday_flg,
+        case 
+            when calendar_date = dateadd(day, 6, date_trunc('week', calendar_date)) then 1
+            else 0
+        end as end_of_week_flg,
+        
+        -- Day suffixes and counters
+        case
+            when mod(day(calendar_date), 10) = 1 and day(calendar_date) not in (11)
+                then day(calendar_date)::varchar || 'st'
+            when mod(day(calendar_date), 10) = 2 and day(calendar_date) not in (12)
+                then day(calendar_date)::varchar || 'nd'
+            when mod(day(calendar_date), 10) = 3 and day(calendar_date) not in (13)
+                then day(calendar_date)::varchar || 'rd'
+            else day(calendar_date)::varchar || 'th'
+        end as day_suffix_txt,
+        datediff('d', date('1970-01-01'), calendar_date) as day_overall_num,
+        
+        -- Month details
+        monthname(calendar_date) as month_nm,
+        left(monthname(calendar_date), 3) as month_abbr,
+        month(calendar_date) as month_num,
+        day(calendar_date) as day_of_month_num,
+        datediff('month', date('1970-01-01'), calendar_date) as month_overall_num,
+        mod(month(calendar_date) - 1, 3) + 1 as month_in_quarter_num,
+        date_trunc('month', calendar_date) as first_day_of_month,
+        last_day(calendar_date, 'month') as last_day_of_month,
+        case when date_trunc('month', calendar_date) = calendar_date then 1 else 0 end as first_day_of_month_flg,
+        case when last_day(calendar_date, 'month') = calendar_date then 1 else 0 end as end_of_month_flg,
+        
+        -- Quarter details
+        case
+            when quarter(calendar_date) = 1 then 'First'
+            when quarter(calendar_date) = 2 then 'Second'
+            when quarter(calendar_date) = 3 then 'Third'
+            when quarter(calendar_date) = 4 then 'Fourth'
+        end as quarter_nm,
+        datediff(day, date_trunc('quarter', calendar_date), calendar_date) + 1 as day_of_quarter_num,
+        date_trunc('quarter', calendar_date) as first_day_of_quarter,
+        last_day(calendar_date, 'quarter') as last_day_of_quarter,
+        
+        -- Year details
+        yearofweekiso(calendar_date) as iso_year_num,
+        to_char(calendar_date, 'yyyymm')::int as yearmonth_num,
+        date_trunc('year', calendar_date) as first_day_of_year_dt,
+        dateadd(day, -1, dateadd(year, 1, date_trunc('year', calendar_date))) as last_day_of_year_dt,
+        dayofyear(calendar_date) as day_of_year_num,
+        case when month(calendar_date) = 12 and day(calendar_date) = 31 then 1 else 0 end as end_of_year_flg,
+        
+        -- Week details  
+        weekofyear(calendar_date) as week_of_year_num,
+        ceil(day(calendar_date) / 7.0) as week_of_month_num,
+        yearofweekiso(calendar_date)::varchar || '-W' || 
+            lpad(weekiso(calendar_date)::varchar, 2, '0') || '-' || 
+            dayofweekiso(calendar_date)::varchar as iso_week_of_year_txt,
+        datediff('w', date('1970-01-01'), calendar_date) as week_overall_num,
+        dateadd(day, 1 - dayofweekiso(calendar_date), calendar_date) as week_begin_dt,
+        to_char(dateadd(day, 1 - dayofweekiso(calendar_date), calendar_date), 'yyyymmdd')::int as week_begin_key,
+        dateadd(day, 7 - dayofweekiso(calendar_date), calendar_date) as week_end_dt,
+        to_char(dateadd(day, 7 - dayofweekiso(calendar_date), calendar_date), 'yyyymmdd')::int as week_end_key,
+        
+        -- Other date formats
+        date_part(epoch_second, calendar_date) as epoch,
+        to_char(calendar_date, 'yyyymmdd')::int as yyyymmdd,
         
         -- Core retail calendar (same for all patterns, using CDC abbreviations)
         retail_year as trade_year_num,
@@ -205,7 +275,9 @@ with date_sequence as (
         -- ETL metadata (using CDC abbreviations)
         false as dw_deleted_flg,
         current_timestamp as dw_synced_ts,
-        'dim_date_retail' as dw_source_nm
+        'dim_date_retail' as dw_source_nm,
+        current_user as create_user_id,
+        current_timestamp as create_timestamp
         
     from retail_dates
     where calendar_date between '1995-01-01' and '2040-12-31'

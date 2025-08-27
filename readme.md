@@ -1,16 +1,34 @@
 # Cloud Data Consulting (CDC) dbt Utilities
 
-Includes Macros and Date/Time Dimensions for use in a dbt project.
+Comprehensive dbt utility package with reusable macros and time-based dimensional models at multiple grains (date, week, month, quarter).
 
 ## Installation
 
-Include in the models code block reference to the cdc_dbt_utils:
+Include in your `packages.yml`:
+```yaml
+packages:
+  - git: "https://github.com/CloudDataConsulting/cdc_dbt_utils.git"
+    revision: v0.2.0  # or main for latest
+```
 
+Then add to your `dbt_project.yml`:
+```yaml
 models:
   cdc_dbt_utils:
     dw_util:
-      +materialized: view
+      +materialized: view  # or table as needed
       +schema: dw_util
+```
+
+## Dimensional Models
+
+### Date/Time Dimensions
+- **dim_date**: Daily grain with comprehensive calendar attributes
+- **dim_date_retail**: Daily grain with retail calendar (4-4-5, 4-5-4, 5-4-4)
+- **dim_week**: Weekly grain with ISO week standards
+- **dim_month**: Monthly grain with fiscal attributes
+- **dim_quarter**: Quarterly grain with fiscal year support
+- **dim_time**: Intraday time dimension
 
 ## Macros
 
@@ -43,6 +61,15 @@ This macro appends 4 columns:
     ,current_timestamp dw_modified_ts
 which record valuable timestamps related to when the database objects are created/modified.
 
-# Change Log
-- v 1.3.1 - change tests: to data_tests: per https://docs.getdbt.com/docs/build/data-tests#new-data_tests-syntax
+## Deprecation Notice (v0.2.0)
+
+The `dim_date` model column naming convention is changing for consistency:
+- Columns ending in `_number` will change to `_num` 
+- Columns ending in `_name` will change to `_nm`
+
+Both naming conventions are available in v0.2.x for backward compatibility. The verbose names will be removed in v1.0.0.
+
+## Change Log
+- v0.2.0 - Added dim_date_retail, deprecated verbose column names in dim_date
+- v0.1.4 - Changed tests: to data_tests: per https://docs.getdbt.com/docs/build/data-tests#new-data_tests-syntax
 
