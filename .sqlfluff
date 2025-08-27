@@ -1,0 +1,76 @@
+[sqlfluff]
+# verbose is an integer (0-2) indicating the level of log output
+verbose = 1
+dialect = snowflake
+# One of [raw|jinja|python|placeholder]
+# Note: Using jinja templater as dbt templater requires separate package
+templater = jinja
+sql_file_exts = .sql,.sql.j2,.dml,.ddl
+max_line_length = 120
+# L034 was re-ordering columns in a way that broke downstream code.
+# LT07 enforces CTE brackets on new lines, which we don't want
+# LT02 enforces closing parenthesis on new line, which we don't want
+exclude_rules = LT08, L034, LT07, LT02
+tab_space_size = 2
+
+[sqlfluff:templater:dbt]
+project_dir = .
+profiles_dir = .
+
+[sqlfluff:rules:aliasing.table]
+aliasing = explicit
+
+[sqlfluff:rules:aliasing.column]
+aliasing = explicit
+
+[sqlfluff:rules:aliasing.length]
+min_alias_length = 3
+
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.identifiers]
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.functions]
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.literals]
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.types]
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:convention.select_trailing_comma]
+# Trailing commas
+select_clause_trailing_comma = forbid
+
+[sqlfluff:layout:type:comma]
+spacing_before = touch
+line_position = leading
+
+[sqlfluff:layout:type:end_of_file]
+spacing_before = touch
+
+[sqlfluff:rules:layout.cte_bracket]
+# CTE closing bracket on same line as last CTE
+cte_bracket_style = same_line
+
+[sqlfluff:rules:layout.select_modifiers]
+# Closing bracket for FROM subqueries on same line
+closing_bracket_line_position = same
+
+[sqlfluff:rules:layout.indent]
+# Keep closing parenthesis on same line as last item
+closing_bracket_line_position = same
+
+[sqlfluff:indentation]
+indented_joins = False
+indented_using_on = True
+template_blocks_indent = False
+
+[sqlfluff:templater]
+unwrap_wrapped_queries = True
+
+[sqlfluff:templater:jinja]
+apply_dbt_builtins = True
