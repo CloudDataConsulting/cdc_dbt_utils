@@ -262,10 +262,72 @@ with date_sequence as (
         retail_month_454 as trade_month_454_num,
         retail_month_544 as trade_month_544_num,
         
+        -- Trade quarters for each pattern
+        ceil(retail_month_445 / 3.0) as trade_quarter_445_num,
+        ceil(retail_month_454 / 3.0) as trade_quarter_454_num,
+        ceil(retail_month_544 / 3.0) as trade_quarter_544_num,
+        
+        -- Trade quarter names for each pattern
+        case ceil(retail_month_445 / 3.0)
+            when 1 then 'First'
+            when 2 then 'Second'
+            when 3 then 'Third'
+            when 4 then 'Fourth'
+        end as trade_quarter_445_nm,
+        case ceil(retail_month_454 / 3.0)
+            when 1 then 'First'
+            when 2 then 'Second'
+            when 3 then 'Third'
+            when 4 then 'Fourth'
+        end as trade_quarter_454_nm,
+        case ceil(retail_month_544 / 3.0)
+            when 1 then 'First'
+            when 2 then 'Second'
+            when 3 then 'Third'
+            when 4 then 'Fourth'
+        end as trade_quarter_544_nm,
+        
         -- Trade week of month for each pattern (already has _num suffix implicitly)
         trade_week_of_month_445 as trade_week_of_month_445_num,
         trade_week_of_month_454 as trade_week_of_month_454_num,
         trade_week_of_month_544 as trade_week_of_month_544_num,
+        
+        -- Trade week of quarter for each pattern
+        dense_rank() over (
+            partition by retail_year, ceil(retail_month_445 / 3.0)
+            order by retail_week_num
+        ) as trade_week_of_quarter_445_num,
+        dense_rank() over (
+            partition by retail_year, ceil(retail_month_454 / 3.0)
+            order by retail_week_num
+        ) as trade_week_of_quarter_454_num,
+        dense_rank() over (
+            partition by retail_year, ceil(retail_month_544 / 3.0)
+            order by retail_week_num
+        ) as trade_week_of_quarter_544_num,
+        
+        -- Trade week of year (same for all patterns)
+        retail_week_num as trade_week_of_year_num,
+        
+        -- Trade month names for each pattern
+        case retail_month_445
+            when 1 then 'January' when 2 then 'February' when 3 then 'March'
+            when 4 then 'April' when 5 then 'May' when 6 then 'June'
+            when 7 then 'July' when 8 then 'August' when 9 then 'September'
+            when 10 then 'October' when 11 then 'November' when 12 then 'December'
+        end as trade_month_445_nm,
+        case retail_month_454
+            when 1 then 'January' when 2 then 'February' when 3 then 'March'
+            when 4 then 'April' when 5 then 'May' when 6 then 'June'
+            when 7 then 'July' when 8 then 'August' when 9 then 'September'
+            when 10 then 'October' when 11 then 'November' when 12 then 'December'
+        end as trade_month_454_nm,
+        case retail_month_544
+            when 1 then 'January' when 2 then 'February' when 3 then 'March'
+            when 4 then 'April' when 5 then 'May' when 6 then 'June'
+            when 7 then 'July' when 8 then 'August' when 9 then 'September'
+            when 10 then 'October' when 11 then 'November' when 12 then 'December'
+        end as trade_month_544_nm,
         
         -- Common attributes (using CDC abbreviations)
         is_leap_week as is_leap_week_flg,
