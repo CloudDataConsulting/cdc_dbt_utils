@@ -1,10 +1,6 @@
 {{ config(materialized='table') }}
 
-with date_dimension as (
-    select * from {{ ref('dim_date') }}
-)
-
-, date_dimension_filtered as (
+with date_dimension_filtered as (
     select
         date_key
         , full_date
@@ -21,8 +17,7 @@ with date_dimension as (
         , iso_week_of_year_txt
         , iso_year_num
         , week_overall_num
-    from date_dimension
-    where date_key > 0  -- Exclude the -1 "Not Set" record
+    from {{ ref('dim_date') }}
 )
 
 , week_level_aggregated as (

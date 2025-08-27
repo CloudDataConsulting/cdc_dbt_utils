@@ -1,10 +1,6 @@
 {{ config(materialized='table') }}
 
-with trade_date as (
-    select * from {{ ref('dim_trade_date') }}
-    where date_key > 0  -- Exclude the -1 "Not Set" record if it exists
-)
-, trade_date_data as (
+with trade_date_data as (
     -- Pull from dim_trade_date to ensure consistency
     select
         date_key
@@ -38,7 +34,8 @@ with trade_date as (
         , is_leap_week_flg
         , weeks_in_trade_year_num
 
-    from trade_date)
+    from {{ ref('dim_trade_date') }}
+)
 ,
 
 -- Aggregate for 445 Pattern

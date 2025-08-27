@@ -1,10 +1,6 @@
 {{ config(materialized='table') }}
 
 with trade_date as (
-    select * from {{ ref('dim_trade_date') }}
-)
-
-, trade_date_filtered as (
     select
         date_key
         , full_dt
@@ -41,8 +37,7 @@ with trade_date as (
         , weeks_in_trade_year_num
         , trade_day_of_year_num
 
-    from trade_date
-    where date_key > 0  -- Exclude the -1 "Not Set" record if it exists
+    from {{ ref('dim_trade_date') }}
 )
 
 , week_aggregated as (
@@ -88,7 +83,7 @@ with trade_date as (
         -- Count actual days in week (for validation)
         , count(*) as days_in_week_num
 
-    from trade_date_filtered
+    from trade_date
     group by
         trade_year_num
         , trade_week_num

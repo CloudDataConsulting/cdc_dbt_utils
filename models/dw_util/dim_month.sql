@@ -27,7 +27,6 @@ with date_dimension as (
         , month_overall_num
         , yearmonth_num
     from date_dimension
-    where date_key > 0  -- Exclude the -1 "Not Set" record
 )
 
 , monthly_aggregated_data as (
