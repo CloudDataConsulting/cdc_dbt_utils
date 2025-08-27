@@ -2,93 +2,115 @@ version: 2
 
 models:
   - name: dim_date
-    description: This is our generic data dimension. No fiscal columns at the moment while we test the basic columns.  
+    description: "Date dimension table containing one row per calendar day from 1970-01-01 through approximately 2106. Includes comprehensive date attributes, week/month/quarter/year calculations, and ISO week standards. Contains a special 'Not Set' record with date_key = -1 for handling null dates in fact tables."
     columns:
     - name: date_key
-      description: tbd
+      description: "Primary key in YYYYMMDD format as integer. Special value -1 represents 'Not Set' for null date handling"
       data_tests:
         - unique
         - not_null
     - name: full_date
-      description: tbd
+      description: "Full date value as DATE type"
       data_tests:
         - unique
         - not_null
     - name: same_date_last_year
-      description: tbd
-    - name: day_name
-      description: tbd
-    - name: day_abbreviation
-      description: tbd
-    - name: day_of_week_number
-      description: tbd
-    - name: day_of_week_number_iso
-      description: tbd
-    - name: weekday_flag
-      description: tbd
-    - name: end_of_week_flag
-      description: tbd
-    - name: month_name
-      description: tbd
-    - name: day_of_month_number
-      description: tbd
+      description: "The same calendar date from the previous year, useful for year-over-year comparisons"
+    
+    # Day attributes
+    - name: day_nm
+      description: "Full name of the day of week (Monday, Tuesday, Wednesday, etc.)"
+    - name: day_abbr
+      description: "Three-letter abbreviation of the day of week (Mon, Tue, Wed, etc.)"
+    - name: day_of_week_num
+      description: "Day of week number where Sunday = 1 and Saturday = 7 (Snowflake standard)"
+    - name: iso_day_of_week_num
+      description: "ISO standard day of week number where Monday = 1 and Sunday = 7"
+    - name: weekday_flg
+      description: "Flag indicating if the day is a weekday (Weekday) or weekend (Weekend)"
+    - name: end_of_week_flg
+      description: "Binary flag: 1 if the date is the last day of the week (Sunday), 0 otherwise"
+    
+    # Month attributes
+    - name: month_nm
+      description: "Full name of the month (January, February, March, etc.)"
+    - name: month_abbr
+      description: "Three-letter abbreviation of the month (Jan, Feb, Mar, etc.)"
+    - name: month_num
+      description: "Month number within the year (1-12)"
+    - name: month_overall_num
+      description: "Sequential month number since 1970-01-01, useful for month-over-month calculations"
+    - name: month_in_quarter_num
+      description: "Month position within the quarter (1, 2, or 3)"
+    - name: day_of_month_num
+      description: "Day number within the month (1-31)"
     - name: last_day_of_month
-      description: tbd
-    - name: end_of_month_flag
-      description: tbd
-    - name: day_number_suffix
-      description: tbd
+      description: "Last calendar date of the month"
+    - name: end_of_month_flg
+      description: "Binary flag: 1 if the date is the last day of the month, 0 otherwise"
+    - name: day_suffix_txt
+      description: "Day number with ordinal suffix (1st, 2nd, 3rd, 4th, etc.)"
     - name: first_day_of_month
-      description: tbd
-    - name: first_day_of_month_flag
-      description: tbd
-    - name: day_of_quarter_number
-      description: tbd
+      description: "First calendar date of the month"
+    - name: first_day_of_month_flg
+      description: "Binary flag: 1 if the date is the first day of the month, 0 otherwise"
+    
+    # Quarter attributes
+    - name: day_of_quarter_num
+      description: "Day number within the quarter (1-92)"
     - name: first_day_of_quarter
-      description: tbd
+      description: "First calendar date of the quarter"
     - name: last_day_of_quarter
-      description: tbd
-    - name: day_of_year_number
-      description: tbd
+      description: "Last calendar date of the quarter"
+    
+    # Year attributes
+    - name: day_of_year_num
+      description: "Day number within the year (1-365 or 366 for leap years)"
     - name: first_day_of_year
-      description: tbd
+      description: "First calendar date of the year (January 1st)"
     - name: last_day_of_year
-      description: tbd
-    - name: day_number_overall
-      description: tbd
-    - name: week_of_month
-      description: tbd
-    - name: week_of_year_number
-      description: tbd
-    - name: week_of_year_number_iso
-      description: tbd
-    - name: week_num_overall
-      description: tbd
-    - name: week_begin_date
-      description: tbd
-    - name: week_begin_date_id
-      description: tbd
-    - name: week_end_date
-      description: tbd
-    - name: week_end_date_id
-      description: tbd
-    - name: quarter_number
-      description: tbd
-    - name: quarter_name
-      description: tbd
-    - name: year_number
-      description: tbd
-    - name: year_number_iso
-      description: tbd
-    - name: yearmonth_number
-      description: tbd
-    - name: end_of_year_flag
-      description: tbd
+      description: "Last calendar date of the year (December 31st)"
+    - name: day_overall_num
+      description: "Sequential day number since 1970-01-01, useful for date arithmetic"
+    
+    # Week attributes
+    - name: week_of_month_num
+      description: "Week number within the month (1-5)"
+    - name: week_of_year_num
+      description: "Week number within the year using Snowflake's week numbering (1-53)"
+    - name: iso_week_of_year_txt
+      description: "ISO 8601 week notation (YYYY-Www-d format, e.g., 2023-W15-3)"
+    - name: week_overall_num
+      description: "Sequential week number since 1970-01-01, useful for week-over-week calculations"
+    - name: week_begin_dt
+      description: "First day (Monday) of the week containing this date"
+    - name: week_begin_key
+      description: "Date key (YYYYMMDD) of the first day of the week"
+    - name: week_end_dt
+      description: "Last day (Sunday) of the week containing this date"
+    - name: week_end_key
+      description: "Date key (YYYYMMDD) of the last day of the week"
+    
+    # Quarter and Year identifiers
+    - name: quarter_num
+      description: "Quarter number within the year (1-4)"
+    - name: quarter_nm
+      description: "Quarter name (First, Second, Third, Fourth)"
+    - name: year_num
+      description: "Calendar year as 4-digit integer"
+    - name: iso_year_num
+      description: "ISO week year, which may differ from calendar year for dates near year boundaries"
+    - name: yearmonth_num
+      description: "Year and month combination as YYYYMM integer, useful for month-level grouping"
+    
+    # Other attributes
+    - name: end_of_year_flg
+      description: "Binary flag: 1 if the date is December 31st, 0 otherwise"
     - name: epoch
-      description: tbd
+      description: "Unix timestamp - seconds since 1970-01-01 00:00:00 UTC"
     - name: yyyymmdd
-      description: tbd
+      description: "Date formatted as YYYYMMDD string"
     - name: create_user_id
-      description: tbd
+      description: "User ID who created the record (populated with CURRENT_USER)"
     - name: create_timestamp
-      description: tbd
+      description: "Timestamp when the record was created"

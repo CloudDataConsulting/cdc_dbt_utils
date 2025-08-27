@@ -1,0 +1,85 @@
+version: 2
+
+models:
+  - name: dim_week
+    description: "Week dimension table containing one row per calendar week, derived from dim_date. Provides week-level aggregations and attributes for time series analysis at weekly granularity. Weeks run from Monday to Sunday following ISO 8601 standard."
+    columns:
+    - name: week_key
+      description: "Primary key as YYYYMMDD integer of the week's start date (Monday)"
+      data_tests:
+        - unique
+        - not_null
+    
+    # Week dates
+    - name: week_begin_dt
+      description: "First day (Monday) of the week"
+    - name: week_end_dt
+      description: "Last day (Sunday) of the week"
+    - name: week_begin_key
+      description: "Date key (YYYYMMDD) of the week's Monday"
+    - name: week_end_key
+      description: "Date key (YYYYMMDD) of the week's Sunday"
+    
+    # Week identifiers
+    - name: week_of_year_num
+      description: "Week number within the year (1-53)"
+    - name: iso_week_txt
+      description: "ISO 8601 week notation (YYYY-Www format, e.g., 2023-W15)"
+    - name: week_overall_num
+      description: "Sequential week number since 1970-01-01, useful for week-over-week calculations"
+    
+    # Month context
+    - name: month_nm
+      description: "Name of the month containing the week's start date"
+    - name: month_num
+      description: "Month number (1-12) of the week's start date"
+    - name: yearmonth_num
+      description: "Year-month combination (YYYYMM) of the week's start date"
+    
+    # Quarter context
+    - name: quarter_num
+      description: "Quarter number (1-4) of the week's start date"
+    - name: quarter_nm
+      description: "Quarter name (First, Second, Third, Fourth) of the week's start date"
+    
+    # Year context
+    - name: year_num
+      description: "Calendar year of the week's start date"
+    - name: iso_year_num
+      description: "ISO week year, which may differ from calendar year for weeks spanning year boundaries"
+    
+    # Week characteristics
+    - name: days_in_week
+      description: "Number of days in the week (always 7 for complete weeks)"
+    - name: workdays_in_week
+      description: "Number of weekdays (Monday-Friday) in the week"
+    - name: weekends_in_week
+      description: "Number of weekend days (Saturday-Sunday) in the week"
+    
+    # Relative week indicators
+    - name: same_week_last_year_begin_dt
+      description: "Start date of the same week number from the previous year"
+    - name: same_week_last_year_end_dt
+      description: "End date of the same week number from the previous year"
+    
+    # Fiscal calendar support (when applicable)
+    - name: fiscal_week_num
+      description: "Week number in fiscal year (if fiscal calendar is configured)"
+    - name: fiscal_year_num
+      description: "Fiscal year (if fiscal calendar is configured)"
+    
+    # Retail calendar support
+    - name: retail_week_num
+      description: "Week number in retail calendar"
+    - name: retail_period_num
+      description: "Retail period/month number (1-12)"
+    - name: retail_quarter_num
+      description: "Retail quarter number (1-4)"
+    - name: retail_year_num
+      description: "Retail year (starts in February for NRF calendar)"
+    
+    # Metadata
+    - name: create_user_id
+      description: "User ID who created the record"
+    - name: create_timestamp
+      description: "Timestamp when the record was created"

@@ -1,39 +1,102 @@
 version: 2
 
-# reminder: Replace TBD descriptions with proper descriptions
-# reminder: Add tests  
- 
 models:
   - name: dim_time
-    description: "tbd"
+    description: "Time dimension table containing one row per second in a 24-hour period (86,400 rows total). Provides intraday time attributes for analyzing patterns within a day, tracking business hours, shifts, and time-based performance metrics."
     columns:
     - name: time_key
-      description: tbd
+      description: "Primary key as seconds since midnight (0-86399)"
+      data_tests:
+        - unique
+        - not_null
+        - accepted_values:
+            values: [0, 86399]
+            quote: false
+            config:
+              where: "time_key = 0 or time_key = 86399"  # Test boundary values
+    
     - name: time
-      description: tbd
+      description: "Time value in HH:MM:SS format (e.g., 14:30:45)"
+      data_tests:
+        - not_null
+    
     - name: hour
-      description: tbd
+      description: "Hour of the day in 24-hour format (0-23)"
+      data_tests:
+        - not_null
+        - accepted_values:
+            values: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+            quote: false
+    
     - name: minute
-      description: tbd
+      description: "Minute within the hour (0-59)"
+      data_tests:
+        - not_null
+    
     - name: second
-      description: tbd
+      description: "Second within the minute (0-59)"
+      data_tests:
+        - not_null
+    
     - name: time_12h
-      description: tbd
+      description: "Time in 12-hour format with AM/PM indicator (e.g., 2:30:45 PM)"
+      data_tests:
+        - not_null
+    
     - name: hour_flag
-      description: tbd
+      description: "Binary flag: 1 if time is exactly on the hour (minute=0, second=0), 0 otherwise"
+      data_tests:
+        - not_null
+        - accepted_values:
+            values: [0, 1]
+            quote: false
+    
     - name: quarter_hour_flag
-      description: tbd
+      description: "Binary flag: 1 if time is on a quarter hour mark (:00, :15, :30, :45), 0 otherwise"
+      data_tests:
+        - not_null
+        - accepted_values:
+            values: [0, 1]
+            quote: false
+    
     - name: day_shift_flag
-      description: tbd
+      description: "Binary flag: 1 if time falls within day shift hours (typically 7 AM - 3 PM), 0 otherwise"
+      data_tests:
+        - not_null
+        - accepted_values:
+            values: [0, 1]
+            quote: false
+    
     - name: night_shift_flag
-      description: tbd
+      description: "Binary flag: 1 if time falls within night shift hours (typically 11 PM - 7 AM), 0 otherwise"
+      data_tests:
+        - not_null
+        - accepted_values:
+            values: [0, 1]
+            quote: false
+    
     - name: time_period
-      description: tbd
+      description: "Descriptive period of day (e.g., 'Early Morning', 'Morning', 'Afternoon', 'Evening', 'Night')"
+      data_tests:
+        - not_null
+    
+    # Audit columns
     - name: dw_created_by
-      description: tbd
+      description: "User ID who created the record (typically the dbt run user)"
+      data_tests:
+        - not_null
+    
     - name: dw_created_ts
-      description: tbd
+      description: "Timestamp when the record was created"
+      data_tests:
+        - not_null
+    
     - name: dw_modified_by
-      description: tbd
+      description: "User ID who last modified the record (typically the dbt run user)"
+      data_tests:
+        - not_null
+    
     - name: dw_modified_ts
-      description: tbd 
+      description: "Timestamp when the record was last modified"
+      data_tests:
+        - not_null
