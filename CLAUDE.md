@@ -20,14 +20,21 @@ This is a dbt utilities package that provides reusable macros and dimensional mo
 4. **last_run_fields**: Appends audit columns (dw_created_by, dw_created_ts, dw_modified_by, dw_modified_ts)
 
 ### Models
+
+#### Standard Calendar Dimensions
 - **dim_date**: Daily grain date dimension with comprehensive date attributes (base for other date dimensions)
-- **dim_date_trade**: Daily grain with trade/retail calendar support (4-4-5, 4-5-4, 5-4-4 patterns)
-- **dim_week**: Weekly grain dimension derived from dim_date, includes ISO week and trade calendar
-- **dim_month**: Monthly grain dimension derived from dim_date, includes fiscal and trade attributes
-- **dim_quarter**: Quarterly grain dimension derived from dim_date, includes fiscal year support
+- **dim_week**: Weekly grain dimension derived from dim_date, includes ISO week
+- **dim_month**: Monthly grain dimension derived from dim_date
+- **dim_quarter**: Quarterly grain dimension derived from dim_date
 - **dim_time**: Time dimension for intraday analysis
 
-**Important**: dim_week, dim_month, and dim_quarter are all derived from dim_date. This ensures:
+#### Trade Calendar Dimensions  
+- **dim_trade_date**: Daily grain with trade/retail calendar support (4-4-5, 4-5-4, 5-4-4 patterns)
+- **dim_trade_week**: Weekly grain dimension derived from dim_trade_date
+- **dim_trade_month**: Monthly grain dimension derived from dim_trade_date (separate records per pattern)
+- **dim_trade_quarter**: Quarterly grain dimension derived from dim_trade_date
+
+**Important**: Standard calendar dimensions (dim_week, dim_month, dim_quarter) derive from dim_date. Trade calendar dimensions (dim_trade_week, dim_trade_month, dim_trade_quarter) derive from dim_trade_date. This ensures:
 - Consistency across all date dimensions
 - Automatic updates when dim_date date range changes
 - Single source of truth for date calculations
@@ -84,6 +91,49 @@ The package follows strict naming conventions where the class word (data type in
 ISO-related columns have `iso_` prefix: `iso_day_of_week_num`, `iso_year_num`, `iso_week_of_year_txt`
 
 "Overall" metrics (since 1970-01-01) use pattern: `{measure}_overall_{class}` (e.g., `day_overall_num`, `month_overall_num`)
+
+## CTE Standards
+
+All dbt models in this package must follow CDC CTE standards:
+
+### CTE Structure Rules
+1. **First CTE must reference source models**: Always start with CTEs that reference source models using `{{ ref() }}`
+2. **Meaningful aliases only**: Use full, descriptive names for CTEs - never abbreviations
+3. **All refs at the top**: All `{{ ref() }}` statements must be in the first CTEs, with any filters applied there
+4. **Descriptive comments in YAML**: Model descriptions belong in the `.yml` files, not as comments in SQL files
+
+### CTE Naming Examples
+- ✅ GOOD: `trade_date`, `date_dimension`, `monthly_aggregated_data`, `quarter_with_retail_calendar`
+- ❌ BAD: `td`, `dd`, `month_agg`, `qtr_retail`
+
+### Standard CTE Pattern
+```sql
+{{ config(materialized='table') }}
+
+-- All refs must be at the top
+with source_model_name as (
+    select * from {{ ref('source_model') }}
+),
+
+filtered_source_data as (
+    select * from source_model_name
+    where date_key > 0  -- Any filters on the ref go here
+),
+
+transformed_data as (
+    -- Main transformations
+    select ...
+    from filtered_source_data
+),
+
+final as (
+    -- Final structure
+    select ...
+    from transformed_data
+)
+
+select * from final
+```
 
 ## Important Notes
 

@@ -1,13 +1,10 @@
 {{ config(materialized='table') }}
 
-{#
-dim_trade_week - Trade Calendar Week-level dimension
-One row per trade week, derived from dim_trade_date for consistency
-Includes all three patterns (445, 454, 544) for retail/trade calendar weeks
-#}
+with trade_date as (
+    select * from {{ ref('dim_trade_date') }}
+),
 
-with trade_date_data as (
-    -- Pull from dim_trade_date to ensure consistency
+trade_date_filtered as (
     select 
         date_key,
         full_dt,
@@ -44,7 +41,7 @@ with trade_date_data as (
         weeks_in_trade_year_num,
         trade_day_of_year_num
         
-    from {{ ref('dim_trade_date') }}
+    from trade_date
     where date_key > 0  -- Exclude the -1 "Not Set" record if it exists
 ),
 
@@ -91,7 +88,7 @@ week_aggregated as (
         -- Count actual days in week (for validation)
         count(*) as days_in_week_num
         
-    from trade_date_data
+    from trade_date_filtered
     group by 
         trade_year_num,
         trade_week_num,
@@ -168,7 +165,7 @@ final as (
         case 
             when trade_year_num = (
                 select max(trade_year_num) 
-                from {{ ref('dim_trade_date') }} 
+                from trade_date 
                 where full_dt <= current_date()
             )
             then 1 else 0 

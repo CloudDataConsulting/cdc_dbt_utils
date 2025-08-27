@@ -1,13 +1,14 @@
 {{ config(materialized='table') }}
 
-{#
-dim_month - Month-level date dimension
-One row per month, derived from dim_date for consistency
-Includes both standard and retail calendar attributes
-#}
+with date_dimension as (
+    select * from {{ ref('dim_date') }}
+),
 
-with date_data as (
-    -- Pull from dim_date to ensure consistency
+trade_date_dimension as (
+    select * from {{ ref('dim_date_trade') }}
+),
+
+filtered_date_data as (
     select 
         date_key,
         full_date,
@@ -25,11 +26,11 @@ with date_data as (
         week_of_year_num,
         month_overall_num,
         yearmonth_num
-    from {{ ref('dim_date') }}
+    from date_dimension
     where date_key > 0  -- Exclude the -1 "Not Set" record
 ),
 
-month_aggregated as (
+monthly_aggregated_data as (
     -- Aggregate to month level
     select
         yearmonth_num as month_key,
@@ -55,11 +56,11 @@ month_aggregated as (
         min(week_of_year_num) as first_week_of_month_num,
         max(week_of_year_num) as last_week_of_month_num
         
-    from date_data
+    from filtered_date_data
     group by yearmonth_num
 ),
 
-month_with_retail as (
+monthly_data_with_trade_calendar as (
     -- Add retail calendar from dim_date_trade if it exists
     select 
         m.*,
@@ -68,7 +69,7 @@ month_with_retail as (
         -- Using the 15th of the month as the determinant
         coalesce(
             (select max(trade_year_num) 
-             from {{ ref('dim_date_trade') }} dr
+             from trade_date_dimension dr
              where dr.calendar_year_num = m.year_num
                and dr.calendar_month_num = m.month_num
                and dr.day_of_month_num = 15),
@@ -77,7 +78,7 @@ month_with_retail as (
         
         coalesce(
             (select max(trade_month_445_num)
-             from {{ ref('dim_date_trade') }} dr
+             from trade_date_dimension dr
              where dr.calendar_year_num = m.year_num
                and dr.calendar_month_num = m.month_num
                and dr.day_of_month_num = 15),
@@ -86,14 +87,14 @@ month_with_retail as (
         
         coalesce(
             (select max(calendar_quarter_num)
-             from {{ ref('dim_date_trade') }} dr
+             from trade_date_dimension dr
              where dr.calendar_year_num = m.year_num
                and dr.calendar_month_num = m.month_num
                and dr.day_of_month_num = 15),
             m.quarter_num
         ) as trade_quarter_num
         
-    from month_aggregated m
+    from monthly_aggregated_data m
 ),
 
 final as (
@@ -185,7 +186,7 @@ final as (
         current_user as create_user_id,
         current_timestamp as create_timestamp
         
-    from month_with_retail
+    from monthly_data_with_trade_calendar
 )
 
 select * from final

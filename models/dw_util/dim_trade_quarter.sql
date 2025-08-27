@@ -1,13 +1,6 @@
 {{ config(materialized='table') }}
 
-{#
-dim_trade_quarter - Trade Calendar Quarter-level dimension
-One row per trade quarter per pattern, derived from dim_trade_date for consistency
-Includes all three patterns (445, 454, 544) for retail/trade calendar quarters
-All patterns have the same quarterly structure (13 weeks per quarter)
-#}
-
-with trade_date_data as (
+with trade_date as (
     -- Pull from dim_trade_date to ensure consistency
     select 
         date_key,
@@ -80,7 +73,7 @@ quarter_445_aggregated as (
         min(trade_week_num) as first_week_of_quarter_445_num,
         max(trade_week_num) as last_week_of_quarter_445_num
         
-    from trade_date_data
+    from trade_date
     group by 
         trade_year_num,
         trade_quarter_445_num
@@ -120,7 +113,7 @@ quarter_454_aggregated as (
         min(trade_week_num) as first_week_of_quarter_454_num,
         max(trade_week_num) as last_week_of_quarter_454_num
         
-    from trade_date_data
+    from trade_date
     group by 
         trade_year_num,
         trade_quarter_454_num
@@ -160,7 +153,7 @@ quarter_544_aggregated as (
         min(trade_week_num) as first_week_of_quarter_544_num,
         max(trade_week_num) as last_week_of_quarter_544_num
         
-    from trade_date_data
+    from trade_date
     group by 
         trade_year_num,
         trade_quarter_544_num

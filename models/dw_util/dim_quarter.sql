@@ -1,12 +1,6 @@
 {{ config(materialized='table') }}
 
-{#
-dim_quarter - Quarter-level date dimension
-One row per quarter, derived from dim_date for consistency
-Includes both standard fiscal and retail calendar attributes
-#}
-
-with date_data as (
+with date_dimension as (
     -- Pull from dim_date to ensure consistency
     select 
         date_key,
@@ -25,7 +19,7 @@ with date_data as (
     where date_key > 0  -- Exclude the -1 "Not Set" record
 ),
 
-quarter_aggregated as (
+quarter_level_aggregation as (
     -- Aggregate to quarter level
     select
         year_num * 10 + quarter_num as quarter_key,
@@ -59,11 +53,11 @@ quarter_aggregated as (
         count(distinct week_of_year_num) as weeks_in_quarter_num,
         count(distinct month_num) as months_in_quarter_num
         
-    from date_data
+    from date_dimension
     group by year_num, quarter_num
 ),
 
-quarter_with_retail as (
+quarter_with_retail_calendar as (
     -- Add retail calendar from dim_date_trade if it exists
     select 
         q.*,
@@ -90,10 +84,10 @@ quarter_with_retail as (
             else 4
         end as trade_quarter_num
         
-    from quarter_aggregated q
+    from quarter_level_aggregation q
 ),
 
-final as (
+final_quarter_dimension as (
     select
         -- Primary key
         quarter_key,
@@ -180,7 +174,7 @@ final as (
         current_user as create_user_id,
         current_timestamp as create_timestamp
         
-    from quarter_with_retail
+    from quarter_with_retail_calendar
 )
 
-select * from final
+select * from final_quarter_dimension

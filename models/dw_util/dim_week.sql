@@ -1,13 +1,10 @@
 {{ config(materialized='table') }}
 
-{#
-dim_week - Week-level date dimension
-One row per week, derived from dim_date for consistency
-Includes both standard and retail calendar attributes
-#}
+with date_dimension as (
+    select * from {{ ref('dim_date') }}
+),
 
-with date_data as (
-    -- Pull from dim_date to ensure consistency
+date_dimension_filtered as (
     select 
         date_key,
         full_date,
@@ -24,11 +21,11 @@ with date_data as (
         iso_week_of_year_txt,
         iso_year_num,
         week_overall_num
-    from {{ ref('dim_date') }}
+    from date_dimension
     where date_key > 0  -- Exclude the -1 "Not Set" record
 ),
 
-week_aggregated as (
+week_level_aggregated as (
     -- Aggregate to week level, taking values from Monday (first day of ISO week)
     select
         week_begin_key as week_key,
@@ -53,20 +50,24 @@ week_aggregated as (
         -- Count actual days in week (for partial weeks at year boundaries)
         count(*) as days_in_week_num
         
-    from date_data
+    from date_dimension_filtered
     group by week_begin_key
 ),
 
-week_with_retail as (
+retail_calendar_dimension as (
+    select * from {{ ref('dim_date_trade') }}
+),
+
+week_with_retail_calendar as (
     -- Add retail calendar from dim_date_trade if it exists
     select 
         w.*,
         
-        -- Pull retail/trade calendar attributes from dim_date_trade
+        -- Pull retail/trade calendar attributes from retail calendar dimension
         -- Using Thursday of the week to determine retail period
         coalesce(
             (select max(trade_year_num) 
-             from {{ ref('dim_date_trade') }} dr
+             from retail_calendar_dimension dr
              where dr.full_dt between w.week_start_dt and w.week_end_dt
                and dayofweek(dr.full_dt) = 5),
             w.year_num
@@ -74,13 +75,13 @@ week_with_retail as (
         
         coalesce(
             (select max(trade_week_num) 
-             from {{ ref('dim_date_trade') }} dr
+             from retail_calendar_dimension dr
              where dr.full_dt between w.week_start_dt and w.week_end_dt
                and dayofweek(dr.full_dt) = 5),
             w.week_of_year_num
         ) as trade_week_num
         
-    from week_aggregated w
+    from week_level_aggregated w
 ),
 
 final as (
@@ -144,7 +145,7 @@ final as (
         current_user as create_user_id,
         current_timestamp as create_timestamp
         
-    from week_with_retail
+    from week_with_retail_calendar
 )
 
 select * from final
