@@ -96,5 +96,12 @@
     "cwd": "/Users/bpruss/repos/cdc/cdc_dbt_utils",
     "hook_event_name": "Notification",
     "message": "Claude is waiting for your input"
+  },
+  {
+    "session_id": "593d0ea1-f8b3-42f3-8840-3d1190607825",
+    "transcript_path": "/Users/bpruss/.claude/projects/-Users-bpruss-repos-cdc-cdc-dbt-utils/593d0ea1-f8b3-42f3-8840-3d1190607825.jsonl",
+    "cwd": "/Users/bpruss/repos/cdc/cdc_dbt_utils",
+    "hook_event_name": "Notification",
+    "message": "Claude is waiting for your input"
   }
 ]

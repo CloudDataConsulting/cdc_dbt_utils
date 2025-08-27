@@ -289,6 +289,10 @@ select
     , null as weekday_flag
     , null as end_of_week_flag
     , null as month_name
+    , null as month_abbreviation
+    , null as month_number
+    , null as month_number_overall
+    , null as month_in_quarter_number
     , null as day_of_month_number
     , null as last_day_of_month
     , null as end_of_month_flag

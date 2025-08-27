@@ -166,5 +166,21 @@
     "permission_mode": "bypassPermissions",
     "hook_event_name": "UserPromptSubmit",
     "prompt": "Here is the output from my first run, please fix and push.  Then run the command again from: ../../aub/MDM-dbt/dbt  and fix any issues: dbt run -s dim_date dim_date_retail dim_week dim_quarter, dim_month                                                                                                                                                                                                    trade_date_last_year \u2731\n20:55:30  Running with dbt=1.10.9\n20:55:30  Registered adapter: snowflake=1.10.0\n20:55:31  Unable to do partial parsing because saved manifest not found. Starting full parse.\n20:55:36  [WARNING][MissingArgumentsPropertyInGenericTestDeprecation]: Deprecated\nfunctionality\nFound top-level arguments to test `dbt_utils.unique_combination_of_columns`.\nArguments to generic tests should be nested under the `arguments` property.`\n20:55:44  Found 517 models, 8 snapshots, 9 analyses, 3 seeds, 950 data tests, 272 sources, 612 macros\n20:55:45  The selection criterion 'dim_quarter,' does not match any enabled nodes\n20:55:45  \n20:55:45  Concurrency: 72 threads (target='dev')\n20:55:45  \n20:55:50  1 of 4 START sql view model BPRUSS_dw_util.dim_date ............................ [RUN]\n20:55:50  2 of 4 START sql view model BPRUSS_dw_util.dim_date_retail ..................... [RUN]\n20:55:51  1 of 4 ERROR creating sql view model BPRUSS_dw_util.dim_date ................... [ERROR in 0.42s]\n20:55:53  2 of 4 OK created sql view model BPRUSS_dw_util.dim_date_retail ................ [SUCCESS 1 in 2.22s]\n20:55:53  3 of 4 SKIP relation BPRUSS_dw_util.dim_month .................................. [SKIP]\n20:55:53  4 of 4 SKIP relation BPRUSS_dw_util.dim_week ................................... [SKIP]\n20:55:54  \n20:55:54  Finished running 4 view models in 0 hours 0 minutes and 9.44 seconds (9.44s).\n20:55:55  \n20:55:55  Completed with 1 error, 0 partial successes, and 0 warnings:\n20:55:55  \n20:55:55  Failure in model dim_date (models/dw_util/dim_date.sql)\n20:55:55    Database Error in model dim_date (models/dw_util/dim_date.sql)\n  000904 (42000): SQL compilation error: error line 340 at position 4\n  invalid identifier 'MONTH_ABBREVIATION'\n20:55:55  \n20:55:55    compiled code at target/compiled/cdc_dbt_utils/models/dw_util/dim_date.sql\n20:55:55  \n20:55:55  Done. PASS=1 WARN=0 ERROR=1 SKIP=2 NO-OP=0 TOTAL=4\n20:55:55  [WARNING][DeprecationsSummary]: Deprecated functionality\nSummary of encountered deprecations:\n- MissingArgumentsPropertyInGenericTestDeprecation: 230 occurrences\nTo see all deprecation instances instead of just the first occurrence of each,\nrun command again with the `--show-all-deprecations` flag. You may also need to\nrun with `--no-partial-parse` as some deprecations are only encountered during\nparsing."
+  },
+  {
+    "session_id": "593d0ea1-f8b3-42f3-8840-3d1190607825",
+    "transcript_path": "/Users/bpruss/.claude/projects/-Users-bpruss-repos-cdc-cdc-dbt-utils/593d0ea1-f8b3-42f3-8840-3d1190607825.jsonl",
+    "cwd": "/Users/bpruss/repos/cdc/cdc_dbt_utils",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "Yeah, we might have to set the environment variable, but the other thing I didn't see if you did or not is I think we have to move the tag to the latest commit so that when we do dbt deps, we pull the latest code. "
+  },
+  {
+    "session_id": "1cadc83c-b2fe-48da-9297-864d8136722e",
+    "transcript_path": "/Users/bpruss/.claude/projects/-Users-bpruss-repos-cdc-cdc-dbt-utils/1cadc83c-b2fe-48da-9297-864d8136722e.jsonl",
+    "cwd": "/Users/bpruss/repos/cdc/cdc_dbt_utils",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "ok, I loaded the env vars for you. let's try again. "
   }
 ]
