@@ -94,5 +94,53 @@
     "permission_mode": "bypassPermissions",
     "hook_event_name": "UserPromptSubmit",
     "prompt": "Let's move to the 1.0.0 release and just remove the deprecated columns, maybe do a commit before we change all and a tag, right? So we'll say maybe just a commit with a tag 0.2.0-beta-1  before we've changed and then we'll go from that beta which we may never release to the 1.0.0. "
+  },
+  {
+    "session_id": "6aafd140-a6c9-447e-9acb-b6e1a508fff6",
+    "transcript_path": "/Users/bpruss/.claude/projects/-Users-bpruss-repos-cdc-cdc-dbt-utils/6aafd140-a6c9-447e-9acb-b6e1a508fff6.jsonl",
+    "cwd": "/Users/bpruss/repos/cdc/cdc_dbt_utils",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "How can we set up this package to be able to test and deploy code to Snowflake? "
+  },
+  {
+    "session_id": "6aafd140-a6c9-447e-9acb-b6e1a508fff6",
+    "transcript_path": "/Users/bpruss/.claude/projects/-Users-bpruss-repos-cdc-cdc-dbt-utils/6aafd140-a6c9-447e-9acb-b6e1a508fff6.jsonl",
+    "cwd": "/Users/bpruss/repos/cdc/cdc_dbt_utils",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "Okay. Instead of just winging it on profiles.yml.example, let's use the profiles.yml from this project.  ../../aub/MDM-dbt/dbt "
+  },
+  {
+    "session_id": "6aafd140-a6c9-447e-9acb-b6e1a508fff6",
+    "transcript_path": "/Users/bpruss/.claude/projects/-Users-bpruss-repos-cdc-cdc-dbt-utils/6aafd140-a6c9-447e-9acb-b6e1a508fff6.jsonl",
+    "cwd": "/Users/bpruss/repos/cdc/cdc_dbt_utils",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "I was able to see the file with this: ls ../../aub/MDM-dbt/dbt/profiles.yml "
+  },
+  {
+    "session_id": "6aafd140-a6c9-447e-9acb-b6e1a508fff6",
+    "transcript_path": "/Users/bpruss/.claude/projects/-Users-bpruss-repos-cdc-cdc-dbt-utils/6aafd140-a6c9-447e-9acb-b6e1a508fff6.jsonl",
+    "cwd": "/Users/bpruss/repos/cdc/cdc_dbt_utils",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "why are we creating a make file? I ask bc I have never used make. "
+  },
+  {
+    "session_id": "6aafd140-a6c9-447e-9acb-b6e1a508fff6",
+    "transcript_path": "/Users/bpruss/.claude/projects/-Users-bpruss-repos-cdc-cdc-dbt-utils/6aafd140-a6c9-447e-9acb-b6e1a508fff6.jsonl",
+    "cwd": "/Users/bpruss/repos/cdc/cdc_dbt_utils",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "I am very familiar with the dbt deps dbt run dbt test, etc. And given that I am in a package, do I even need to do dbt deps? What I want is the profiles.yml from that other project I pointed you to copied over here, and then let's run dbt run and dbt test and see what we get. "
+  },
+  {
+    "session_id": "6aafd140-a6c9-447e-9acb-b6e1a508fff6",
+    "transcript_path": "/Users/bpruss/.claude/projects/-Users-bpruss-repos-cdc-cdc-dbt-utils/6aafd140-a6c9-447e-9acb-b6e1a508fff6.jsonl",
+    "cwd": "/Users/bpruss/repos/cdc/cdc_dbt_utils",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "After thinking on it for a bit, I think the best way for me to test this is to have us get rid of these profile.yml so that we don't confuse ourselves. Then, what will you I think what we want to do is push this to Github with a version number - beta. I can go over to my project where I want to pull this and just use the profiles in that project and set the packages.yml to to the version 1.0.0-beta tag and then test it over there. "
   }
 ]
