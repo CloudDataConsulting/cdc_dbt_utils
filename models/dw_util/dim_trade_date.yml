@@ -1,9 +1,9 @@
 version: 2
 
 models:
-  - name: dim_date_trade
+  - name: dim_trade_date
     description: |
-      Trade calendar dimension table with all three common patterns (445, 454, 544).
+      Trade date dimension table with all three common patterns (445, 454, 544).
       This model provides trade_week_of_month calculations for all patterns in a single table,
       making it easy to support different retail calendar requirements without multiple models.
       
