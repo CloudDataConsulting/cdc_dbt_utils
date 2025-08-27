@@ -175,6 +175,7 @@ select
      else concat('-W', weekiso(fy_datum))
      end
   || concat('-', dayofweekiso(fy_datum)))::varchar(15) as fiscal_week_of_year_iso_number,
+*/
 
 -- MONTH Section              
   -- https://docs.snowflake.net/manuals/sql-reference/functions/monthname.html#monthname
@@ -208,12 +209,12 @@ select
   extract(MONTH from datum)                                      as month_number,
   datediff('month',datefromparts(1970,1,1), datum)               as month_number_overall,
   mod(month_number - 1, 3) + 1                                   as month_in_quarter_number,
+/*
 -- FISCAL MONTH Section
   extract(MONTH from fy_datum)                                   as fiscal_month_number,
   month_name::varchar(15)                                                     as fiscal_month_name, 
   monthname(datum)                                               as fiscal_month_abbreviation,
   month_in_quarter_number                                        as fiscal_month_in_quarter_number,  
-
 */
 
 -- QUARTER Section

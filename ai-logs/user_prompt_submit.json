@@ -182,5 +182,13 @@
     "permission_mode": "bypassPermissions",
     "hook_event_name": "UserPromptSubmit",
     "prompt": "ok, I loaded the env vars for you. let's try again. "
+  },
+  {
+    "session_id": "1cadc83c-b2fe-48da-9297-864d8136722e",
+    "transcript_path": "/Users/bpruss/.claude/projects/-Users-bpruss-repos-cdc-cdc-dbt-utils/1cadc83c-b2fe-48da-9297-864d8136722e.jsonl",
+    "cwd": "/Users/bpruss/repos/cdc/cdc_dbt_utils",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "instead of rm -rf dbt_packages, use dbt clean. "
   }
 ]
