@@ -1,20 +1,5 @@
  {{ config(materialized='table', ) }}
 
-{#
-DEPRECATION NOTICE - v0.2.0
-===========================
-Column naming convention is changing to use abbreviated suffixes for consistency:
-- "_number" columns now also available as "_num" (e.g., quarter_number -> quarter_num)
-- "_name" columns now also available as "_nm" (e.g., quarter_name -> quarter_nm)
-
-The verbose column names (e.g., quarter_number, quarter_name) are deprecated and will be 
-removed in v1.0.0. Please update your models to use the new abbreviated column names.
-
-For backward compatibility in v0.2.x, both naming conventions are available.
-#}
-
---@bernie Is this our prioritary date dim? Do we want this included with the codegen package or make another standalone package? This might be an easy way to solve our automotus private package issue.
-
 {# {{ config(
     post_hook="alter table {{ this }} add primary key (date_key)",
 ) }} #}
@@ -338,97 +323,62 @@ select
     , null as create_timestamp
 )
 select 
-    -- Date key (no change needed)
+    -- Date key
     date_key,
     full_date,
     same_date_last_year,
     
-    -- Day columns with legacy names and new abbreviated aliases
-    day_name,
-    day_name as day_nm, -- NEW: abbreviated form
-    day_abbreviation,
-    day_abbreviation as day_abbr, -- NEW: consistent abbreviation
-    day_of_week_number,
-    day_of_week_number as day_of_week_num, -- NEW: abbreviated form
-    day_of_week_number_iso,
-    day_of_week_number_iso as day_of_week_num_iso, -- DEPRECATED: use iso_day_of_week_num
-    day_of_week_number_iso as iso_day_of_week_num, -- NEW: proper naming pattern
-    weekday_flag,
-    end_of_week_flag,
+    -- Day columns
+    day_name as day_nm,
+    day_abbreviation as day_abbr,
+    day_of_week_number as day_of_week_num,
+    day_of_week_number_iso as iso_day_of_week_num,
+    weekday_flag as weekday_flg,
+    end_of_week_flag as end_of_week_flg,
     
-    -- Month columns
-    month_name,
-    month_name as month_nm, -- NEW: abbreviated form
-    month_abbreviation,
-    month_abbreviation as month_abbr, -- NEW: consistent abbreviation
-    month_number,
-    month_number as month_num, -- NEW: abbreviated form
-    month_number_overall,
-    month_number_overall as month_num_overall, -- DEPRECATED: use month_overall_num
-    month_number_overall as month_overall_num, -- NEW: proper naming pattern
-    month_in_quarter_number,
-    month_in_quarter_number as month_in_quarter_num, -- NEW: abbreviated form
-    day_of_month_number,
-    day_of_month_number as day_of_month_num, -- NEW: abbreviated form
+    -- Month columns  
+    month_name as month_nm,
+    month_abbreviation as month_abbr,
+    month_number as month_num,
+    month_number_overall as month_overall_num,
+    month_in_quarter_number as month_in_quarter_num,
+    day_of_month_number as day_of_month_num,
     last_day_of_month,
-    end_of_month_flag,
-    day_number_suffix,
-    day_number_suffix as day_num_suffix, -- DEPRECATED: use day_suffix_txt
-    day_number_suffix as day_suffix_txt, -- NEW: proper naming pattern
+    end_of_month_flag as end_of_month_flg,
+    day_number_suffix as day_suffix_txt,
     first_day_of_month,
-    first_day_of_month_flag,
+    first_day_of_month_flag as first_day_of_month_flg,
     
     -- Quarter columns
-    day_of_quarter_number,
-    day_of_quarter_number as day_of_quarter_num, -- NEW: abbreviated form
+    day_of_quarter_number as day_of_quarter_num,
     first_day_of_quarter,
     last_day_of_quarter,
     
     -- Year columns
-    day_of_year_number,
-    day_of_year_number as day_of_year_num, -- NEW: abbreviated form
+    day_of_year_number as day_of_year_num,
     first_day_of_year,
     last_day_of_year,
-    day_number_overall,
-    day_number_overall as day_num_overall, -- DEPRECATED: use day_overall_num
-    day_number_overall as day_overall_num, -- NEW: proper naming pattern
+    day_number_overall as day_overall_num,
     
     -- Week columns
-    week_of_month,
-    week_of_month as week_of_month_num, -- NEW: proper naming pattern
-    week_of_year_number,
-    week_of_year_number as week_of_year_num, -- NEW: abbreviated form
-    week_of_year_number_iso,
-    week_of_year_number_iso as week_of_year_num_iso, -- DEPRECATED: use iso_week_of_year_txt
-    week_of_year_number_iso as iso_week_of_year_txt, -- NEW: proper naming pattern (it's text format YYYY-W##-D)
-    week_num_overall,
-    week_num_overall as week_overall_num, -- NEW: proper naming pattern
-    week_begin_date,
-    week_begin_date as week_begin_dt, -- NEW: proper naming pattern
-    week_begin_date_id,
-    week_begin_date_id as week_begin_id, -- DEPRECATED: use week_begin_key
-    week_begin_date_id as week_begin_key, -- NEW: proper naming for date keys
-    week_end_date,
-    week_end_date as week_end_dt, -- NEW: proper naming pattern
-    week_end_date_id,
-    week_end_date_id as week_end_id, -- DEPRECATED: use week_end_key
-    week_end_date_id as week_end_key, -- NEW: proper naming for date keys
+    week_of_month as week_of_month_num,
+    week_of_year_number as week_of_year_num,
+    week_of_year_number_iso as iso_week_of_year_txt,
+    week_num_overall as week_overall_num,
+    week_begin_date as week_begin_dt,
+    week_begin_date_id as week_begin_key,
+    week_end_date as week_end_dt,
+    week_end_date_id as week_end_key,
     
     -- Quarter and Year
-    quarter_number,
-    quarter_number as quarter_num, -- NEW: abbreviated form
-    quarter_name,
-    quarter_name as quarter_nm, -- NEW: abbreviated form
-    year_number,
-    year_number as year_num, -- NEW: abbreviated form
-    year_number_iso,
-    year_number_iso as year_num_iso, -- DEPRECATED: use iso_year_num
-    year_number_iso as iso_year_num, -- NEW: proper naming pattern
-    yearmonth_number,
-    yearmonth_number as yearmonth_num, -- NEW: abbreviated form
+    quarter_number as quarter_num,
+    quarter_name as quarter_nm,
+    year_number as year_num,
+    year_number_iso as iso_year_num,
+    yearmonth_number as yearmonth_num,
     
     -- Other columns
-    end_of_year_flag,
+    end_of_year_flag as end_of_year_flg,
     epoch,
     yyyymmdd,
     create_user_id,

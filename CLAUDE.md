@@ -94,7 +94,7 @@ ISO-related columns have `iso_` prefix: `iso_day_of_week_num`, `iso_year_num`, `
 - All models materialize as tables by default but can be overridden in consuming project
 
 ## Version History
-- Current version: 0.2.0 (preparing for release)
+- Current version: 1.0.0 (preparing for release)
 - Last published version: 0.1.4
 - See CHANGELOG.md for complete version history
-- New in 0.2.0: dim_date_retail model, CHANGELOG.md, CLAUDE.md
+- Major breaking changes in v1.0.0: Standardized column naming conventions

@@ -8,7 +8,7 @@ Include in your `packages.yml`:
 ```yaml
 packages:
   - git: "https://github.com/CloudDataConsulting/cdc_dbt_utils.git"
-    revision: v0.2.0  # or main for latest
+    revision: v1.0.0  # or main for latest
 ```
 
 Then add to your `dbt_project.yml`:
@@ -61,15 +61,24 @@ This macro appends 4 columns:
     ,current_timestamp dw_modified_ts
 which record valuable timestamps related to when the database objects are created/modified.
 
-## Deprecation Notice (v0.2.0)
+## Breaking Changes in v1.0.0
 
-The `dim_date` model column naming convention is changing for consistency:
-- Columns ending in `_number` will change to `_num` 
-- Columns ending in `_name` will change to `_nm`
+The `dim_date` model column naming convention has been standardized:
+- All columns ending in `_number` are now `_num` 
+- All columns ending in `_name` are now `_nm`
+- Date keys use `_key` suffix (not `_id`)
+- ISO columns have `iso_` prefix
 
-Both naming conventions are available in v0.2.x for backward compatibility. The verbose names will be removed in v1.0.0.
+## Migration from v0.x to v1.0.0
+
+Update your models to use the new column names:
+- `quarter_number` → `quarter_num`
+- `quarter_name` → `quarter_nm` 
+- `day_of_week_number` → `day_of_week_num`
+- `week_begin_date_id` → `week_begin_key`
+- etc.
 
 ## Change Log
-- v0.2.0 - Added dim_date_retail, deprecated verbose column names in dim_date
+- v1.0.0 - Major release with standardized naming conventions and new time dimensions
 - v0.1.4 - Changed tests: to data_tests: per https://docs.getdbt.com/docs/build/data-tests#new-data_tests-syntax
 

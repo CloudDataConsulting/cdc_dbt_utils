@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.2.0] - Unreleased
+## [1.0.0] - Unreleased
 ### Added
 - New dimensional models at different time grains (all derived from dim_date for consistency):
   - **dim_week**: Week-level dimension derived from dim_date with ISO week standards and retail calendar
@@ -21,17 +21,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - dim_date_retail.yml with model documentation and tests
 - CHANGELOG.md for tracking version history
 - CLAUDE.md for repository guidance
-- Standardized column naming conventions with class words at the end:
-  - `_number` columns aliased as `_num` (e.g., `quarter_number` → `quarter_num`)
-  - `_name` columns aliased as `_nm` (e.g., `quarter_name` → `quarter_nm`)
+
+### Changed
+- **BREAKING**: Standardized all column naming conventions with class words at the end:
+  - All `_number` columns renamed to `_num` (e.g., `quarter_number` → `quarter_num`)
+  - All `_name` columns renamed to `_nm` (e.g., `quarter_name` → `quarter_nm`)
   - Date identifiers use `_key` suffix for YYYYMMDD format (e.g., `week_begin_key`)
   - ISO columns prefixed with `iso_` (e.g., `iso_day_of_week_num`, `iso_year_num`)
   - "Overall" metrics follow pattern `{measure}_overall_{class}` (e.g., `day_overall_num`)
   - Proper class word suffixes: `_dt` for dates, `_key` for date keys, `_flg` for flags, `_txt` for text
 
-### Deprecated
-- Verbose column names in dim_date (e.g., `quarter_number`, `quarter_name`) - use abbreviated forms instead
-- These deprecated columns will be removed in v1.0.0
+### Removed
+- **BREAKING**: All verbose column names from dim_date (e.g., `quarter_number`, `quarter_name`)
+- Users must update to use new abbreviated naming convention
 
 ## [0.1.4] - 2024
 ### Fixed

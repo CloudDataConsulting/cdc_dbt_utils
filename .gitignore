@@ -1,0 +1,33 @@
+# dbt
+target/
+dbt_packages/
+logs/
+profiles.yml
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+
+# Testing
+.coverage
+htmlcov/
+
+# AI logs
+ai-logs/
