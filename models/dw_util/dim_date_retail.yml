@@ -1,0 +1,209 @@
+version: 2
+
+models:
+  - name: dim_date_retail
+    description: |
+      Retail calendar dimension table with all three common patterns (445, 454, 544).
+      This model provides trade_week_of_month calculations for all patterns in a single table,
+      making it easy to support different retail calendar requirements without multiple models.
+      
+      Column naming follows CDC standards:
+      - _dt for dates/timestamps
+      - _num for numbers
+      - _flg for boolean flags
+      - _nm for names
+      - _ts for timestamps
+      
+      Key Features:
+      - Single table with all three patterns
+      - Columns suffixed with pattern type (_445_num, _454_num, _544_num)
+      - No configuration or lookups needed - all patterns always available
+      - Designed for cdc_dbt_utils package
+      
+      Pattern Details:
+      - 445: Each quarter has 4-4-5 week months (13 weeks per quarter)
+      - 454: Each quarter has 4-5-4 week months (13 weeks per quarter)  
+      - 544: Each quarter has 5-4-4 week months (13 weeks per quarter)
+    
+    columns:
+      - name: date_key
+        description: Date in YYYYMMDD format as integer
+        tests:
+          - unique
+          - not_null
+      
+      - name: full_dt
+        description: Full date value
+        tests:
+          - not_null
+      
+      # Standard calendar columns with CDC naming
+      - name: calendar_year_num
+        description: Standard calendar year
+        tests:
+          - not_null
+      
+      - name: calendar_quarter_num
+        description: Standard calendar quarter (1-4)
+        tests:
+          - not_null
+      
+      - name: calendar_month_num
+        description: Standard calendar month (1-12)
+        tests:
+          - not_null
+      
+      - name: calendar_week_num
+        description: Standard ISO week number
+        tests:
+          - not_null
+      
+      - name: day_of_week_num
+        description: Day of week (0=Sunday through 6=Saturday)
+        tests:
+          - not_null
+      
+      - name: day_nm
+        description: Day name abbreviation (Mon, Tue, etc.)
+        tests:
+          - not_null
+      
+      # Core retail calendar columns (same for all patterns)
+      - name: trade_year_num
+        description: Retail/trade year (same for all patterns)
+        tests:
+          - not_null
+      
+      - name: trade_week_num
+        description: Retail week number within the year (1-52 or 1-53)
+        tests:
+          - not_null
+      
+      - name: trade_week_start_dt
+        description: Start date of the trade week
+        tests:
+          - not_null
+      
+      - name: trade_week_end_dt
+        description: End date of the trade week
+        tests:
+          - not_null
+      
+      # Pattern-specific month columns
+      - name: trade_month_445_num
+        description: Retail month for 4-4-5 pattern
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      
+      - name: trade_month_454_num
+        description: Retail month for 4-5-4 pattern
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      
+      - name: trade_month_544_num
+        description: Retail month for 5-4-4 pattern
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      
+      # Pattern-specific week of month columns
+      - name: trade_week_of_month_445_num
+        description: Week number within the month for 4-4-5 pattern
+        tests:
+          - not_null
+      
+      - name: trade_week_of_month_454_num
+        description: Week number within the month for 4-5-4 pattern
+        tests:
+          - not_null
+      
+      - name: trade_week_of_month_544_num
+        description: Week number within the month for 5-4-4 pattern
+        tests:
+          - not_null
+      
+      # Common attributes
+      - name: is_leap_week_flg
+        description: Flag indicating if this date falls in the 53rd week
+        tests:
+          - not_null
+      
+      - name: weeks_in_trade_year_num
+        description: Total number of weeks in the trade year (52 or 53)
+        tests:
+          - not_null
+      
+      - name: trade_day_of_year_num
+        description: Day number within the trade year
+        tests:
+          - not_null
+      
+      # ETL metadata
+      - name: dw_deleted_flg
+        description: Soft delete flag
+        tests:
+          - not_null
+      
+      - name: dw_synced_ts
+        description: Timestamp when record was created/updated
+        tests:
+          - not_null
+      
+      - name: dw_source_nm
+        description: Source system name
+        tests:
+          - not_null
+    
+    tests:
+      # Test 445 pattern: months 1,4,7,10 have max 4 weeks; 2,5,8,11 have max 4 weeks; 3,6,9,12 have max 5 weeks
+      - dbt_utils.expression_is_true:
+          expression: |
+            case 
+              when trade_month_445_num in (1, 4, 7, 10) then trade_week_of_month_445_num <= 4
+              when trade_month_445_num in (2, 5, 8, 11) then trade_week_of_month_445_num <= 4
+              when trade_month_445_num in (3, 6, 9, 12) then trade_week_of_month_445_num <= 5
+              else false
+            end
+          config:
+            where: "is_leap_week_flg = false"  # Exclude leap weeks
+            error_if: ">0"
+      
+      # Test 454 pattern: months 1,4,7,10 have max 4 weeks; 2,5,8,11 have max 5 weeks; 3,6,9,12 have max 4 weeks
+      - dbt_utils.expression_is_true:
+          expression: |
+            case 
+              when trade_month_454_num in (1, 4, 7, 10) then trade_week_of_month_454_num <= 4
+              when trade_month_454_num in (2, 5, 8, 11) then trade_week_of_month_454_num <= 5
+              when trade_month_454_num in (3, 6, 9, 12) then trade_week_of_month_454_num <= 4
+              else false
+            end
+          config:
+            where: "is_leap_week_flg = false"  # Exclude leap weeks
+            error_if: ">0"
+      
+      # Test 544 pattern: months 1,4,7,10 have max 5 weeks; 2,5,8,11 have max 4 weeks; 3,6,9,12 have max 4 weeks
+      - dbt_utils.expression_is_true:
+          expression: |
+            case 
+              when trade_month_544_num in (1, 4, 7, 10) then trade_week_of_month_544_num <= 5
+              when trade_month_544_num in (2, 5, 8, 11) then trade_week_of_month_544_num <= 4
+              when trade_month_544_num in (3, 6, 9, 12) then trade_week_of_month_544_num <= 4
+              else false
+            end
+          config:
+            where: "is_leap_week_flg = false"  # Exclude leap weeks
+            error_if: ">0"
+      
+      # Test that all patterns have values between 1 and 6 (6 for leap week months)
+      - dbt_utils.expression_is_true:
+          expression: |
+            trade_week_of_month_445_num between 1 and 6
+            and trade_week_of_month_454_num between 1 and 6
+            and trade_week_of_month_544_num between 1 and 6
+          config:
+            error_if: ">0"
