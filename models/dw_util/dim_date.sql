@@ -55,7 +55,6 @@ select
       then 1
     else 0
   end                                                            as end_of_week_flag, 
-  monthname(datum)                                               as month_name,
   extract(DAY from datum)                                        as day_of_month_number,
   last_day(datum, 'month')                                       as last_day_of_month,
   case 
