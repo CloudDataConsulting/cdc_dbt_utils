@@ -1,12 +1,5 @@
 {{ config(materialized='table') }}
 
-{# 
-Trade Date Dimension with All Patterns
-Provides trade_week_of_month calculations for all three common trade/retail patterns (445, 454, 544)
-in a single table. Column names follow CDC standards with abbreviations (dt, num, ts, flg).
-#}
-
--- Generate base sequence of dates
 with date_sequence as (
     select dateadd(day, seq4(), '1990-01-01'::date) as calendar_date
     from table(generator(rowcount => 20000))  -- ~55 years of dates

@@ -1,10 +1,5 @@
 {{ config(materialized='table', ) }}
 
---@bernie Is this our prioritary time dim? Do we want this included with the codegen package or make another standalone package? This might be an easy way to solve our automotus private package issue.
-
-
-{#{  config(post_hook="alter table {{ this }} add primary key (time_key)") }#}
-
 with gapless_row_numbers as (
   select
     row_number() over (order by seq4()) - 1 as row_number
