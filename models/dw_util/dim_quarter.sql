@@ -16,7 +16,6 @@ with date_dimension as (
         day_of_quarter_num
         , week_of_year_num
     from {{ ref('dim_date') }}
-    where date_key > 0  -- Exclude the -1 "Not Set" record
 ),
 
 quarter_level_aggregation as (

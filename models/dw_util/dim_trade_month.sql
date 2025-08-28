@@ -7,7 +7,7 @@ Includes all three patterns (445, 454, 544) for retail/trade calendar months
 Each pattern has different month boundaries due to different week allocations
 #}
 
-with trade_date as ( select * from  {{ ref('dim_trade_date') }}  where date_key > 0 )  -- Exclude the -1 "Not Set" record if it exists
+with trade_date as ( select * from  {{ ref('dim_trade_date') }} )
 , trade_date_data as (
     -- Pull from dim_trade_date to ensure consistency
     select

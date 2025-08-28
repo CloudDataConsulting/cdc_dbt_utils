@@ -36,7 +36,6 @@ with trade_date as (
         , weeks_in_trade_year_num
         
     from {{ ref('dim_trade_date') }}
-    where date_key > 0  -- Exclude the -1 "Not Set" record if it exists
 ),
 
 -- Aggregate for 445 Pattern

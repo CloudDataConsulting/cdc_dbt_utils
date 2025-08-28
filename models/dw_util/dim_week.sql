@@ -19,7 +19,6 @@ date_dimension_filtered as ( select
         , iso_year_num,
         week_overall_num
     from date_dimension
-    where date_key > 0  -- Exclude the -1 "Not Set" record
 ),
 
 week_level_aggregated as (
