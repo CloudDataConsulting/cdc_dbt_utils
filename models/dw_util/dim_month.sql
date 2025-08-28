@@ -1,13 +1,8 @@
 {{ config(materialized='table') }}
 
-with date_dimension as (
-    select * from {{ ref('dim_date') }}
-)
-
+with date_dimension as (select * from {{ ref('dim_date') }})
 , trade_date_dimension as (
-    select * from {{ ref('dim_date_trade') }}
-)
-
+    select * from {{ ref('dim_date_trade') }} )
 , filtered_date_data as (
     select
         date_key
@@ -26,9 +21,7 @@ with date_dimension as (
         , week_of_year_num
         , month_overall_num
         , yearmonth_num
-    from date_dimension
-)
-
+    from date_dimension)
 , monthly_aggregated_data as (
     -- Aggregate to month level
     select
@@ -56,45 +49,51 @@ with date_dimension as (
         , max(week_of_year_num) as last_week_of_month_num
 
     from filtered_date_data
-    group by yearmonth_num
-)
+    group by yearmonth_num)
 
 , monthly_data_with_trade_calendar as (
     -- Add retail calendar from dim_date_trade if it exists
     select
         m.*
-
         -- Pull retail/trade calendar attributes from dim_date_trade
         -- Using the 15th of the month as the determinant
         , coalesce(
-            (select max(trade_year_num)
-             from trade_date_dimension as dr
-             where dr.calendar_year_num = m.year_num
-               and dr.calendar_month_num = m.month_num
-               and dr.day_of_month_num = 15)
+            (
+                select max(trade_year_num)
+                from trade_date_dimension as dr
+                where
+                    dr.calendar_year_num = m.year_num
+                    and dr.calendar_month_num = m.month_num
+                    and dr.day_of_month_num = 15
+            )
             , m.year_num
         ) as trade_year_num
 
         , coalesce(
-            (select max(trade_month_445_num)
-             from trade_date_dimension as dr
-             where dr.calendar_year_num = m.year_num
-               and dr.calendar_month_num = m.month_num
-               and dr.day_of_month_num = 15)
+            (
+                select max(trade_month_445_num)
+                from trade_date_dimension as dr
+                where
+                    dr.calendar_year_num = m.year_num
+                    and dr.calendar_month_num = m.month_num
+                    and dr.day_of_month_num = 15
+            )
             , m.month_num
         ) as trade_month_num
 
         , coalesce(
-            (select max(calendar_quarter_num)
-             from trade_date_dimension as dr
-             where dr.calendar_year_num = m.year_num
-               and dr.calendar_month_num = m.month_num
-               and dr.day_of_month_num = 15)
+            (
+                select max(calendar_quarter_num)
+                from trade_date_dimension as dr
+                where
+                    dr.calendar_year_num = m.year_num
+                    and dr.calendar_month_num = m.month_num
+                    and dr.day_of_month_num = 15
+            )
             , m.quarter_num
         ) as trade_quarter_num
 
-    from monthly_aggregated_data as m
-)
+    from monthly_aggregated_data as m)
 
 , final as (
     select
@@ -150,25 +149,31 @@ with date_dimension as (
 
         -- Flags
         , case
-            when year_num = year(current_date())
+            when
+                year_num = year(current_date())
                 and month_num = month(current_date())
-            then 1 else 0
+                then 1
+            else 0
         end as is_current_month_flg
 
         , case
-            when year_num = year(dateadd(month, -1, current_date()))
+            when
+                year_num = year(dateadd(month, -1, current_date()))
                 and month_num = month(dateadd(month, -1, current_date()))
-            then 1 else 0
+                then 1
+            else 0
         end as is_prior_month_flg
 
         , case
             when year_num = year(current_date())
-            then 1 else 0
+                then 1
+            else 0
         end as is_current_year_flg
 
         , case
             when last_day_of_month_dt < current_date()
-            then 1 else 0
+                then 1
+            else 0
         end as is_past_month_flg
 
         -- Relative month numbers
@@ -185,7 +190,5 @@ with date_dimension as (
         , current_user as create_user_id
         , current_timestamp as create_timestamp
 
-    from monthly_data_with_trade_calendar
-)
-
+    from monthly_data_with_trade_calendar)
 select * from final
