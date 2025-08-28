@@ -143,7 +143,7 @@ select
   , extract(epoch_second from datum) as epoch
   , to_char(datum, 'yyyymmdd')::varchar(10) as yyyymmdd
   , current_user::varchar(100) as create_user_id
-  , current_timestamp as create_timestamp
+  , current_timestamp as create_ts
 from sequence_gen
 )
 , final as
@@ -194,6 +194,6 @@ select
     , -1 as epoch
     , 'N/A' as yyyymmdd
     , 'system' as create_user_id
-    , current_timestamp as create_timestamp
+    , current_timestamp as create_ts
 )
 select * from final
