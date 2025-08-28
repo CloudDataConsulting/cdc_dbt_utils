@@ -7,7 +7,8 @@
 
 with gapless_row_numbers as ( select
     row_number() over (order by seq4()) - 1 as row_number
-  from table(generator(rowcount => 60*60*24) ) -- rowcount is 60s x 60m x 24h),
+  from table(generator(rowcount => 60*60*24) ) -- rowcount is 60s x 60m x 24h
+),
 time_list as ( select
    to_number(to_char(timeadd('second', row_number, time('00:00')), 'hh24miss')) as time_key
   , timeadd('second', row_number, time('00:00'))                                as time -- dimension starts at 00:00

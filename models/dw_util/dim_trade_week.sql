@@ -39,7 +39,8 @@ trade_date_filtered as ( select
         , trade_day_of_year_num
         
     from trade_date
-    where date_key > 0  -- Exclude the -1 "Not Set" record if it exists),
+    where date_key > 0  -- Exclude the -1 "Not Set" record if it exists
+),
 
 week_aggregated as (
     -- Aggregate to week level, taking consistent values from trade week start date
@@ -175,7 +176,7 @@ final as ( select
         , weeks_in_trade_year_num,
         
         -- Calculate overall week number (weeks since earliest trade week)
-        denserank() over (order by trade_week_start_dt) as trade_week_overall_num,
+        dense_rank() over (order by trade_week_start_dt) as trade_week_overall_num,
         
         -- ETL metadata
         false as dw_deleted_flg

@@ -16,7 +16,8 @@ with date_dimension as (
         day_of_quarter_num
         , week_of_year_num
     from {{ ref('dim_date') }}
-    where date_key > 0  -- Exclude the -1 "Not Set" record),
+    where date_key > 0  -- Exclude the -1 "Not Set" record
+),
 
 quarter_level_aggregation as (
     -- Aggregate to quarter level
@@ -55,31 +56,14 @@ quarter_level_aggregation as (
     from date_dimension
     group by year_num, quarter_num),
 
-quarter_with_retail_calendar as (
-    -- Add retail calendar from dim_date_trade if it exists
+quarter_with_fiscal as (
+    -- Add fiscal calendar support
     select 
         q.*,
         
         -- For fiscal year, default to calendar year (organizations can customize)
         q.year_num as fiscal_year_num
-        , q.quarter_num as fiscal_quarter_num,
-        
-        -- Pull retail/trade calendar attributes from dim_date_trade
-        -- Using the middle of the quarter (day 46) as the determinant
-        coalesce(
-            (select max(trade_year_num) 
-             from {{ ref('dim_date_trade') }} dr
-             where dr.full_dt = dateadd(day, 45, q.first_day_of_quarter_dt))
-            , q.year_num) as trade_year_num,
-        
-        -- Retail quarters often don't align with calendar quarters
-        -- This is simplified - actual implementation would need proper retail quarter logic
-        case 
-            when q.first_month_num in (2,3,4) then 1
-            when q.first_month_num in (5,6,7) then 2
-            when q.first_month_num in (8,9,10) then 3
-            else 4
-        end as trade_quarter_num
+        , q.quarter_num as fiscal_quarter_num
         
     from quarter_level_aggregation q),
 
@@ -127,11 +111,6 @@ final_quarter_dimension as ( select
         , fiscal_quarter_num,
         'FY' || fiscal_year_num::varchar || '-Q' || fiscal_quarter_num::varchar as fiscal_quarter_txt,
         
-        -- Retail calendar
-        trade_year_num
-        , trade_quarter_num,
-        'RY' || trade_year_num::varchar || '-Q' || trade_quarter_num::varchar as trade_quarter_txt,
-        
         -- Flags
         case 
             when year_num = year(current_date()) 
@@ -169,6 +148,6 @@ final_quarter_dimension as ( select
         current_user as create_user_id
         , current_timestamp as create_timestamp
         
-    from quarter_with_retail_calendar)
+    from quarter_with_fiscal)
 
 select * from final_quarter_dimension

@@ -19,7 +19,8 @@ date_dimension_filtered as ( select
         , iso_year_num,
         week_overall_num
     from date_dimension
-    where date_key > 0  -- Exclude the -1 "Not Set" record),
+    where date_key > 0  -- Exclude the -1 "Not Set" record
+),
 
 week_level_aggregated as (
     -- Aggregate to week level, taking values from Monday (first day of ISO week)
@@ -49,31 +50,6 @@ week_level_aggregated as (
     from date_dimension_filtered
     group by week_begin_key),
 
-retail_calendar_dimension as ( select * from {{ ref('dim_date_trade') }} ),
-
-week_with_retail_calendar as (
-    -- Add retail calendar from dim_date_trade if it exists
-    select 
-        w.*,
-        
-        -- Pull retail/trade calendar attributes from retail calendar dimension
-        -- Using Thursday of the week to determine retail period
-        coalesce(
-            (select max(trade_year_num) 
-             from retail_calendar_dimension dr
-             where dr.full_dt between w.week_start_dt and w.week_end_dt
-               and dayofweek(dr.full_dt) = 5)
-            , w.year_num) as trade_year_num,
-        
-        coalesce(
-            (select max(trade_week_num) 
-             from retail_calendar_dimension dr
-             where dr.full_dt between w.week_start_dt and w.week_end_dt
-               and dayofweek(dr.full_dt) = 5)
-            , w.week_of_year_num) as trade_week_num
-        
-    from week_level_aggregated w),
-
 final as ( select
         -- Primary key
         week_key,
@@ -94,10 +70,6 @@ final as ( select
         split_part(iso_week_txt, '-W', 2)::int as iso_week_num
         , iso_year_num,
         iso_week_txt,
-        
-        -- Retail calendar
-        trade_year_num
-        , trade_week_num,
         
         -- Week descriptions
         month_nm || ' ' || year_num::varchar as month_year_nm
@@ -134,6 +106,6 @@ final as ( select
         current_user as create_user_id
         , current_timestamp as create_timestamp
         
-    from week_with_retail_calendar)
+    from week_level_aggregated)
 
 select * from final

@@ -9,7 +9,8 @@ in a single table. Column names follow CDC standards with abbreviations (dt, num
 -- Generate base sequence of dates
 with date_sequence as ( select
         dateadd(day, seq4(), '1990-01-01'::date) as calendar_date
-    from table(generator(rowcount => 20000))  -- ~55 years of dates)
+    from table(generator(rowcount => 20000))  -- ~55 years of dates
+)
 
 -- Calculate retail year boundaries (Sunday nearest to Jan 1)
 , retail_years as (

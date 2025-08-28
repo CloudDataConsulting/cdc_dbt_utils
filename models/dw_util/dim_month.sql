@@ -2,8 +2,6 @@
 
 with date_dimension as ( select * from {{ ref('dim_date') }} ),
 
-trade_date_dimension as ( select * from {{ ref('dim_date_trade') }} ),
-
 filtered_date_data as ( select 
         date_key
         , full_date,
@@ -22,7 +20,8 @@ filtered_date_data as ( select
         month_overall_num
         , yearmonth_num
     from date_dimension
-    where date_key > 0  -- Exclude the -1 "Not Set" record),
+    where date_key > 0  -- Exclude the -1 "Not Set" record
+),
 
 monthly_aggregated_data as (
     -- Aggregate to month level
@@ -52,39 +51,6 @@ monthly_aggregated_data as (
         
     from filtered_date_data
     group by yearmonth_num),
-
-monthly_data_with_trade_calendar as (
-    -- Add retail calendar from dim_date_trade if it exists
-    select 
-        m.*,
-        
-        -- Pull retail/trade calendar attributes from dim_date_trade
-        -- Using the 15th of the month as the determinant
-        coalesce(
-            (select max(trade_year_num) 
-             from trade_date_dimension dr
-             where dr.calendar_year_num = m.year_num
-               and dr.calendar_month_num = m.month_num
-               and dr.day_of_month_num = 15)
-            , m.year_num) as trade_year_num,
-        
-        coalesce(
-            (select max(trade_month_445_num)
-             from trade_date_dimension dr
-             where dr.calendar_year_num = m.year_num
-               and dr.calendar_month_num = m.month_num
-               and dr.day_of_month_num = 15)
-            , m.month_num) as trade_month_num,
-        
-        coalesce(
-            (select max(calendar_quarter_num)
-             from trade_date_dimension dr
-             where dr.calendar_year_num = m.year_num
-               and dr.calendar_month_num = m.month_num
-               and dr.day_of_month_num = 15)
-            , m.quarter_num) as trade_quarter_num
-        
-    from monthly_aggregated_data m),
 
 final as ( select
         -- Primary key
@@ -128,11 +94,6 @@ final as ( select
         days_in_month_num
         , weeks_in_month_num,
         
-        -- Retail calendar
-        trade_year_num
-        , trade_month_num,
-        trade_quarter_num,
-        
         -- Position in year
         month_num as month_of_year_num
         , month_num as month_of_year_fiscal_num,  -- Can be overridden for fiscal calendars
@@ -174,6 +135,6 @@ final as ( select
         current_user as create_user_id
         , current_timestamp as create_timestamp
         
-    from monthly_data_with_trade_calendar)
+    from monthly_aggregated_data)
 
 select * from final
