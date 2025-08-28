@@ -21,8 +21,8 @@ time_list as ( select
   , not day_shift_flag                                                          as night_shift_flag
   , iff(hour < 12, 'am', 'pm')                                                  as time_period
   {{ last_run_fields() }}
-from gapless_row_numbers),
-null_values as ( select 
+from gapless_row_numbers)
+, null_values as ( select
      -1 as time_key
   , null                              as time -- dimension starts at 00:00
   , -1                                                     as hour

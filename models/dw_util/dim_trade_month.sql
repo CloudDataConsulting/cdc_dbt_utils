@@ -11,36 +11,36 @@ with trade_date as ( select * from  {{ ref('dim_trade_date') }}  where date_key 
 , trade_date_data as (
     -- Pull from dim_trade_date to ensure consistency
     select
-        date_key,
-        full_dt,
-        trade_year_num,
-        trade_week_num,
-        trade_week_start_dt,
-        trade_week_end_dt,
+        date_key
+        , full_dt,
+        trade_year_num
+        , trade_week_num,
+        trade_week_start_dt
+        , trade_week_end_dt,
 
         -- Month and quarter attributes for all patterns
-        trade_month_445_num,
-        trade_month_454_num,
-        trade_month_544_num,
-        trade_month_445_nm,
-        trade_month_454_nm,
-        trade_month_544_nm,
+        trade_month_445_num
+        , trade_month_454_num,
+        trade_month_544_num
+        , trade_month_445_nm,
+        trade_month_454_nm
+        , trade_month_544_nm,
 
-        trade_quarter_445_num,
-        trade_quarter_454_num,
-        trade_quarter_544_num,
-        trade_quarter_445_nm,
-        trade_quarter_454_nm,
-        trade_quarter_544_nm,
+        trade_quarter_445_num
+        , trade_quarter_454_num,
+        trade_quarter_544_num
+        , trade_quarter_445_nm,
+        trade_quarter_454_nm
+        , trade_quarter_544_nm,
 
         -- Week of period attributes for all patterns
-        trade_week_of_month_445_num,
-        trade_week_of_month_454_num,
+        trade_week_of_month_445_num
+        , trade_week_of_month_454_num,
         trade_week_of_month_544_num,
 
         -- Common attributes
-        is_leap_week_flg,
-        weeks_in_trade_year_num
+        is_leap_week_flg
+        , weeks_in_trade_year_num
 
     from trade_date)
 ,
@@ -52,23 +52,23 @@ month_445_aggregated as (
         trade_year_num * 100 + trade_month_445_num as trade_month_445_key,
 
         -- Month boundaries for 445 pattern
-        min(full_dt) as trade_month_445_start_dt,
-        max(full_dt) as trade_month_445_end_dt,
-        min(date_key) as trade_month_445_start_key,
-        max(date_key) as trade_month_445_end_key,
+        min(full_dt) as trade_month_445_start_dt
+        , max(full_dt) as trade_month_445_end_dt,
+        min(date_key) as trade_month_445_start_key
+        , max(date_key) as trade_month_445_end_key,
 
         -- Trade calendar attributes (same for all days in month)
-        max(trade_year_num) as trade_year_num,
-        max(trade_month_445_num) as trade_month_445_num,
-        max(trade_month_445_nm) as trade_month_445_nm,
-        max(trade_quarter_445_num) as trade_quarter_445_num,
+        max(trade_year_num) as trade_year_num
+        , max(trade_month_445_num) as trade_month_445_num,
+        max(trade_month_445_nm) as trade_month_445_nm
+        , max(trade_quarter_445_num) as trade_quarter_445_num,
         max(trade_quarter_445_nm) as trade_quarter_445_nm,
 
         -- Month metrics for 445 pattern
-        count(distinct full_dt) as days_in_month_445_num,
-        count(distinct trade_week_num) as weeks_in_month_445_num,
-        min(trade_week_num) as first_week_of_month_445_num,
-        max(trade_week_num) as last_week_of_month_445_num,
+        count(distinct full_dt) as days_in_month_445_num
+        , count(distinct trade_week_num) as weeks_in_month_445_num,
+        min(trade_week_num) as first_week_of_month_445_num
+        , max(trade_week_num) as last_week_of_month_445_num,
 
         -- Calculate month in quarter
         case trade_month_445_num
@@ -80,8 +80,8 @@ month_445_aggregated as (
 
     from trade_date_data
     group by
-        trade_year_num,
-        trade_month_445_num),
+        trade_year_num
+        , trade_month_445_num),
 
 -- Aggregate for 454 Pattern
 month_454_aggregated as (
@@ -90,23 +90,23 @@ month_454_aggregated as (
         trade_year_num * 100 + trade_month_454_num as trade_month_454_key,
 
         -- Month boundaries for 454 pattern
-        min(full_dt) as trade_month_454_start_dt,
-        max(full_dt) as trade_month_454_end_dt,
-        min(date_key) as trade_month_454_start_key,
-        max(date_key) as trade_month_454_end_key,
+        min(full_dt) as trade_month_454_start_dt
+        , max(full_dt) as trade_month_454_end_dt,
+        min(date_key) as trade_month_454_start_key
+        , max(date_key) as trade_month_454_end_key,
 
         -- Trade calendar attributes
-        max(trade_year_num) as trade_year_num,
-        max(trade_month_454_num) as trade_month_454_num,
-        max(trade_month_454_nm) as trade_month_454_nm,
-        max(trade_quarter_454_num) as trade_quarter_454_num,
+        max(trade_year_num) as trade_year_num
+        , max(trade_month_454_num) as trade_month_454_num,
+        max(trade_month_454_nm) as trade_month_454_nm
+        , max(trade_quarter_454_num) as trade_quarter_454_num,
         max(trade_quarter_454_nm) as trade_quarter_454_nm,
 
         -- Month metrics for 454 pattern
-        count(distinct full_dt) as days_in_month_454_num,
-        count(distinct trade_week_num) as weeks_in_month_454_num,
-        min(trade_week_num) as first_week_of_month_454_num,
-        max(trade_week_num) as last_week_of_month_454_num,
+        count(distinct full_dt) as days_in_month_454_num
+        , count(distinct trade_week_num) as weeks_in_month_454_num,
+        min(trade_week_num) as first_week_of_month_454_num
+        , max(trade_week_num) as last_week_of_month_454_num,
 
         -- Calculate month in quarter
         case trade_month_454_num
@@ -118,8 +118,8 @@ month_454_aggregated as (
 
     from trade_date_data
     group by
-        trade_year_num,
-        trade_month_454_num),
+        trade_year_num
+        , trade_month_454_num),
 
 -- Aggregate for 544 Pattern
 month_544_aggregated as (
@@ -128,23 +128,23 @@ month_544_aggregated as (
         trade_year_num * 100 + trade_month_544_num as trade_month_544_key,
 
         -- Month boundaries for 544 pattern
-        min(full_dt) as trade_month_544_start_dt,
-        max(full_dt) as trade_month_544_end_dt,
-        min(date_key) as trade_month_544_start_key,
-        max(date_key) as trade_month_544_end_key,
+        min(full_dt) as trade_month_544_start_dt
+        , max(full_dt) as trade_month_544_end_dt,
+        min(date_key) as trade_month_544_start_key
+        , max(date_key) as trade_month_544_end_key,
 
         -- Trade calendar attributes
-        max(trade_year_num) as trade_year_num,
-        max(trade_month_544_num) as trade_month_544_num,
-        max(trade_month_544_nm) as trade_month_544_nm,
-        max(trade_quarter_544_num) as trade_quarter_544_num,
+        max(trade_year_num) as trade_year_num
+        , max(trade_month_544_num) as trade_month_544_num,
+        max(trade_month_544_nm) as trade_month_544_nm
+        , max(trade_quarter_544_num) as trade_quarter_544_num,
         max(trade_quarter_544_nm) as trade_quarter_544_nm,
 
         -- Month metrics for 544 pattern
-        count(distinct full_dt) as days_in_month_544_num,
-        count(distinct trade_week_num) as weeks_in_month_544_num,
-        min(trade_week_num) as first_week_of_month_544_num,
-        max(trade_week_num) as last_week_of_month_544_num,
+        count(distinct full_dt) as days_in_month_544_num
+        , count(distinct trade_week_num) as weeks_in_month_544_num,
+        min(trade_week_num) as first_week_of_month_544_num
+        , max(trade_week_num) as last_week_of_month_544_num,
 
         -- Calculate month in quarter
         case trade_month_544_num
@@ -156,8 +156,8 @@ month_544_aggregated as (
 
     from trade_date_data
     group by
-        trade_year_num,
-        trade_month_544_num),
+        trade_year_num
+        , trade_month_544_num),
 
 -- Combine all patterns into a unified structure
 unified_months as (
@@ -166,28 +166,28 @@ unified_months as (
         '445' as trade_pattern_txt,
 
         -- Primary keys
-        trade_month_445_key as trade_month_key,
-        trade_year_num * 10000 + trade_month_445_num * 100 + 445 as trade_month_pattern_key,
+        trade_month_445_key as trade_month_key
+        , trade_year_num * 10000 + trade_month_445_num * 100 + 445 as trade_month_pattern_key,
 
         -- Core attributes
-        trade_year_num,
-        trade_month_445_num as trade_month_num,
-        trade_month_445_nm as trade_month_nm,
-        trade_quarter_445_num as trade_quarter_num,
-        trade_quarter_445_nm as trade_quarter_nm,
-        month_in_quarter_445_num as month_in_quarter_num,
+        trade_year_num
+        , trade_month_445_num as trade_month_num,
+        trade_month_445_nm as trade_month_nm
+        , trade_quarter_445_num as trade_quarter_num,
+        trade_quarter_445_nm as trade_quarter_nm
+        , month_in_quarter_445_num as month_in_quarter_num,
 
         -- Month boundaries
-        trade_month_445_start_dt as trade_month_start_dt,
-        trade_month_445_end_dt as trade_month_end_dt,
-        trade_month_445_start_key as trade_month_start_key,
-        trade_month_445_end_key as trade_month_end_key,
+        trade_month_445_start_dt as trade_month_start_dt
+        , trade_month_445_end_dt as trade_month_end_dt,
+        trade_month_445_start_key as trade_month_start_key
+        , trade_month_445_end_key as trade_month_end_key,
 
         -- Metrics
-        days_in_month_445_num as days_in_month_num,
-        weeks_in_month_445_num as weeks_in_month_num,
-        first_week_of_month_445_num as first_week_of_month_num,
-        last_week_of_month_445_num as last_week_of_month_num
+        days_in_month_445_num as days_in_month_num
+        , weeks_in_month_445_num as weeks_in_month_num,
+        first_week_of_month_445_num as first_week_of_month_num
+        , last_week_of_month_445_num as last_week_of_month_num
 
     from month_445_aggregated
 
@@ -198,28 +198,28 @@ unified_months as (
         '454' as trade_pattern_txt,
 
         -- Primary keys
-        trade_month_454_key as trade_month_key,
-        trade_year_num * 10000 + trade_month_454_num * 100 + 454 as trade_month_pattern_key,
+        trade_month_454_key as trade_month_key
+        , trade_year_num * 10000 + trade_month_454_num * 100 + 454 as trade_month_pattern_key,
 
         -- Core attributes
-        trade_year_num,
-        trade_month_454_num as trade_month_num,
-        trade_month_454_nm as trade_month_nm,
-        trade_quarter_454_num as trade_quarter_num,
-        trade_quarter_454_nm as trade_quarter_nm,
-        month_in_quarter_454_num as month_in_quarter_num,
+        trade_year_num
+        , trade_month_454_num as trade_month_num,
+        trade_month_454_nm as trade_month_nm
+        , trade_quarter_454_num as trade_quarter_num,
+        trade_quarter_454_nm as trade_quarter_nm
+        , month_in_quarter_454_num as month_in_quarter_num,
 
         -- Month boundaries
-        trade_month_454_start_dt as trade_month_start_dt,
-        trade_month_454_end_dt as trade_month_end_dt,
-        trade_month_454_start_key as trade_month_start_key,
-        trade_month_454_end_key as trade_month_end_key,
+        trade_month_454_start_dt as trade_month_start_dt
+        , trade_month_454_end_dt as trade_month_end_dt,
+        trade_month_454_start_key as trade_month_start_key
+        , trade_month_454_end_key as trade_month_end_key,
 
         -- Metrics
-        days_in_month_454_num as days_in_month_num,
-        weeks_in_month_454_num as weeks_in_month_num,
-        first_week_of_month_454_num as first_week_of_month_num,
-        last_week_of_month_454_num as last_week_of_month_num
+        days_in_month_454_num as days_in_month_num
+        , weeks_in_month_454_num as weeks_in_month_num,
+        first_week_of_month_454_num as first_week_of_month_num
+        , last_week_of_month_454_num as last_week_of_month_num
 
     from month_454_aggregated
 
@@ -230,52 +230,52 @@ unified_months as (
         '544' as trade_pattern_txt,
 
         -- Primary keys
-        trade_month_544_key as trade_month_key,
-        trade_year_num * 10000 + trade_month_544_num * 100 + 544 as trade_month_pattern_key,
+        trade_month_544_key as trade_month_key
+        , trade_year_num * 10000 + trade_month_544_num * 100 + 544 as trade_month_pattern_key,
 
         -- Core attributes
-        trade_year_num,
-        trade_month_544_num as trade_month_num,
-        trade_month_544_nm as trade_month_nm,
-        trade_quarter_544_num as trade_quarter_num,
-        trade_quarter_544_nm as trade_quarter_nm,
-        month_in_quarter_544_num as month_in_quarter_num,
+        trade_year_num
+        , trade_month_544_num as trade_month_num,
+        trade_month_544_nm as trade_month_nm
+        , trade_quarter_544_num as trade_quarter_num,
+        trade_quarter_544_nm as trade_quarter_nm
+        , month_in_quarter_544_num as month_in_quarter_num,
 
         -- Month boundaries
-        trade_month_544_start_dt as trade_month_start_dt,
-        trade_month_544_end_dt as trade_month_end_dt,
-        trade_month_544_start_key as trade_month_start_key,
-        trade_month_544_end_key as trade_month_end_key,
+        trade_month_544_start_dt as trade_month_start_dt
+        , trade_month_544_end_dt as trade_month_end_dt,
+        trade_month_544_start_key as trade_month_start_key
+        , trade_month_544_end_key as trade_month_end_key,
 
         -- Metrics
-        days_in_month_544_num as days_in_month_num,
-        weeks_in_month_544_num as weeks_in_month_num,
-        first_week_of_month_544_num as first_week_of_month_num,
-        last_week_of_month_544_num as last_week_of_month_num
+        days_in_month_544_num as days_in_month_num
+        , weeks_in_month_544_num as weeks_in_month_num,
+        first_week_of_month_544_num as first_week_of_month_num
+        , last_week_of_month_544_num as last_week_of_month_num
 
     from month_544_aggregated),
 
 final as ( select
         -- Primary keys
-        trade_month_pattern_key,  -- Unique across all patterns
-        trade_month_key,          -- Pattern-specific key (YYYYMM format)
+        trade_month_pattern_key -- Unique across all patterns
+        , trade_month_key,          -- Pattern-specific key (YYYYMM format)
 
         -- Pattern identifier
         trade_pattern_txt,
 
         -- Core trade calendar
-        trade_year_num,
-        trade_month_num,
-        trade_month_nm,
-        trade_quarter_num,
-        trade_quarter_nm,
-        month_in_quarter_num,
+        trade_year_num
+        , trade_month_num,
+        trade_month_nm
+        , trade_quarter_num,
+        trade_quarter_nm
+        , month_in_quarter_num,
 
         -- Month boundaries
-        trade_month_start_dt,
-        trade_month_end_dt,
-        trade_month_start_key,
-        trade_month_end_key,
+        trade_month_start_dt
+        , trade_month_end_dt,
+        trade_month_start_key
+        , trade_month_end_key,
 
         -- Quarter information
         case trade_quarter_num
@@ -286,8 +286,8 @@ final as ( select
         end as trade_quarter_txt,
 
         -- Month descriptions
-        trade_month_nm || ' ' || trade_year_num::varchar as trade_month_year_nm,
-        left(trade_month_nm, 3) || ' ' || trade_year_num::varchar as trade_month_year_abbr,
+        trade_month_nm || ' ' || trade_year_num::varchar as trade_month_year_nm
+        , left(trade_month_nm, 3) || ' ' || trade_year_num::varchar as trade_month_year_abbr,
         trade_year_num::varchar || '-' || lpad(trade_month_num::varchar, 2, '0') as trade_year_month_txt,
 
         -- Month abbreviation
@@ -299,14 +299,14 @@ final as ( select
         end as trade_month_abbr,
 
         -- Pattern-specific descriptions
-        trade_pattern_txt || ' Pattern: ' || trade_month_nm || ' ' || trade_year_num::varchar as trade_month_pattern_desc_txt,
-        'TM' || lpad(trade_month_num::varchar, 2, '0') || ' ' || trade_year_num::varchar || ' (' || trade_pattern_txt || ')' as trade_month_pattern_code_txt,
+        trade_pattern_txt || ' Pattern: ' || trade_month_nm || ' ' || trade_year_num::varchar as trade_month_pattern_desc_txt
+        , 'TM' || lpad(trade_month_num::varchar, 2, '0') || ' ' || trade_year_num::varchar || ' (' || trade_pattern_txt || ')' as trade_month_pattern_code_txt,
 
         -- Month metrics
-        days_in_month_num,
-        weeks_in_month_num,
-        first_week_of_month_num,
-        last_week_of_month_num,
+        days_in_month_num
+        , weeks_in_month_num,
+        first_week_of_month_num
+        , last_week_of_month_num,
 
         -- Expected weeks based on pattern
         case
@@ -348,12 +348,12 @@ final as ( select
         end as is_past_trade_month_flg,
 
         -- Relative month calculations
-        datediff(month, trade_month_start_dt, current_date()) as trade_months_ago_num,
-        datediff(month, current_date(), trade_month_start_dt) as trade_months_from_now_num,
+        datediff(month, trade_month_start_dt, current_date()) as trade_months_ago_num
+        , datediff(month, current_date(), trade_month_start_dt) as trade_months_from_now_num,
 
         -- Position in year
-        trade_month_num as trade_month_of_year_num,
-        round(trade_month_num / 12.0 * 100, 1) as trade_month_pct_of_year_num,
+        trade_month_num as trade_month_of_year_num
+        , round(trade_month_num / 12.0 * 100, 1) as trade_month_pct_of_year_num,
 
         -- Calculate overall month number (months since earliest trade month)
         dense_rank() over (partition by trade_pattern_txt order by trade_month_start_dt) as trade_month_overall_num,
@@ -362,10 +362,10 @@ final as ( select
         trade_year_num * 12 + trade_month_num - 1 as trade_month_sort_num,
 
         -- ETL metadata
-        false as dw_deleted_flg,
-        current_timestamp as dw_synced_ts,
-        'dim_trade_month' as dw_source_nm,
-        current_user as create_user_id,
+        false as dw_deleted_flg
+        , current_timestamp as dw_synced_ts,
+        'dim_trade_month' as dw_source_nm
+        , current_user as create_user_id,
         current_timestamp as create_timestamp
 
     from unified_months)
