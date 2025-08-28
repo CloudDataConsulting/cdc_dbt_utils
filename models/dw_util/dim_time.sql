@@ -31,6 +31,9 @@ from gapless_row_numbers)
   , null as night_shift_flag
   , 'Not Set' as time_period
   {{ last_run_fields() }})
-select * from time_list
-union all
-select * from null_values
+, final as (
+  select * from time_list
+  union all
+  select * from null_values
+)
+select * from final
