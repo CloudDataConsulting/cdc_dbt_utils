@@ -10,7 +10,7 @@ with sequence_gen as (
 select
   to_char(datum, 'yyyymmdd') :: int as date_key
   , datum as full_date
-  , datum - interval '1 year' as same_date_last_year
+  , datum - interval '1 year' as same_dt_last_year
   , case
     when dayname(datum) = 'Mon'
       then 'Monday'
@@ -26,27 +26,27 @@ select
       then 'Saturday'
     when dayname(datum) = 'Sun'
       then 'Sunday'
-  end::varchar(30) as day_name
-  , dayname(datum) as day_abbreviation
-  , extract(dayofweek from datum) + 1 as day_of_week_number
-  , extract(dayofweekiso from datum) as day_of_week_number_iso
+  end::varchar(30) as day_nm
+  , dayname(datum) as day_abbr
+  , extract(dayofweek from datum) + 1 as day_of_week_num
+  , extract(dayofweekiso from datum) as iso_day_of_week_num
   , case
   when extract(dayofweekiso from datum) IN (6, 7)
     then 'Weekend'
     else 'Weekday'
-  end as weekday_flag
+  end as weekday_flg
   , case
     when dateadd(day, 7 - extract(dayofweekiso from datum), datum) = datum
       then 1
     else 0
-  end as end_of_week_flag
-  , extract(DAY from datum) as day_of_month_number
-  , last_day(datum, 'month') as last_day_of_month
+  end as end_of_week_flg
+  , extract(DAY from datum) as day_of_month_num
+  , last_day(datum, 'month') as last_day_of_month_dt
   , case
-    when day_of_month_number = extract(day from last_day_of_month)
+    when day_of_month_num = extract(day from last_day_of_month_dt)
       then 1
     else 0
-  end as end_of_month_flag
+  end as end_of_month_flg
   , case
     when mod(to_char(datum, 'dd') :: int, 10) = 1
       then to_char(datum, 'dd') :: int || 'st'
@@ -55,42 +55,42 @@ select
     when mod(to_char(datum, 'dd') :: int, 10) = 3
       then to_char(datum, 'dd') :: int || 'rd'
     else to_char(datum, 'dd') :: int || 'th'
-  end::varchar(10) as day_number_suffix
-  , date_trunc('month', datum) as first_day_of_month
+  end::varchar(10) as day_suffix_txt
+  , date_trunc('month', datum) as first_day_of_month_dt
   , case
     when date_trunc('month', datum) =  datum
-      then 1                       
+      then 1
     else 0
-  end as first_day_of_month_flag
-  , datediff(day, date_trunc('quarter', datum), datum) + 1 as day_of_quarter_number
-  , date_trunc('quarter', datum) as first_day_of_quarter
-  , last_day(datum, 'quarter') as last_day_of_quarter
-  , extract(dayofyear from datum) as day_of_year_number
-  , (extract(year from datum) || '-01-01') :: date as first_day_of_year
-  , (extract(year from datum) || '-12-31') :: date as last_day_of_year
-  , datediff('d',datefromparts(1970,1,1), datum) as day_number_overall
-  , datediff(week, date_trunc('month', datum), datum) + 1 as week_of_month
-  , extract(week from datum) as week_of_year_number
+  end as first_day_of_month_flg
+  , datediff(day, date_trunc('quarter', datum), datum) + 1 as day_of_quarter_num
+  , date_trunc('quarter', datum) as first_day_of_quarter_dt
+  , last_day(datum, 'quarter') as last_day_of_quarter_dt
+  , extract(dayofyear from datum) as day_of_year_num
+  , (extract(year from datum) || '-01-01') :: date as first_day_of_year_dt
+  , (extract(year from datum) || '-12-31') :: date as last_day_of_year_dt
+  , datediff('d',datefromparts(1970,1,1), datum) as day_overall_num
+  , datediff(week, date_trunc('month', datum), datum) + 1 as week_of_month_num
+  , extract(week from datum) as week_of_year_num
   , (yearofweekiso(datum)
   || case
      when length(weekiso(datum)) = 1
        then concat('-W0', weekiso(datum))
      else concat('-W', weekiso(datum))
      end
-  || concat('-', dayofweekiso(datum)))::varchar(15) as week_of_year_number_iso
-  , datediff('w',datefromparts(1970,1,1), datum) as week_num_overall
-  , dateadd(day, 1 - extract(dayofweekiso from datum), datum) as week_begin_date
+  || concat('-', dayofweekiso(datum)))::varchar(15) as iso_week_of_year_txt
+  , datediff('w',datefromparts(1970,1,1), datum) as week_overall_num
+  , dateadd(day, 1 - extract(dayofweekiso from datum), datum) as week_begin_dt
   , to_number(
     to_char(
       dateadd(day
               , 1 - extract(dayofweekiso from datum),
-              datum), 'yyyymmdd')) as week_begin_date_id
-  , dateadd(day, 7 - extract(dayofweekiso from datum), datum) as week_end_date
+              datum), 'yyyymmdd')) as week_begin_key
+  , dateadd(day, 7 - extract(dayofweekiso from datum), datum) as week_end_dt
   , to_number(
     to_char(
       dateadd(day
               , 7 - extract(dayofweekiso from datum),
-              datum), 'yyyymmdd')) as week_end_date_id
+              datum), 'yyyymmdd')) as week_end_key
   , case
     when monthname(datum) = 'Jan'
       then 'January'
@@ -116,12 +116,12 @@ select
       then 'November'
     when monthname(datum) = 'Dec'
       then 'December'
-  end::varchar(30) as month_name
-  , monthname(datum) as month_abbreviation
-  , extract(MONTH from datum) as month_number
-  , datediff('month',datefromparts(1970,1,1), datum) as month_number_overall
-  , mod(month_number - 1, 3) + 1 as month_in_quarter_number
-  , extract(quarter from datum) as quarter_number
+  end::varchar(30) as month_nm
+  , monthname(datum) as month_abbr
+  , extract(MONTH from datum) as month_num
+  , datediff('month',datefromparts(1970,1,1), datum) as month_overall_num
+  , mod(month_num - 1, 3) + 1 as month_in_quarter_num
+  , extract(quarter from datum) as quarter_num
   , case
   when extract(quarter from datum) = 1
     then 'First'
@@ -131,15 +131,15 @@ select
     then 'Third'
   when extract(quarter from datum) = 4
     then 'Fourth'
-  end::varchar(20) as quarter_name
-  , extract(year from datum) as year_number
-  , extract(yearofweekiso from datum) as year_number_iso
-  , to_char(datum, 'yyyymm')::number as yearmonth_number
+  end::varchar(20) as quarter_nm
+  , extract(year from datum) as year_num
+  , extract(yearofweekiso from datum) as iso_year_num
+  , to_char(datum, 'yyyymm')::number as yearmonth_num
   , case
     when (extract(year from fy_datum) || '-12-31') :: date = datum
       then 1
     else 0
-  end as end_of_year_flag
+  end as end_of_year_flg
   , extract(epoch_second from datum) as epoch
   , to_char(datum, 'yyyymmdd')::varchar(10) as yyyymmdd
   , current_user::varchar(100) as create_user_id
@@ -148,97 +148,52 @@ from sequence_gen
 )
 , final as
 ( select * from gen_date
-union all 
+union
 select
     -1 as date_key
     , to_date('99991231','yyyymmdd') as full_date
-    , null as same_date_last_year
-    , 'Not Set' as day_name
-    , null as day_abbreviation
-    , null as day_of_week_number
-    , null as day_of_week_number_iso
-    , null as weekday_flag
-    , null as end_of_week_flag
-    , null as month_name
-    , null as month_abbreviation
-    , null as month_number
-    , null as month_number_overall
-    , null as month_in_quarter_number
-    , null as day_of_month_number
-    , null as last_day_of_month
-    , null as end_of_month_flag
-    , null as day_number_suffix
-    , null as first_day_of_month
-    , null as first_day_of_month_flag
-    , null as day_of_quarter_number
-    , null as first_day_of_quarter
-    , null as last_day_of_quarter
-    , null as day_of_year_number
-    , null as first_day_of_year
-    , null as last_day_of_year
-    , null as day_number_overall
-    , null as week_of_month
-    , null as week_of_year_number
-    , null as week_of_year_number_iso
-    , null as week_num_overall
-    , null as week_begin_date
-    , null as week_begin_date_id
-    , null as week_end_date
-    , null as week_end_date_id
-    , null as quarter_number
-    , null as quarter_name
-    , null as year_number
-    , null as year_number_iso
-    , null as yearmonth_number
-    , null as end_of_year_flag
-    , null as epoch
-    , null as yyyymmdd
-    , null as create_user_id
-    , null as create_timestamp)
-select 
-    date_key
-    , full_date
-    , same_date_last_year
-    , day_name as day_nm
-    , day_abbreviation as day_abbr
-    , day_of_week_number as day_of_week_num
-    , day_of_week_number_iso as iso_day_of_week_num
-    , weekday_flag as weekday_flg
-    , end_of_week_flag as end_of_week_flg
-    , month_name as month_nm
-    , month_abbreviation as month_abbr
-    , month_number as month_num
-    , month_number_overall as month_overall_num
-    , month_in_quarter_number as month_in_quarter_num
-    , day_of_month_number as day_of_month_num
-    , last_day_of_month
-    , end_of_month_flag as end_of_month_flg
-    , day_number_suffix as day_suffix_txt
-    , first_day_of_month
-    , first_day_of_month_flag as first_day_of_month_flg
-    , day_of_quarter_number as day_of_quarter_num
-    , first_day_of_quarter
-    , last_day_of_quarter
-    , day_of_year_number as day_of_year_num
-    , first_day_of_year
-    , last_day_of_year
-    , day_number_overall as day_overall_num
-    , week_of_month as week_of_month_num
-    , week_of_year_number as week_of_year_num
-    , week_of_year_number_iso as iso_week_of_year_txt
-    , week_num_overall as week_overall_num
-    , week_begin_date as week_begin_dt
-    , week_begin_date_id as week_begin_key
-    , week_end_date as week_end_dt
-    , week_end_date_id as week_end_key
-    , quarter_number as quarter_num
-    , quarter_name as quarter_nm
-    , year_number as year_num
-    , year_number_iso as iso_year_num
-    , yearmonth_number as yearmonth_num
-    , end_of_year_flag as end_of_year_flg
-    , epoch
-    , yyyymmdd
-    , create_user_id
-    , create_timestamp
-from final
+    , null as same_dt_last_year
+    , 'Not Set' as day_nm
+    , 'N/A' as day_abbr
+    , -1 as day_of_week_num
+    , -1 as iso_day_of_week_num
+    , 'N/A' as weekday_flg
+    , 0 as end_of_week_flg
+    , -1 as day_of_month_num
+    , null as last_day_of_month_dt
+    , 0 as end_of_month_flg
+    , 'N/A' as day_suffix_txt
+    , null as first_day_of_month_dt
+    , 0 as first_day_of_month_flg
+    , -1 as day_of_quarter_num
+    , null as first_day_of_quarter_dt
+    , null as last_day_of_quarter_dt
+    , -1 as day_of_year_num
+    , null as first_day_of_year_dt
+    , null as last_day_of_year_dt
+    , -1 as day_overall_num
+    , -1 as week_of_month_num
+    , -1 as week_of_year_num
+    , 'N/A' as iso_week_of_year_txt
+    , -1 as week_overall_num
+    , null as week_begin_dt
+    , -1 as week_begin_key
+    , null as week_end_dt
+    , -1 as week_end_key
+    , 'Not Set' as month_nm
+    , 'N/A' as month_abbr
+    , -1 as month_num
+    , -1 as month_overall_num
+    , -1 as month_in_quarter_num
+    , -1 as quarter_num
+    , 'Not Set' as quarter_nm
+    , -1 as year_num
+    , -1 as iso_year_num
+    , -1 as yearmonth_num
+    , 0 as end_of_year_flg
+    , -1 as epoch
+    , 'N/A' as yyyymmdd
+    , 'system' as create_user_id
+    , current_timestamp as create_timestamp
+)
+select * from final
