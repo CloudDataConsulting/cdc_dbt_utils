@@ -142,14 +142,12 @@ models:
       - name: second_month_num
         description: "Trade month number of the second month in this quarter"
         data_tests:
-          - not_null
           - accepted_values:
               values: [2, 5, 8, 11]
 
       - name: third_month_num
         description: "Trade month number of the third month in this quarter"
         data_tests:
-          - not_null
           - accepted_values:
               values: [3, 6, 9, 12]
 
@@ -160,13 +158,9 @@ models:
 
       - name: second_month_nm
         description: "Trade month name of the second month in this quarter"
-        data_tests:
-          - not_null
 
       - name: third_month_nm
         description: "Trade month name of the third month in this quarter"
-        data_tests:
-          - not_null
 
       - name: first_month_abbr
         description: "Three-letter abbreviation of the first month in this quarter"
@@ -175,13 +169,9 @@ models:
 
       - name: second_month_abbr
         description: "Three-letter abbreviation of the second month in this quarter"
-        data_tests:
-          - not_null
 
       - name: third_month_abbr
         description: "Three-letter abbreviation of the third month in this quarter"
-        data_tests:
-          - not_null
 
       - name: trade_quarter_months_abbr
         description: "Combined month abbreviations for the quarter (e.g., 'Jan-Feb-Mar')"

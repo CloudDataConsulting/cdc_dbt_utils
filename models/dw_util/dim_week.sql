@@ -4,7 +4,7 @@ with date_dimension as ( select * from {{ ref('dim_date') }} ),
 week_level_aggregated as (
     select
         week_begin_key as week_key
-        , min(week_begin_dt) as week_start_dt
+        , min(week_begin_dt) as week_begin_dt
         , max(week_end_dt) as week_end_dt
         , min(week_end_key) as week_end_key
         , max(case when dayofweek(full_date) = 5 then year_num end) as year_num
@@ -22,7 +22,7 @@ week_level_aggregated as (
 final as ( 
     select
         week_key
-        , week_start_dt
+        , week_begin_dt
         , week_end_dt
         , week_end_key
         , year_num
@@ -37,12 +37,12 @@ final as (
         , 'Week ' || week_of_month_num::varchar || ' of ' || month_nm as week_of_month_nm
         , 'W' || lpad(week_of_year_num::varchar, 2, '0') || ' ' || year_num::varchar as week_year_txt
         , case 
-            when week_start_dt <= current_date() 
+            when week_begin_dt <= current_date() 
                 and week_end_dt >= current_date() 
             then 1 else 0 
         end as is_current_week_flg
         , case 
-            when week_start_dt <= dateadd(week, -1, current_date()) 
+            when week_begin_dt <= dateadd(week, -1, current_date()) 
                 and week_end_dt >= dateadd(week, -1, current_date()) 
             then 1 else 0 
         end as is_prior_week_flg
@@ -50,8 +50,8 @@ final as (
             when year_num = year(current_date()) 
             then 1 else 0 
         end as is_current_year_flg
-        , datediff(week, week_start_dt, current_date()) as weeks_ago_num
-        , datediff(week, date_trunc(year, week_start_dt), week_start_dt) + 1 as week_of_year_fiscal_num
+        , datediff(week, week_begin_dt, current_date()) as weeks_ago_num
+        , datediff(week, date_trunc(year, week_begin_dt), week_begin_dt) + 1 as week_of_year_fiscal_num
         , days_in_week_num
         , week_overall_num
         , current_user as create_user_id

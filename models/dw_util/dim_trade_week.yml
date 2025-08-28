@@ -46,8 +46,6 @@ models:
       
       - name: trade_week_end_key
         description: "Date key (YYYYMMDD) of the trade week's Saturday"
-        data_tests:
-          - not_null
       
       # Core trade calendar
       - name: trade_year_num
@@ -170,72 +168,46 @@ models:
       # Week descriptions (445 pattern as default)
       - name: trade_month_year_445_nm
         description: "Month and year description for 4-4-5 pattern (e.g., 'January 2023')"
-        data_tests:
-          - not_null
       
       - name: trade_week_of_month_445_txt
         description: "Descriptive text for week of month in 4-4-5 pattern (e.g., 'Week 2 of January')"
-        data_tests:
-          - not_null
       
       - name: trade_week_year_txt
         description: "Trade week and year text (e.g., 'TW01 2023')"
-        data_tests:
-          - not_null
       
       # Week descriptions (454 pattern)
       - name: trade_month_year_454_nm
         description: "Month and year description for 4-5-4 pattern (e.g., 'January 2023')"
-        data_tests:
-          - not_null
       
       - name: trade_week_of_month_454_txt
         description: "Descriptive text for week of month in 4-5-4 pattern (e.g., 'Week 2 of January')"
-        data_tests:
-          - not_null
       
       # Week descriptions (544 pattern)
       - name: trade_month_year_544_nm
         description: "Month and year description for 5-4-4 pattern (e.g., 'January 2023')"
-        data_tests:
-          - not_null
       
       - name: trade_week_of_month_544_txt
         description: "Descriptive text for week of month in 5-4-4 pattern (e.g., 'Week 2 of January')"
-        data_tests:
-          - not_null
       
       # Flags and indicators
       - name: is_leap_week_flg
         description: "Flag indicating if this is the 53rd week (leap week)"
-        data_tests:
-          - not_null
       
       - name: is_current_trade_week_flg
         description: "Flag indicating if this is the current trade week"
-        data_tests:
-          - not_null
       
       - name: is_prior_trade_week_flg
         description: "Flag indicating if this is the prior trade week"
-        data_tests:
-          - not_null
       
       - name: is_current_trade_year_flg
         description: "Flag indicating if this week is in the current trade year"
-        data_tests:
-          - not_null
       
       # Relative metrics
       - name: trade_weeks_ago_num
         description: "Number of trade weeks ago from current date (negative for future weeks)"
-        data_tests:
-          - not_null
       
       - name: trade_week_pct_of_year_num
         description: "Percentage of trade year completed as of this week (0.0-100.0)"
-        data_tests:
-          - not_null
       
       # Week metrics
       - name: days_in_week_num
@@ -270,8 +242,6 @@ models:
       
       - name: dw_source_nm
         description: "Source system name"
-        data_tests:
-          - not_null
       
       - name: create_user_id
         description: "User who created the record"

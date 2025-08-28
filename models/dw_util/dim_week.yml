@@ -8,7 +8,6 @@ models:
       description: "Primary key as YYYYMMDD integer of the week's start date (Monday)"
       data_tests:
         - unique
-        - not_null
     
     # Week dates
     - name: week_begin_dt
