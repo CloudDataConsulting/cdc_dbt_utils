@@ -8,6 +8,7 @@ models:
       description: "Primary key as YYYYQ integer (e.g., 20231 for Q1 2023)"
       data_tests:
         - unique
+        - not_null
     
     # Quarter dates
     - name: first_day_of_quarter_dt
