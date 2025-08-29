@@ -99,20 +99,20 @@ with date_sequence as ( select
         , rp.trade_week_num
         , rp.trade_week_start_dt
         , rp.trade_week_end_dt
-        , rp.weeks_in_year
+        , rp.weeks_in_year as weeks_in_trade_year_num
         , rp.trade_month_445_num
         , rp.trade_month_454_num
         , rp.trade_month_544_num
         , dense_rank() over (
             partition by rp.trade_year_num, rp.trade_month_445_num 
-            order by rp.trade_week_num) as trade_week_of_month_445
+            order by rp.trade_week_num) as trade_week_of_month_445_num
         , dense_rank() over (
             partition by rp.trade_year_num, rp.trade_month_454_num 
-            order by rp.trade_week_num) as trade_week_of_month_454
+            order by rp.trade_week_num) as trade_week_of_month_454_num
         , dense_rank() over (
             partition by rp.trade_year_num, rp.trade_month_544_num 
-            order by rp.trade_week_num) as trade_week_of_month_544
-        , case when rp.trade_week_num = 53 then true else false end as is_leap_week
+            order by rp.trade_week_num) as trade_week_of_month_544_num
+        , case when rp.trade_week_num = 53 then true else false end as is_leap_week_flg
         , datediff(day, rp.trade_year_start, ds.calendar_date) + 1 as trade_day_of_year_num
     from date_sequence ds
     inner join trade_periods rp
