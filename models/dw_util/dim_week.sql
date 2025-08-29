@@ -30,7 +30,10 @@ final as (
         , month_num
         , week_of_year_num
         , week_of_month_num
-        , split_part(iso_week_txt, '-W', 2)::int as iso_week_num
+        , case 
+            when iso_week_txt = 'N/A' then -1
+            else split_part(split_part(iso_week_txt, '-W', 2), '-', 1)::int 
+        end as iso_week_num
         , iso_year_num
         , iso_week_txt
         , month_nm || ' ' || year_num::varchar as month_year_nm
