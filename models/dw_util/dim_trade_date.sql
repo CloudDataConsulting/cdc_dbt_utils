@@ -92,7 +92,7 @@ with date_sequence as ( select
         , year(ds.calendar_date) as calendar_year
         , quarter(ds.calendar_date) as calendar_quarter
         , month(ds.calendar_date) as calendar_month
-        , week(ds.calendar_date) as calendar_week
+        , weekofyear(ds.calendar_date) as calendar_week
         , dayofweek(ds.calendar_date) as day_of_week
         , dayname(ds.calendar_date) as day_name
         , rp.trade_year_num
@@ -128,10 +128,18 @@ with date_sequence as ( select
         , calendar_week as calendar_week_num
         , day_of_week as day_of_week_num
         , dayofweekiso(calendar_date) as iso_day_of_week_num
-        , day_name as day_nm
-        , left(day_name, 3) as day_abbr
+        , case dayofweek(ds.calendar_date)
+            when 0 then 'Sunday'
+            when 1 then 'Monday'
+            when 2 then 'Tuesday'
+            when 3 then 'Wednesday'
+            when 4 then 'Thursday'
+            when 5 then 'Friday'
+            when 6 then 'Saturday'
+        end as day_nm
+        , day_name as day_abbr
         , case 
-            when day_of_week in (1, 7) then 'Weekend'
+            when day_of_week in (0, 6) then 'Weekend'
             else 'Weekday'
         end as weekday_flg
         , case
@@ -148,8 +156,21 @@ with date_sequence as ( select
             else day(calendar_date)::varchar || 'th'
         end as day_suffix_txt
         , datediff('d', date('1970-01-01'), calendar_date) as day_overall_num
-        , monthname(calendar_date) as month_nm
-        , left(monthname(calendar_date), 3) as month_abbr
+        , case month(ds.calendar_date)
+            when 1 then 'January'
+            when 2 then 'February'
+            when 3 then 'March'
+            when 4 then 'April'
+            when 5 then 'May'
+            when 6 then 'June'
+            when 7 then 'July'
+            when 8 then 'August'
+            when 9 then 'September'
+            when 10 then 'October'
+            when 11 then 'November'
+            when 12 then 'December'
+        end as month_nm
+        , monthname(calendar_date) as month_abbr
         , month(calendar_date) as month_num
         , day(calendar_date) as day_of_month_num
         , datediff('month', date('1970-01-01'), calendar_date) as month_overall_num
@@ -179,12 +200,12 @@ with date_sequence as ( select
             lpad(weekiso(calendar_date)::varchar, 2, '0') || '-' || 
             dayofweekiso(calendar_date)::varchar as iso_week_of_year_txt
         , datediff('w', date('1970-01-01'), calendar_date) as week_overall_num
-        , dateadd(day, 1 - dayofweekiso(calendar_date), calendar_date) as week_begin_dt
-        , to_char(dateadd(day, 1 - dayofweekiso(calendar_date), calendar_date), 'yyyymmdd')::int as week_begin_key
-        , dateadd(day, 7 - dayofweekiso(calendar_date), calendar_date) as week_end_dt
-        , to_char(dateadd(day, 7 - dayofweekiso(calendar_date), calendar_date), 'yyyymmdd')::int as week_end_key
-        , date_part(epoch_second, calendar_date) as epoch
-        , to_char(calendar_date, 'yyyymmdd')::int as yyyymmdd
+        , dateadd(day, 1 - dayofweekiso(calendar_date), calendar_date) as calendar_week_begin_dt
+        , to_char(dateadd(day, 1 - dayofweekiso(calendar_date), calendar_date), 'yyyymmdd')::int as calendar_week_begin_key
+        , dateadd(day, 7 - dayofweekiso(calendar_date), calendar_date) as calendar_week_end_dt
+        , to_char(dateadd(day, 7 - dayofweekiso(calendar_date), calendar_date), 'yyyymmdd')::int as calendar_week_end_key
+        , date_part(epoch_second, calendar_date) as epoch_num
+        -- Removed yyyymmdd as it's redundant with date_key
         , trade_year_num
         , trade_week_num
         , trade_week_start_dt
