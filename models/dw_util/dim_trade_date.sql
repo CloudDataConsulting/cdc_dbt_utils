@@ -128,7 +128,7 @@ with date_sequence as ( select
         , calendar_week as calendar_week_num
         , day_of_week as day_of_week_num
         , dayofweekiso(calendar_date) as iso_day_of_week_num
-        , case dayofweek(ds.calendar_date)
+        , case dayofweek(calendar_date)
             when 0 then 'Sunday'
             when 1 then 'Monday'
             when 2 then 'Tuesday'
@@ -156,7 +156,7 @@ with date_sequence as ( select
             else day(calendar_date)::varchar || 'th'
         end as day_suffix_txt
         , datediff('d', date('1970-01-01'), calendar_date) as day_overall_num
-        , case month(ds.calendar_date)
+        , case month(calendar_date)
             when 1 then 'January'
             when 2 then 'February'
             when 3 then 'March'
