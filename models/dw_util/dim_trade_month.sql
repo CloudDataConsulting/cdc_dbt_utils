@@ -4,7 +4,7 @@ with trade_date as ( select * from {{ ref('dim_trade_date') }} )
 , trade_date_data as (
     select
         date_key
-        , full_dt
+        , calendar_full_dt
         , trade_year_num
         , trade_week_num
         , trade_week_start_dt
@@ -18,13 +18,11 @@ with trade_date as ( select * from {{ ref('dim_trade_date') }} )
         , trade_quarter_445_num
         , trade_quarter_454_num
         , trade_quarter_544_num
-        , trade_quarter_445_nm
-        , trade_quarter_454_nm
-        , trade_quarter_544_nm
+        , trade_quarter_nm
         , trade_week_of_month_445_num
         , trade_week_of_month_454_num
         , trade_week_of_month_544_num
-        , is_leap_week_flg
+        , is_trade_leap_week_flg
         , weeks_in_trade_year_num
     from trade_date)
 , month_445_aggregated as (
@@ -35,9 +33,9 @@ with trade_date as ( select * from {{ ref('dim_trade_date') }} )
         , trade_month_445_num as trade_month_num
         , trade_month_445_nm as trade_month_nm
         , trade_quarter_445_num as trade_quarter_num
-        , trade_quarter_445_nm as trade_quarter_nm
-        , min(full_dt) as first_day_of_month_dt
-        , max(full_dt) as last_day_of_month_dt
+        , trade_quarter_nm
+        , min(calendar_full_dt) as first_day_of_month_dt
+        , max(calendar_full_dt) as last_day_of_month_dt
         , min(date_key) as first_day_of_month_key
         , max(date_key) as last_day_of_month_key
         , min(trade_week_num) as first_week_of_month_num
@@ -45,9 +43,9 @@ with trade_date as ( select * from {{ ref('dim_trade_date') }} )
         , count(distinct trade_week_num) as weeks_in_month_num
         , count(*) as days_in_month_num
         , max(case when trade_week_of_month_445_num = 5 then 1 else 0 end) as is_5_week_month_flg
-        , max(is_leap_week_flg) as contains_leap_week_flg
+        , max(is_trade_leap_week_flg) as contains_leap_week_flg
     from trade_date_data
-    group by trade_year_num, trade_month_445_num, trade_month_445_nm, trade_quarter_445_num, trade_quarter_445_nm)
+    group by trade_year_num, trade_month_445_num, trade_month_445_nm, trade_quarter_445_num, trade_quarter_nm)
 , month_454_aggregated as (
     select
         trade_year_num::varchar || lpad(trade_month_454_num::varchar, 2, '0') || '454' as trade_month_key
@@ -56,9 +54,9 @@ with trade_date as ( select * from {{ ref('dim_trade_date') }} )
         , trade_month_454_num as trade_month_num
         , trade_month_454_nm as trade_month_nm
         , trade_quarter_454_num as trade_quarter_num
-        , trade_quarter_454_nm as trade_quarter_nm
-        , min(full_dt) as first_day_of_month_dt
-        , max(full_dt) as last_day_of_month_dt
+        , trade_quarter_nm
+        , min(calendar_full_dt) as first_day_of_month_dt
+        , max(calendar_full_dt) as last_day_of_month_dt
         , min(date_key) as first_day_of_month_key
         , max(date_key) as last_day_of_month_key
         , min(trade_week_num) as first_week_of_month_num
@@ -66,9 +64,9 @@ with trade_date as ( select * from {{ ref('dim_trade_date') }} )
         , count(distinct trade_week_num) as weeks_in_month_num
         , count(*) as days_in_month_num
         , max(case when trade_week_of_month_454_num = 5 then 1 else 0 end) as is_5_week_month_flg
-        , max(is_leap_week_flg) as contains_leap_week_flg
+        , max(is_trade_leap_week_flg) as contains_leap_week_flg
     from trade_date_data
-    group by trade_year_num, trade_month_454_num, trade_month_454_nm, trade_quarter_454_num, trade_quarter_454_nm)
+    group by trade_year_num, trade_month_454_num, trade_month_454_nm, trade_quarter_454_num, trade_quarter_nm)
 , month_544_aggregated as (
     select
         trade_year_num::varchar || lpad(trade_month_544_num::varchar, 2, '0') || '544' as trade_month_key
@@ -77,9 +75,9 @@ with trade_date as ( select * from {{ ref('dim_trade_date') }} )
         , trade_month_544_num as trade_month_num
         , trade_month_544_nm as trade_month_nm
         , trade_quarter_544_num as trade_quarter_num
-        , trade_quarter_544_nm as trade_quarter_nm
-        , min(full_dt) as first_day_of_month_dt
-        , max(full_dt) as last_day_of_month_dt
+        , trade_quarter_nm
+        , min(calendar_full_dt) as first_day_of_month_dt
+        , max(calendar_full_dt) as last_day_of_month_dt
         , min(date_key) as first_day_of_month_key
         , max(date_key) as last_day_of_month_key
         , min(trade_week_num) as first_week_of_month_num
@@ -87,9 +85,9 @@ with trade_date as ( select * from {{ ref('dim_trade_date') }} )
         , count(distinct trade_week_num) as weeks_in_month_num
         , count(*) as days_in_month_num
         , max(case when trade_week_of_month_544_num = 5 then 1 else 0 end) as is_5_week_month_flg
-        , max(is_leap_week_flg) as contains_leap_week_flg
+        , max(is_trade_leap_week_flg) as contains_leap_week_flg
     from trade_date_data
-    group by trade_year_num, trade_month_544_num, trade_month_544_nm, trade_quarter_544_num, trade_quarter_544_nm)
+    group by trade_year_num, trade_month_544_num, trade_month_544_nm, trade_quarter_544_num, trade_quarter_nm)
 , all_patterns_union as (
     select * from month_445_aggregated
     union all
@@ -177,7 +175,6 @@ with trade_date as ( select * from {{ ref('dim_trade_date') }} )
         -- Percentage of year
         , round(days_in_month_num / 365.0 * 100, 2) as trade_month_pct_of_year_num
         -- DW metadata
-        , false as dw_deleted_flg
         , current_timestamp as dw_synced_ts
         , 'dim_trade_month' as dw_source_nm
         , current_user as create_user_id

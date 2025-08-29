@@ -190,6 +190,8 @@ models:
           - not_null
           - accepted_values:
               values: [13, 14]
+              config:
+                where: "trade_year_num < 2041"  # Exclude partial year data
 
       - name: months_in_quarter_num
         description: "Number of months in the trade quarter (always 3)"
@@ -197,6 +199,8 @@ models:
           - not_null
           - accepted_values:
               values: [3]
+              config:
+                where: "trade_year_num < 2041"  # Exclude partial year data
 
       - name: first_week_of_quarter_num
         description: "Trade week number of the first week in this quarter"
@@ -214,6 +218,8 @@ models:
           - not_null
           - accepted_values:
               values: [13, 14]
+              config:
+                where: "trade_year_num < 2041"  # Exclude partial year data
 
       - name: trade_week_span_txt
         description: "Descriptive text of week span (e.g., 'Weeks 1-13' or 'Week 14')"
@@ -281,11 +287,6 @@ models:
           - not_null
 
       # ETL metadata
-      - name: dw_deleted_flg
-        description: "Soft delete flag"
-        data_tests:
-          - not_null
-
       - name: dw_synced_ts
         description: "Timestamp when record was created/updated"
         data_tests:
@@ -311,6 +312,7 @@ models:
       - dbt_utils.expression_is_true:
           expression: "weeks_in_quarter_num = expected_weeks_in_quarter_num"
           config:
+            where: "trade_year_num < 2041"  # Exclude partial year data
             error_if: ">0"
 
       # Test that all quarters have 13 weeks except Q4 which may have 14 (leap week)
@@ -322,6 +324,7 @@ models:
               else false
             end
           config:
+            where: "trade_year_num < 2041"  # Exclude partial year data
             error_if: ">0"
 
       # Test that trade quarter end date is after start date
@@ -334,6 +337,7 @@ models:
       - dbt_utils.expression_is_true:
           expression: "days_in_quarter_num between 91 and 98"
           config:
+            where: "trade_year_num < 2041"  # Exclude partial year data
             error_if: ">0"
 
       # Test that trade quarter key matches year and quarter components

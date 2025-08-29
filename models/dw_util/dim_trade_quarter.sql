@@ -3,7 +3,7 @@
 with trade_date as (
     select 
         date_key
-        , full_dt
+        , calendar_full_dt
         , trade_year_num
         , trade_week_num
         , trade_week_start_dt
@@ -11,38 +11,34 @@ with trade_date as (
         , trade_quarter_445_num
         , trade_quarter_454_num
         , trade_quarter_544_num
-        , trade_quarter_445_nm
-        , trade_quarter_454_nm
-        , trade_quarter_544_nm
+        , trade_quarter_nm
         , trade_month_445_num
         , trade_month_454_num
         , trade_month_544_num
         , trade_month_445_nm
         , trade_month_454_nm
         , trade_month_544_nm
-        , trade_week_of_quarter_445_num
-        , trade_week_of_quarter_454_num
-        , trade_week_of_quarter_544_num
-        , is_leap_week_flg
+        , trade_week_of_quarter_num
+        , is_trade_leap_week_flg
         , weeks_in_trade_year_num
     from {{ ref('dim_trade_date') }}),
 quarter_445_aggregated as (
     select
         trade_year_num * 10 + trade_quarter_445_num as trade_quarter_445_key
-        , min(full_dt) as trade_quarter_445_start_dt
-        , max(full_dt) as trade_quarter_445_end_dt
+        , min(calendar_full_dt) as trade_quarter_445_start_dt
+        , max(calendar_full_dt) as trade_quarter_445_end_dt
         , min(date_key) as trade_quarter_445_start_key
         , max(date_key) as trade_quarter_445_end_key
         , max(trade_year_num) as trade_year_num
         , max(trade_quarter_445_num) as trade_quarter_445_num
-        , max(trade_quarter_445_nm) as trade_quarter_445_nm
-        , min(case when trade_week_of_quarter_445_num <= 4 then trade_month_445_num end) as first_month_445_num
-        , min(case when trade_week_of_quarter_445_num <= 4 then trade_month_445_nm end) as first_month_445_nm
-        , min(case when trade_week_of_quarter_445_num > 4 and trade_week_of_quarter_445_num <= 8 then trade_month_445_num end) as second_month_445_num
-        , min(case when trade_week_of_quarter_445_num > 4 and trade_week_of_quarter_445_num <= 8 then trade_month_445_nm end) as second_month_445_nm
-        , max(case when trade_week_of_quarter_445_num > 8 then trade_month_445_num end) as third_month_445_num
-        , max(case when trade_week_of_quarter_445_num > 8 then trade_month_445_nm end) as third_month_445_nm
-        , count(distinct full_dt) as days_in_quarter_445_num
+        , max(trade_quarter_nm) as trade_quarter_nm
+        , min(case when trade_week_of_quarter_num <= 4 then trade_month_445_num end) as first_month_445_num
+        , min(case when trade_week_of_quarter_num <= 4 then trade_month_445_nm end) as first_month_445_nm
+        , min(case when trade_week_of_quarter_num > 4 and trade_week_of_quarter_num <= 8 then trade_month_445_num end) as second_month_445_num
+        , min(case when trade_week_of_quarter_num > 4 and trade_week_of_quarter_num <= 8 then trade_month_445_nm end) as second_month_445_nm
+        , max(case when trade_week_of_quarter_num > 8 then trade_month_445_num end) as third_month_445_num
+        , max(case when trade_week_of_quarter_num > 8 then trade_month_445_nm end) as third_month_445_nm
+        , count(distinct calendar_full_dt) as days_in_quarter_445_num
         , count(distinct trade_week_num) as weeks_in_quarter_445_num
         , count(distinct trade_month_445_num) as months_in_quarter_445_num
         , min(trade_week_num) as first_week_of_quarter_445_num
@@ -54,20 +50,20 @@ quarter_445_aggregated as (
 quarter_454_aggregated as (
     select
         trade_year_num * 10 + trade_quarter_454_num as trade_quarter_454_key
-        , min(full_dt) as trade_quarter_454_start_dt
-        , max(full_dt) as trade_quarter_454_end_dt
+        , min(calendar_full_dt) as trade_quarter_454_start_dt
+        , max(calendar_full_dt) as trade_quarter_454_end_dt
         , min(date_key) as trade_quarter_454_start_key
         , max(date_key) as trade_quarter_454_end_key
         , max(trade_year_num) as trade_year_num
         , max(trade_quarter_454_num) as trade_quarter_454_num
-        , max(trade_quarter_454_nm) as trade_quarter_454_nm
-        , min(case when trade_week_of_quarter_454_num <= 4 then trade_month_454_num end) as first_month_454_num
-        , min(case when trade_week_of_quarter_454_num <= 4 then trade_month_454_nm end) as first_month_454_nm
-        , min(case when trade_week_of_quarter_454_num > 4 and trade_week_of_quarter_454_num <= 9 then trade_month_454_num end) as second_month_454_num
-        , min(case when trade_week_of_quarter_454_num > 4 and trade_week_of_quarter_454_num <= 9 then trade_month_454_nm end) as second_month_454_nm
-        , max(case when trade_week_of_quarter_454_num > 9 then trade_month_454_num end) as third_month_454_num
-        , max(case when trade_week_of_quarter_454_num > 9 then trade_month_454_nm end) as third_month_454_nm
-        , count(distinct full_dt) as days_in_quarter_454_num
+        , max(trade_quarter_nm) as trade_quarter_nm
+        , min(case when trade_week_of_quarter_num <= 4 then trade_month_454_num end) as first_month_454_num
+        , min(case when trade_week_of_quarter_num <= 4 then trade_month_454_nm end) as first_month_454_nm
+        , min(case when trade_week_of_quarter_num > 4 and trade_week_of_quarter_num <= 9 then trade_month_454_num end) as second_month_454_num
+        , min(case when trade_week_of_quarter_num > 4 and trade_week_of_quarter_num <= 9 then trade_month_454_nm end) as second_month_454_nm
+        , max(case when trade_week_of_quarter_num > 9 then trade_month_454_num end) as third_month_454_num
+        , max(case when trade_week_of_quarter_num > 9 then trade_month_454_nm end) as third_month_454_nm
+        , count(distinct calendar_full_dt) as days_in_quarter_454_num
         , count(distinct trade_week_num) as weeks_in_quarter_454_num
         , count(distinct trade_month_454_num) as months_in_quarter_454_num
         , min(trade_week_num) as first_week_of_quarter_454_num
@@ -79,20 +75,20 @@ quarter_454_aggregated as (
 quarter_544_aggregated as (
     select
         trade_year_num * 10 + trade_quarter_544_num as trade_quarter_544_key
-        , min(full_dt) as trade_quarter_544_start_dt
-        , max(full_dt) as trade_quarter_544_end_dt
+        , min(calendar_full_dt) as trade_quarter_544_start_dt
+        , max(calendar_full_dt) as trade_quarter_544_end_dt
         , min(date_key) as trade_quarter_544_start_key
         , max(date_key) as trade_quarter_544_end_key
         , max(trade_year_num) as trade_year_num
         , max(trade_quarter_544_num) as trade_quarter_544_num
-        , max(trade_quarter_544_nm) as trade_quarter_544_nm
-        , min(case when trade_week_of_quarter_544_num <= 5 then trade_month_544_num end) as first_month_544_num
-        , min(case when trade_week_of_quarter_544_num <= 5 then trade_month_544_nm end) as first_month_544_nm
-        , min(case when trade_week_of_quarter_544_num > 5 and trade_week_of_quarter_544_num <= 9 then trade_month_544_num end) as second_month_544_num
-        , min(case when trade_week_of_quarter_544_num > 5 and trade_week_of_quarter_544_num <= 9 then trade_month_544_nm end) as second_month_544_nm
-        , max(case when trade_week_of_quarter_544_num > 9 then trade_month_544_num end) as third_month_544_num
-        , max(case when trade_week_of_quarter_544_num > 9 then trade_month_544_nm end) as third_month_544_nm
-        , count(distinct full_dt) as days_in_quarter_544_num
+        , max(trade_quarter_nm) as trade_quarter_nm
+        , min(case when trade_week_of_quarter_num <= 5 then trade_month_544_num end) as first_month_544_num
+        , min(case when trade_week_of_quarter_num <= 5 then trade_month_544_nm end) as first_month_544_nm
+        , min(case when trade_week_of_quarter_num > 5 and trade_week_of_quarter_num <= 9 then trade_month_544_num end) as second_month_544_num
+        , min(case when trade_week_of_quarter_num > 5 and trade_week_of_quarter_num <= 9 then trade_month_544_nm end) as second_month_544_nm
+        , max(case when trade_week_of_quarter_num > 9 then trade_month_544_num end) as third_month_544_num
+        , max(case when trade_week_of_quarter_num > 9 then trade_month_544_nm end) as third_month_544_nm
+        , count(distinct calendar_full_dt) as days_in_quarter_544_num
         , count(distinct trade_week_num) as weeks_in_quarter_544_num
         , count(distinct trade_month_544_num) as months_in_quarter_544_num
         , min(trade_week_num) as first_week_of_quarter_544_num
@@ -108,7 +104,7 @@ unified_quarters as (
         , trade_year_num * 10000 + trade_quarter_445_num * 1000 + 445 as trade_quarter_pattern_key
         , trade_year_num
         , trade_quarter_445_num as trade_quarter_num
-        , trade_quarter_445_nm as trade_quarter_nm
+        , trade_quarter_nm
         , trade_quarter_445_start_dt as trade_quarter_start_dt
         , trade_quarter_445_end_dt as trade_quarter_end_dt
         , trade_quarter_445_start_key as trade_quarter_start_key
@@ -133,7 +129,7 @@ unified_quarters as (
         , trade_year_num * 10000 + trade_quarter_454_num * 1000 + 454 as trade_quarter_pattern_key
         , trade_year_num
         , trade_quarter_454_num as trade_quarter_num
-        , trade_quarter_454_nm as trade_quarter_nm
+        , trade_quarter_nm
         , trade_quarter_454_start_dt as trade_quarter_start_dt
         , trade_quarter_454_end_dt as trade_quarter_end_dt
         , trade_quarter_454_start_key as trade_quarter_start_key
@@ -158,7 +154,7 @@ unified_quarters as (
         , trade_year_num * 10000 + trade_quarter_544_num * 1000 + 544 as trade_quarter_pattern_key
         , trade_year_num
         , trade_quarter_544_num as trade_quarter_num
-        , trade_quarter_544_nm as trade_quarter_nm
+        , trade_quarter_nm
         , trade_quarter_544_start_dt as trade_quarter_start_dt
         , trade_quarter_544_end_dt as trade_quarter_end_dt
         , trade_quarter_544_start_key as trade_quarter_start_key
@@ -281,7 +277,6 @@ final as (
         , round(trade_quarter_num / 4.0 * 100, 1) as trade_quarter_pct_of_year_num
         , dense_rank() over (partition by trade_pattern_txt order by trade_quarter_start_dt) as trade_quarter_overall_num
         , trade_year_num * 4 + trade_quarter_num - 1 as trade_quarter_sort_num
-        , false as dw_deleted_flg
         , current_timestamp as dw_synced_ts
         , 'dim_trade_quarter' as dw_source_nm
         , current_user as create_user_id

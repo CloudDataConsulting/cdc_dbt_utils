@@ -80,7 +80,7 @@ models:
           - accepted_values:
               values: [1, 2, 3, 4]
       
-      - name: trade_quarter_445_nm
+      - name: trade_quarter_nm
         description: "Trade quarter name for 4-4-5 pattern (First, Second, Third, Fourth)"
         data_tests:
           - not_null
@@ -90,8 +90,8 @@ models:
         data_tests:
           - not_null
       
-      - name: trade_week_of_quarter_445_num
-        description: "Week number within the quarter for 4-4-5 pattern (1-13, or 14 for leap weeks)"
+      - name: trade_week_of_quarter_num
+        description: "Week number within the quarter (1-13, or 14 for leap weeks) - same for all patterns"
         data_tests:
           - not_null
       
@@ -115,20 +115,12 @@ models:
           - accepted_values:
               values: [1, 2, 3, 4]
       
-      - name: trade_quarter_454_nm
-        description: "Trade quarter name for 4-5-4 pattern (First, Second, Third, Fourth)"
-        data_tests:
-          - not_null
       
       - name: trade_week_of_month_454_num
         description: "Week number within the month for 4-5-4 pattern"
         data_tests:
           - not_null
       
-      - name: trade_week_of_quarter_454_num
-        description: "Week number within the quarter for 4-5-4 pattern (1-13, or 14 for leap weeks)"
-        data_tests:
-          - not_null
       
       # 544 Pattern attributes
       - name: trade_month_544_num
@@ -150,20 +142,12 @@ models:
           - accepted_values:
               values: [1, 2, 3, 4]
       
-      - name: trade_quarter_544_nm
-        description: "Trade quarter name for 5-4-4 pattern (First, Second, Third, Fourth)"
-        data_tests:
-          - not_null
       
       - name: trade_week_of_month_544_num
         description: "Week number within the month for 5-4-4 pattern"
         data_tests:
           - not_null
       
-      - name: trade_week_of_quarter_544_num
-        description: "Week number within the quarter for 5-4-4 pattern (1-13, or 14 for leap weeks)"
-        data_tests:
-          - not_null
       
       # Week descriptions (445 pattern as default)
       - name: trade_month_year_445_nm
@@ -190,7 +174,7 @@ models:
         description: "Descriptive text for week of month in 5-4-4 pattern (e.g., 'Week 2 of January')"
       
       # Flags and indicators
-      - name: is_leap_week_flg
+      - name: is_trade_leap_week_flg
         description: "Flag indicating if this is the 53rd week (leap week)"
       
       - name: is_current_trade_week_flg
@@ -216,6 +200,8 @@ models:
           - not_null
           - accepted_values:
               values: [7]
+              config:
+                where: "trade_year_num < 2041"  # Exclude partial year data
       
       - name: weeks_in_trade_year_num
         description: "Total number of weeks in the trade year (52 or 53)"
@@ -230,11 +216,6 @@ models:
           - not_null
       
       # ETL metadata
-      - name: dw_deleted_flg
-        description: "Soft delete flag"
-        data_tests:
-          - not_null
-      
       - name: dw_synced_ts
         description: "Timestamp when record was created/updated"
         data_tests:
@@ -264,7 +245,7 @@ models:
               else false
             end
           config:
-            where: "is_leap_week_flg = false"  # Exclude leap weeks from this test
+            where: "is_trade_leap_week_flg = false"  # Exclude leap weeks from this test
             error_if: ">0"
       
       # Test 454 pattern: months 1,4,7,10 have max 4 weeks; 2,5,8,11 have max 5 weeks; 3,6,9,12 have max 4 weeks
@@ -277,7 +258,7 @@ models:
               else false
             end
           config:
-            where: "is_leap_week_flg = false"  # Exclude leap weeks from this test
+            where: "is_trade_leap_week_flg = false"  # Exclude leap weeks from this test
             error_if: ">0"
       
       # Test 544 pattern: months 1,4,7,10 have max 5 weeks; 2,5,8,11 have max 4 weeks; 3,6,9,12 have max 4 weeks
@@ -290,7 +271,7 @@ models:
               else false
             end
           config:
-            where: "is_leap_week_flg = false"  # Exclude leap weeks from this test
+            where: "is_trade_leap_week_flg = false"  # Exclude leap weeks from this test
             error_if: ">0"
       
       # Test that all patterns have reasonable values for week of month (1-6, allowing for leap weeks)
@@ -305,9 +286,7 @@ models:
       # Test that all patterns have reasonable values for week of quarter (1-14, allowing for leap weeks)
       - dbt_utils.expression_is_true:
           expression: |
-            trade_week_of_quarter_445_num between 1 and 14
-            and trade_week_of_quarter_454_num between 1 and 14
-            and trade_week_of_quarter_544_num between 1 and 14
+            trade_week_of_quarter_num between 1 and 14
           config:
             error_if: ">0"
       

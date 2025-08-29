@@ -32,12 +32,13 @@ models:
           - unique
           - not_null
       
-      - name: full_dt
+      # Calendar columns (prefixed with calendar_)
+      - name: calendar_full_dt
         description: Full date value
         tests:
           - not_null
       
-      - name: same_dt_last_year
+      - name: calendar_same_dt_last_year
         description: Same date from the previous year for YoY comparisons
         tests:
           - not_null
@@ -68,207 +69,182 @@ models:
         tests:
           - not_null
       
-      - name: day_nm
+      - name: calendar_day_nm
         description: Day name abbreviation (Mon, Tue, etc.)
         tests:
           - not_null
       
-      - name: day_abbr
+      - name: calendar_day_abbr
         description: Three-letter day abbreviation (Mon, Tue, etc.)
         tests:
           - not_null
       
-      - name: iso_day_of_week_num
-        description: ISO day of week (1=Monday through 7=Sunday)
-        tests:
-          - not_null
       
-      - name: weekday_flg
+      - name: calendar_weekday_flg
         description: Flag indicating Weekday or Weekend
         tests:
           - not_null
       
-      - name: end_of_week_flg
+      - name: calendar_end_of_week_flg
         description: Binary flag for end of week (Sunday)
         tests:
           - not_null
       
       # Day attributes
-      - name: day_suffix_txt
+      - name: calendar_day_suffix_txt
         description: Day with ordinal suffix (1st, 2nd, 3rd, etc.)
         tests:
           - not_null
       
-      - name: day_overall_num
+      - name: calendar_day_overall_num
         description: Sequential day number since 1970-01-01
         tests:
           - not_null
       
-      - name: day_of_month_num
+      - name: calendar_day_of_month_num
         description: Day of the month (1-31)
         tests:
           - not_null
       
-      - name: day_of_quarter_num
+      - name: calendar_day_of_quarter_num
         description: Day number within the quarter (1-92)
         tests:
           - not_null
       
-      - name: day_of_year_num
+      - name: calendar_day_of_year_num
         description: Day of the year (1-365/366)
         tests:
           - not_null
       
       # Month attributes
-      - name: month_nm
+      - name: calendar_month_nm
         description: Full month name (January, February, etc.)
         tests:
           - not_null
       
-      - name: month_abbr
+      - name: calendar_month_abbr
         description: Three-letter month abbreviation (Jan, Feb, etc.)
         tests:
           - not_null
       
-      - name: month_num
-        description: Month number (1-12)
-        tests:
-          - not_null
-      
-      - name: month_overall_num
+      - name: calendar_month_overall_num
         description: Sequential month number since 1970-01-01
         tests:
           - not_null
       
-      - name: month_in_quarter_num
+      - name: calendar_month_in_quarter_num
         description: Month position within quarter (1, 2, or 3)
         tests:
           - not_null
       
-      - name: first_day_of_month
+      - name: calendar_first_day_of_month
         description: First date of the month
         tests:
           - not_null
       
-      - name: last_day_of_month
+      - name: calendar_last_day_of_month
         description: Last date of the month
         tests:
           - not_null
       
-      - name: first_day_of_month_flg
+      - name: calendar_first_day_of_month_flg
         description: Binary flag for first day of month
         tests:
           - not_null
       
-      - name: end_of_month_flg
+      - name: calendar_end_of_month_flg
         description: Binary flag for last day of month
         tests:
           - not_null
       
       # Quarter attributes
-      - name: quarter_nm
+      - name: calendar_quarter_nm
         description: Quarter name (First, Second, Third, Fourth)
         tests:
           - not_null
       
-      - name: first_day_of_quarter
+      - name: calendar_first_day_of_quarter
         description: First date of the quarter
         tests:
           - not_null
       
-      - name: last_day_of_quarter
+      - name: calendar_last_day_of_quarter
         description: Last date of the quarter
         tests:
           - not_null
       
       # Year attributes
-      - name: iso_year_num
-        description: ISO week year
-        tests:
-          - not_null
       
-      - name: yearmonth_num
+      - name: calendar_yearmonth_num
         description: Year-month as YYYYMM integer
         tests:
           - not_null
       
-      - name: first_day_of_year_dt
+      - name: calendar_first_day_of_year_dt
         description: First date of the year (January 1)
         tests:
           - not_null
       
-      - name: last_day_of_year_dt
+      - name: calendar_last_day_of_year_dt
         description: Last date of the year (December 31)
         tests:
           - not_null
       
-      - name: end_of_year_flg
+      - name: calendar_end_of_year_flg
         description: Binary flag for last day of year
         tests:
           - not_null
       
+      - name: calendar_is_leap_year_flg
+        description: Binary flag indicating if the calendar year is a leap year
+        tests:
+          - not_null
+      
       # Week attributes
-      - name: week_of_year_num
+      - name: calendar_week_of_year_num
         description: Week of the year (1-53)
         tests:
           - not_null
       
-      - name: week_of_month_num
+      - name: calendar_week_of_month_num
         description: Week of the month (1-5)
         tests:
           - not_null
       
-      - name: iso_week_of_year_txt
-        description: ISO week format (YYYY-Www-d)
+      
+      - name: calendar_week_overall_num
+        description: Sequential week number since 1970-01-01 (Sunday-based)
         tests:
           - not_null
       
-      - name: week_overall_num
-        description: Sequential week number since 1970-01-01
+      - name: calendar_week_begin_dt
+        description: First day (Sunday) of the calendar week
         tests:
           - not_null
       
-      - name: week_begin_dt
-        description: First day (Monday) of the week
+      - name: calendar_week_begin_key
+        description: Date key of calendar week start (YYYYMMDD)
         tests:
           - not_null
       
-      - name: week_begin_key
-        description: Date key of week start (YYYYMMDD)
+      - name: calendar_week_end_dt
+        description: Last day (Saturday) of the calendar week
         tests:
           - not_null
       
-      - name: week_end_dt
-        description: Last day (Sunday) of the week
+      - name: calendar_week_end_key
+        description: Date key of calendar week end (YYYYMMDD)
         tests:
           - not_null
       
-      - name: week_end_key
-        description: Date key of week end (YYYYMMDD)
-        tests:
-          - not_null
-      
-      # Other date formats
-      - name: epoch
+      - name: calendar_epoch_num
         description: Unix timestamp (seconds since 1970-01-01)
         tests:
           - not_null
       
-      - name: yyyymmdd
-        description: Date as YYYYMMDD integer
-        tests:
-          - not_null
-      
-      # Audit columns
-      - name: create_user_id
-        description: User who created the record
-        tests:
-          - not_null
-      
-      - name: create_timestamp
-        description: Timestamp when record was created
-        tests:
-          - not_null
+      # Trade columns
+      - name: trade_date_last_year_key
+        description: Same trade date from the previous year (same day of week, 52 weeks ago) for YoY comparisons
       
       # Core trade calendar columns (same for all patterns)
       - name: trade_year_num
@@ -288,6 +264,16 @@ models:
       
       - name: trade_week_end_dt
         description: End date of the trade week
+        tests:
+          - not_null
+      
+      - name: trade_year_start_dt
+        description: Start date of the trade year
+        tests:
+          - not_null
+      
+      - name: trade_year_end_dt
+        description: End date of the trade year
         tests:
           - not_null
       
@@ -312,6 +298,36 @@ models:
           - not_null
           - accepted_values:
               values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      
+      - name: trade_month_445_start_dt
+        description: Start date of the trade month for 4-4-5 pattern
+        tests:
+          - not_null
+      
+      - name: trade_month_445_end_dt
+        description: End date of the trade month for 4-4-5 pattern
+        tests:
+          - not_null
+      
+      - name: trade_month_454_start_dt
+        description: Start date of the trade month for 4-5-4 pattern
+        tests:
+          - not_null
+      
+      - name: trade_month_454_end_dt
+        description: End date of the trade month for 4-5-4 pattern
+        tests:
+          - not_null
+      
+      - name: trade_month_544_start_dt
+        description: Start date of the trade month for 5-4-4 pattern
+        tests:
+          - not_null
+      
+      - name: trade_month_544_end_dt
+        description: End date of the trade month for 5-4-4 pattern
+        tests:
+          - not_null
       
       # Pattern-specific month name columns
       - name: trade_month_445_nm
@@ -351,21 +367,32 @@ models:
           - accepted_values:
               values: [1, 2, 3, 4]
       
-      # Pattern-specific quarter name columns
-      - name: trade_quarter_445_nm
-        description: Trade quarter name for 4-4-5 pattern (First, Second, Third, Fourth)
+      - name: trade_quarter_start_dt
+        description: Start date of the trade quarter (same for all patterns)
         tests:
           - not_null
       
-      - name: trade_quarter_454_nm
-        description: Trade quarter name for 4-5-4 pattern (First, Second, Third, Fourth)
+      - name: trade_quarter_end_dt
+        description: End date of the trade quarter (same for all patterns)
         tests:
           - not_null
       
-      - name: trade_quarter_544_nm
-        description: Trade quarter name for 5-4-4 pattern (First, Second, Third, Fourth)
+      - name: trade_quarter_start_key
+        description: Date key (YYYYMMDD) of trade quarter start
         tests:
           - not_null
+      
+      - name: trade_quarter_end_key
+        description: Date key (YYYYMMDD) of trade quarter end
+        tests:
+          - not_null
+      
+      - name: trade_quarter_nm
+        description: Trade quarter name (First, Second, Third, Fourth) - applies to all patterns as quarters are consistent across 445, 454, and 544 patterns
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['First', 'Second', 'Third', 'Fourth']
       
       # Pattern-specific week of month columns
       - name: trade_week_of_month_445_num
@@ -383,19 +410,9 @@ models:
         tests:
           - not_null
       
-      # Pattern-specific week of quarter columns
-      - name: trade_week_of_quarter_445_num
-        description: Week number within the quarter for 4-4-5 pattern (1-13, or 14 for leap weeks)
-        tests:
-          - not_null
-      
-      - name: trade_week_of_quarter_454_num
-        description: Week number within the quarter for 4-5-4 pattern (1-13, or 14 for leap weeks)
-        tests:
-          - not_null
-      
-      - name: trade_week_of_quarter_544_num
-        description: Week number within the quarter for 5-4-4 pattern (1-13, or 14 for leap weeks)
+      # Week of quarter (same for all patterns)
+      - name: trade_week_of_quarter_num
+        description: Week number within the quarter (1-13, or 14 for leap weeks) - same for all patterns
         tests:
           - not_null
       
@@ -406,8 +423,8 @@ models:
           - not_null
       
       # Common attributes
-      - name: is_leap_week_flg
-        description: Flag indicating if this date falls in the 53rd week
+      - name: is_trade_leap_week_flg
+        description: Flag indicating if this date falls in the 53rd trade week
         tests:
           - not_null
       
@@ -421,12 +438,48 @@ models:
         tests:
           - not_null
       
-      # ETL metadata
-      - name: dw_deleted_flg
-        description: Soft delete flag
+      # ISO date columns
+      - name: iso_day_of_week_num
+        description: ISO day of week (1=Monday through 7=Sunday)
         tests:
           - not_null
       
+      - name: iso_year_num
+        description: ISO week year
+        tests:
+          - not_null
+      
+      - name: iso_week_of_year_txt
+        description: ISO week format (YYYY-Www-d)
+        tests:
+          - not_null
+      
+      - name: iso_week_overall_num
+        description: Sequential ISO week number since 1970-01-01 (Monday-based)
+        tests:
+          - not_null
+      
+      - name: iso_week_begin_dt
+        description: First day (Monday) of the ISO week
+        tests:
+          - not_null
+      
+      - name: iso_week_begin_key
+        description: Date key of ISO week start (YYYYMMDD)
+        tests:
+          - not_null
+      
+      - name: iso_week_end_dt
+        description: Last day (Sunday) of the ISO week
+        tests:
+          - not_null
+      
+      - name: iso_week_end_key
+        description: Date key of ISO week end (YYYYMMDD)
+        tests:
+          - not_null
+      
+      # Metadata columns
       - name: dw_synced_ts
         description: Timestamp when record was created/updated
         tests:
@@ -434,6 +487,16 @@ models:
       
       - name: dw_source_nm
         description: Source system name
+        tests:
+          - not_null
+      
+      - name: create_user_id
+        description: User who created the record
+        tests:
+          - not_null
+      
+      - name: create_timestamp
+        description: Timestamp when record was created
         tests:
           - not_null
     
@@ -448,7 +511,7 @@ models:
               else false
             end
           config:
-            where: "is_leap_week_flg = false"  # Exclude leap weeks
+            where: "is_trade_leap_week_flg = false"  # Exclude leap weeks
             error_if: ">0"
       
       # Test 454 pattern: months 1,4,7,10 have max 4 weeks; 2,5,8,11 have max 5 weeks; 3,6,9,12 have max 4 weeks
@@ -461,7 +524,7 @@ models:
               else false
             end
           config:
-            where: "is_leap_week_flg = false"  # Exclude leap weeks
+            where: "is_trade_leap_week_flg = false"  # Exclude leap weeks
             error_if: ">0"
       
       # Test 544 pattern: months 1,4,7,10 have max 5 weeks; 2,5,8,11 have max 4 weeks; 3,6,9,12 have max 4 weeks
@@ -474,7 +537,7 @@ models:
               else false
             end
           config:
-            where: "is_leap_week_flg = false"  # Exclude leap weeks
+            where: "is_trade_leap_week_flg = false"  # Exclude leap weeks
             error_if: ">0"
       
       # Test that all patterns have values between 1 and 6 (6 for leap week months)
@@ -484,4 +547,14 @@ models:
             and trade_week_of_month_454_num between 1 and 6
             and trade_week_of_month_544_num between 1 and 6
           config:
+            error_if: ">0"
+      
+      # Test that trade_date_last_year_key points to valid dates when not null
+      # Note: 1995 dates will have keys pointing to 1994 which is outside our range, so we exclude them
+      - dbt_utils.expression_is_true:
+          expression: |
+            trade_date_last_year_key is null 
+            or trade_date_last_year_key between 19940101 and 20401231
+          config:
+            where: "trade_year_num > 1995"  # First year won't have valid last year references
             error_if: ">0"

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a dbt utilities package that provides reusable macros and dimensional models for Cloud Data Consulting (CDC) dbt projects. It's designed to be imported as a dependency in other dbt projects.
+This is a dbt utilities package that provides reusable macros and time and date dimensional models for Cloud Data Consulting (CDC) dbt projects. It's designed to be imported as a dependency in other dbt projects.
 
 ## Key Architecture
 
@@ -28,7 +28,7 @@ This is a dbt utilities package that provides reusable macros and dimensional mo
 - **dim_quarter**: Quarterly grain dimension derived from dim_date
 - **dim_time**: Time dimension for intraday analysis
 
-#### Trade Calendar Dimensions  
+#### Trade Calendar Dimensions
 - **dim_trade_date**: Daily grain with trade/retail calendar support (4-4-5, 4-5-4, 5-4-4 patterns)
 - **dim_trade_week**: Weekly grain dimension derived from dim_trade_date
 - **dim_trade_month**: Monthly grain dimension derived from dim_trade_date (separate records per pattern)
@@ -107,31 +107,23 @@ All dbt models in this package must follow CDC CTE standards:
 - ❌ BAD: `td`, `dd`, `month_agg`, `qtr_retail`
 
 ### Standard CTE Pattern
+- leading comma's
+- ) on the same line as last bit of sql, not on new line.
+- No extra blank lines
 ```sql
 {{ config(materialized='table') }}
 
 -- All refs must be at the top
-with source_model_name as (
-    select * from {{ ref('source_model') }}
-),
+with source_model_alias as ( select * from {{ ref('source_model') }} where date_key > 0 )  -- Any filters on the ref go here
 
-filtered_source_data as (
-    select * from source_model_name
-    where date_key > 0  -- Any filters on the ref go here
-),
-
-transformed_data as (
+,transformed_data as (
     -- Main transformations
     select ...
-    from filtered_source_data
-),
-
-final as (
+    from source_model_alias)
+, final as (
     -- Final structure
     select ...
-    from transformed_data
-)
-
+    from transformed_data)
 select * from final
 ```
 
