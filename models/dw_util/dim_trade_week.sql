@@ -69,7 +69,7 @@ with trade_date as ( select * from {{ ref('dim_trade_date') }} )
         , trade_week_start_dt
         , trade_week_end_dt
         , first_day_of_week_key
-        , last_day_of_week_key
+        , last_day_of_week_key as trade_week_end_key
         , trade_year_num
         , trade_week_num
         , trade_month_445_num
@@ -96,27 +96,29 @@ with trade_date as ( select * from {{ ref('dim_trade_date') }} )
             when trade_week_start_dt <= current_date() 
                 and trade_week_end_dt >= current_date() 
             then 1 else 0 
-        end as is_current_week_flg
+        end as is_current_trade_week_flg
         , case 
             when trade_week_start_dt <= dateadd(week, -1, current_date()) 
                 and trade_week_end_dt >= dateadd(week, -1, current_date()) 
             then 1 else 0 
-        end as is_prior_week_flg
+        end as is_prior_trade_week_flg
         , case 
             when trade_year_num = year(current_date()) 
             then 1 else 0 
-        end as is_current_year_flg
+        end as is_current_trade_year_flg
         , case 
             when trade_week_end_dt < current_date() 
             then 1 else 0 
-        end as is_past_week_flg
-        , datediff(week, trade_week_start_dt, current_date()) as weeks_ago_num
+        end as is_past_trade_week_flg
+        , datediff(week, trade_week_start_dt, current_date()) as trade_weeks_ago_num
         , datediff(week, current_date(), trade_week_start_dt) as weeks_from_now_num
         , days_in_week_num
         , weeks_in_trade_year_num
+        , case when trade_week_num = 53 then 1 else 0 end as is_leap_week_flg
         , dense_rank() over (order by trade_week_start_dt) as trade_week_overall_num
         , false as dw_deleted_flg
         , current_timestamp as dw_synced_ts
+        , 'dim_trade_week' as dw_source_nm
         , current_user as create_user_id
         , current_timestamp as create_timestamp
     from week_aggregated)
