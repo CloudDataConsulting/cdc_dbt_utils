@@ -4,7 +4,7 @@ with date_sequence as ( select
         dateadd(day, seq4(), '1990-01-01'::date) as calendar_date
     from table(generator(rowcount => 20000))
 )
-, retail_years as (
+, trade_years as (
     select distinct
         year(calendar_date) as calendar_year
         , case
@@ -14,78 +14,78 @@ with date_sequence as ( select
             else
                 dateadd(day, 7 - dayofweek(date_from_parts(year(calendar_date), 1, 1))
                        , date_from_parts(year(calendar_date), 1, 1))
-        end as retail_year_start
+        end as trade_year_start
     from date_sequence
     where calendar_date between '1990-01-01' and '2045-12-31')
-, retail_year_boundaries as (
+, trade_year_boundaries as (
     select
         calendar_year
-        , retail_year_start
-        , lead(retail_year_start, 1) over (order by calendar_year) - 1 as retail_year_end
-        , datediff(week, retail_year_start,
-                lead(retail_year_start, 1) over (order by calendar_year)) as weeks_in_year
-    from retail_years)
-, retail_weeks as (
+        , trade_year_start
+        , lead(trade_year_start, 1) over (order by calendar_year) - 1 as trade_year_end
+        , datediff(week, trade_year_start,
+                lead(trade_year_start, 1) over (order by calendar_year)) as weeks_in_year
+    from trade_years)
+, trade_weeks as (
     select
-        ryb.calendar_year as retail_year
-        , ryb.retail_year_start
-        , ryb.retail_year_end
+        ryb.calendar_year as trade_year_num
+        , ryb.trade_year_start
+        , ryb.trade_year_end
         , ryb.weeks_in_year
-        , row_number() over (partition by ryb.calendar_year order by week_num.seq) as retail_week_num
-        , dateadd(week, week_num.seq - 1, ryb.retail_year_start) as retail_week_start
-        , dateadd(day, 6, dateadd(week, week_num.seq - 1, ryb.retail_year_start)) as retail_week_end
-    from retail_year_boundaries ryb
+        , row_number() over (partition by ryb.calendar_year order by week_num.seq) as trade_week_num
+        , dateadd(week, week_num.seq - 1, ryb.trade_year_start) as trade_week_start_dt
+        , dateadd(day, 6, dateadd(week, week_num.seq - 1, ryb.trade_year_start)) as trade_week_end_dt
+    from trade_year_boundaries ryb
     cross join (
         select seq4() + 1 as seq 
         from table(generator(rowcount => 53))) week_num
     where week_num.seq <= ryb.weeks_in_year)
-, retail_periods as (
+, trade_periods as (
     select
         rw.*
         , case 
-            when retail_week_num <= 4 then 1
-            when retail_week_num <= 8 then 2
-            when retail_week_num <= 13 then 3
-            when retail_week_num <= 17 then 4
-            when retail_week_num <= 21 then 5
-            when retail_week_num <= 26 then 6
-            when retail_week_num <= 30 then 7
-            when retail_week_num <= 34 then 8
-            when retail_week_num <= 39 then 9
-            when retail_week_num <= 43 then 10
-            when retail_week_num <= 47 then 11
+            when trade_week_num <= 4 then 1
+            when trade_week_num <= 8 then 2
+            when trade_week_num <= 13 then 3
+            when trade_week_num <= 17 then 4
+            when trade_week_num <= 21 then 5
+            when trade_week_num <= 26 then 6
+            when trade_week_num <= 30 then 7
+            when trade_week_num <= 34 then 8
+            when trade_week_num <= 39 then 9
+            when trade_week_num <= 43 then 10
+            when trade_week_num <= 47 then 11
             else 12
-        end as retail_month_445
+        end as trade_month_445_num
         , case 
-            when retail_week_num <= 4 then 1
-            when retail_week_num <= 9 then 2
-            when retail_week_num <= 13 then 3
-            when retail_week_num <= 17 then 4
-            when retail_week_num <= 22 then 5
-            when retail_week_num <= 26 then 6
-            when retail_week_num <= 30 then 7
-            when retail_week_num <= 35 then 8
-            when retail_week_num <= 39 then 9
-            when retail_week_num <= 43 then 10
-            when retail_week_num <= 48 then 11
+            when trade_week_num <= 4 then 1
+            when trade_week_num <= 9 then 2
+            when trade_week_num <= 13 then 3
+            when trade_week_num <= 17 then 4
+            when trade_week_num <= 22 then 5
+            when trade_week_num <= 26 then 6
+            when trade_week_num <= 30 then 7
+            when trade_week_num <= 35 then 8
+            when trade_week_num <= 39 then 9
+            when trade_week_num <= 43 then 10
+            when trade_week_num <= 48 then 11
             else 12
-        end as retail_month_454
+        end as trade_month_454_num
         , case 
-            when retail_week_num <= 5 then 1
-            when retail_week_num <= 9 then 2
-            when retail_week_num <= 13 then 3
-            when retail_week_num <= 18 then 4
-            when retail_week_num <= 22 then 5
-            when retail_week_num <= 26 then 6
-            when retail_week_num <= 31 then 7
-            when retail_week_num <= 35 then 8
-            when retail_week_num <= 39 then 9
-            when retail_week_num <= 44 then 10
-            when retail_week_num <= 48 then 11
+            when trade_week_num <= 5 then 1
+            when trade_week_num <= 9 then 2
+            when trade_week_num <= 13 then 3
+            when trade_week_num <= 18 then 4
+            when trade_week_num <= 22 then 5
+            when trade_week_num <= 26 then 6
+            when trade_week_num <= 31 then 7
+            when trade_week_num <= 35 then 8
+            when trade_week_num <= 39 then 9
+            when trade_week_num <= 44 then 10
+            when trade_week_num <= 48 then 11
             else 12
-        end as retail_month_544
-    from retail_weeks rw)
-, retail_dates as (
+        end as trade_month_544_num
+    from trade_weeks rw)
+, trade_dates as (
     select
         ds.calendar_date
         , to_char(ds.calendar_date, 'yyyymmdd')::int as date_key
@@ -95,28 +95,28 @@ with date_sequence as ( select
         , week(ds.calendar_date) as calendar_week
         , dayofweek(ds.calendar_date) as day_of_week
         , dayname(ds.calendar_date) as day_name
-        , rp.retail_year
-        , rp.retail_week_num
-        , rp.retail_week_start
-        , rp.retail_week_end
+        , rp.trade_year_num
+        , rp.trade_week_num
+        , rp.trade_week_start_dt
+        , rp.trade_week_end_dt
         , rp.weeks_in_year
-        , rp.retail_month_445
-        , rp.retail_month_454
-        , rp.retail_month_544
+        , rp.trade_month_445_num
+        , rp.trade_month_454_num
+        , rp.trade_month_544_num
         , dense_rank() over (
-            partition by rp.retail_year, rp.retail_month_445 
-            order by rp.retail_week_num) as trade_week_of_month_445
+            partition by rp.trade_year_num, rp.trade_month_445_num 
+            order by rp.trade_week_num) as trade_week_of_month_445
         , dense_rank() over (
-            partition by rp.retail_year, rp.retail_month_454 
-            order by rp.retail_week_num) as trade_week_of_month_454
+            partition by rp.trade_year_num, rp.trade_month_454_num 
+            order by rp.trade_week_num) as trade_week_of_month_454
         , dense_rank() over (
-            partition by rp.retail_year, rp.retail_month_544 
-            order by rp.retail_week_num) as trade_week_of_month_544
-        , case when rp.retail_week_num = 53 then true else false end as is_leap_week
-        , datediff(day, rp.retail_year_start, ds.calendar_date) + 1 as retail_day_of_year
+            partition by rp.trade_year_num, rp.trade_month_544_num 
+            order by rp.trade_week_num) as trade_week_of_month_544
+        , case when rp.trade_week_num = 53 then true else false end as is_leap_week
+        , datediff(day, rp.trade_year_start, ds.calendar_date) + 1 as trade_day_of_year_num
     from date_sequence ds
-    inner join retail_periods rp
-        on ds.calendar_date between rp.retail_week_start and rp.retail_week_end)
+    inner join trade_periods rp
+        on ds.calendar_date between rp.trade_week_start_dt and rp.trade_week_end_dt)
 , final as (
     select
         date_key
@@ -185,73 +185,73 @@ with date_sequence as ( select
         , to_char(dateadd(day, 7 - dayofweekiso(calendar_date), calendar_date), 'yyyymmdd')::int as week_end_key
         , date_part(epoch_second, calendar_date) as epoch
         , to_char(calendar_date, 'yyyymmdd')::int as yyyymmdd
-        , retail_year as trade_year_num
-        , retail_week_num as trade_week_num
-        , retail_week_start as trade_week_start_dt
-        , retail_week_end as trade_week_end_dt
-        , retail_month_445 as trade_month_445_num
-        , retail_month_454 as trade_month_454_num
-        , retail_month_544 as trade_month_544_num
-        , ceil(retail_month_445 / 3.0) as trade_quarter_445_num
-        , ceil(retail_month_454 / 3.0) as trade_quarter_454_num
-        , ceil(retail_month_544 / 3.0) as trade_quarter_544_num
-        , case ceil(retail_month_445 / 3.0)
+        , trade_year_num
+        , trade_week_num
+        , trade_week_start_dt
+        , trade_week_end_dt
+        , trade_month_445_num
+        , trade_month_454_num
+        , trade_month_544_num
+        , ceil(trade_month_445_num / 3.0) as trade_quarter_445_num
+        , ceil(trade_month_454_num / 3.0) as trade_quarter_454_num
+        , ceil(trade_month_544_num / 3.0) as trade_quarter_544_num
+        , case ceil(trade_month_445_num / 3.0)
             when 1 then 'First'
             when 2 then 'Second'
             when 3 then 'Third'
             when 4 then 'Fourth'
         end as trade_quarter_445_nm
-        , case ceil(retail_month_454 / 3.0)
+        , case ceil(trade_month_454_num / 3.0)
             when 1 then 'First'
             when 2 then 'Second'
             when 3 then 'Third'
             when 4 then 'Fourth'
         end as trade_quarter_454_nm
-        , case ceil(retail_month_544 / 3.0)
+        , case ceil(trade_month_544_num / 3.0)
             when 1 then 'First'
             when 2 then 'Second'
             when 3 then 'Third'
             when 4 then 'Fourth'
         end as trade_quarter_544_nm
-        , trade_week_of_month_445 as trade_week_of_month_445_num
-        , trade_week_of_month_454 as trade_week_of_month_454_num
-        , trade_week_of_month_544 as trade_week_of_month_544_num
+        , trade_week_of_month_445_num
+        , trade_week_of_month_454_num
+        , trade_week_of_month_544_num
         , dense_rank() over (
-            partition by retail_year, ceil(retail_month_445 / 3.0)
-            order by retail_week_num) as trade_week_of_quarter_445_num
+            partition by trade_year_num, ceil(trade_month_445_num / 3.0)
+            order by trade_week_num) as trade_week_of_quarter_445_num
         , dense_rank() over (
-            partition by retail_year, ceil(retail_month_454 / 3.0)
-            order by retail_week_num) as trade_week_of_quarter_454_num
+            partition by trade_year_num, ceil(trade_month_454_num / 3.0)
+            order by trade_week_num) as trade_week_of_quarter_454_num
         , dense_rank() over (
-            partition by retail_year, ceil(retail_month_544 / 3.0)
-            order by retail_week_num) as trade_week_of_quarter_544_num
-        , retail_week_num as trade_week_of_year_num
-        , case retail_month_445
+            partition by trade_year_num, ceil(trade_month_544_num / 3.0)
+            order by trade_week_num) as trade_week_of_quarter_544_num
+        , trade_week_num as trade_week_of_year_num
+        , case trade_month_445_num
             when 1 then 'January' when 2 then 'February' when 3 then 'March'
             when 4 then 'April' when 5 then 'May' when 6 then 'June'
             when 7 then 'July' when 8 then 'August' when 9 then 'September'
             when 10 then 'October' when 11 then 'November' when 12 then 'December'
         end as trade_month_445_nm
-        , case retail_month_454
+        , case trade_month_454_num
             when 1 then 'January' when 2 then 'February' when 3 then 'March'
             when 4 then 'April' when 5 then 'May' when 6 then 'June'
             when 7 then 'July' when 8 then 'August' when 9 then 'September'
             when 10 then 'October' when 11 then 'November' when 12 then 'December'
         end as trade_month_454_nm
-        , case retail_month_544
+        , case trade_month_544_num
             when 1 then 'January' when 2 then 'February' when 3 then 'March'
             when 4 then 'April' when 5 then 'May' when 6 then 'June'
             when 7 then 'July' when 8 then 'August' when 9 then 'September'
             when 10 then 'October' when 11 then 'November' when 12 then 'December'
         end as trade_month_544_nm
-        , is_leap_week as is_leap_week_flg
-        , weeks_in_year as weeks_in_trade_year_num
-        , retail_day_of_year as trade_day_of_year_num
+        , is_leap_week_flg
+        , weeks_in_trade_year_num
+        , trade_day_of_year_num
         , false as dw_deleted_flg
         , current_timestamp as dw_synced_ts
         , 'dim_trade_date' as dw_source_nm
         , current_user as create_user_id
         , current_timestamp as create_timestamp
-    from retail_dates
+    from trade_dates
     where calendar_date between '1995-01-01' and '2040-12-31')
 select * from final
