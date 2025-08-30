@@ -10,7 +10,7 @@ This is a dbt utilities package that provides reusable macros and time and date 
 
 ### Package Structure
 - **macros/**: Reusable dbt macros for schema management, column generation, and dimensional modeling
-- **models/dw_util/**: Pre-built dimensional models (date and time dimensions)
+- **models/dw_util/**: Pre-built reusable dimensional models (date and time dimensions)
 
 ### Core Macros
 
@@ -42,14 +42,9 @@ This is a dbt utilities package that provides reusable macros and time and date 
 ## Development Commands
 
 ### Installing in a Project
-Add to the consuming project's `packages.yml`:
-```yaml
-packages:
-  - git: "https://github.com/CloudDataConsulting/cdc_dbt_utils.git"
-    revision: main
-```
-
-Then run: `dbt deps`
+To do development we make an exception to the normal process.
+We do NOT add the package to the consuming project's `packages.yml`!
+We then cd dbt_packages && git clone git@github.com:CloudDataConsulting/cdc_dbt_utils.git
 
 ### Configuration in Consuming Project
 Add to `dbt_project.yml`:
@@ -57,7 +52,7 @@ Add to `dbt_project.yml`:
 models:
   cdc_dbt_utils:
     dw_util:
-      +materialized: view  # or table as needed
+      +materialized: table  # or view as needed
       +schema: dw_util
 ```
 
@@ -68,12 +63,22 @@ dbt run-operation drop_dev_schemas --args '{username: developer_name}'
 
 # Build dimensions in consuming project
 dbt run --models cdc_dbt_utils.dw_util.*
+or
+dbt run -s +package:cdc_dbt_utils
 ```
 
 ### Testing
 ```bash
 # Run data tests defined in yml files
 dbt test --models cdc_dbt_utils.dw_util.*
+or
+dbt test -s +package:cdc_dbt_utils
+```
+
+### Run & Test
+```bash
+# to run and test as we run
+dbt build -s +package:cdc_dbt_utils
 ```
 
 ## Column Naming Convention Standards
@@ -89,6 +94,15 @@ The package follows strict naming conventions where the class word (data type in
 - `*_abbr` - Abbreviations (e.g., `month_abbr`, `day_abbr`)
 
 ISO-related columns have `iso_` prefix: `iso_day_of_week_num`, `iso_year_num`, `iso_week_of_year_txt`
+
+For dim_trade_date and its aggregates
+calendar_*
+trade_*
+iso_*
+Should have the same name for the same thing.
+for instance
+trade_first_day_dt
+
 
 "Overall" metrics (since 1970-01-01) use pattern: `{measure}_overall_{class}` (e.g., `day_overall_num`, `month_overall_num`)
 
