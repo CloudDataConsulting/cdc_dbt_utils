@@ -2,115 +2,418 @@ version: 2
 
 models:
   - name: dim_date
-    description: "Date dimension table containing one row per calendar day from 1970-01-01 through approximately 2106. Includes comprehensive date attributes, week/month/quarter/year calculations, and ISO week standards. Contains a special 'Not Set' record with date_key = -1 for handling null dates in fact tables."
+    description: |
+      Standard calendar date dimension table containing one row per calendar day, derived from dim_trade_date.
+      Provides comprehensive date attributes for standard calendar analysis without trade/retail calendar complexity.
+      
+      Column naming follows CDC standards:
+      - _dt for dates/timestamps
+      - _num for numbers
+      - _flg for boolean flags
+      - _nm for names
+      - _key for date keys in YYYYMMDD format
+      - _txt for text strings
+      - _abbr for abbreviations
+      
+      Key Features:
+      - Simplified version of dim_trade_date with only calendar columns
+      - All column names have 'calendar_' prefix removed for simplicity
+      - Includes ISO week standards
+      - Covers dates from 1970-01-01 through 2041-12-31
+    
     columns:
-    - name: date_key
-      description: "Primary key in YYYYMMDD format as integer. Special value -1 represents 'Not Set' for null date handling"
-      data_tests:
-        - unique
-        - not_null
-    - name: full_date
-      description: "Full date value as DATE type"
-      data_tests:
-        - unique
-        - not_null
-    - name: same_date_last_year
-      description: "The same calendar date from the previous year, useful for year-over-year comparisons"
+      # Primary Key
+      - name: date_key
+        description: "Primary key in YYYYMMDD format as integer"
+        data_tests:
+          - unique
+          - not_null
+      
+      # DAY Level
+      # Core day identifiers
+      - name: full_dt
+        description: "Full date value as DATE type"
+        data_tests:
+          - unique
+          - not_null
+      
+      - name: date_last_year_key
+        description: "Date key for the same date last year (YYYYMMDD format)"
+        data_tests:
+          - not_null
+      
+      # Day position metrics
+      - name: day_of_week_num
+        description: "Day of week number where Sunday = 0 and Saturday = 6"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1, 2, 3, 4, 5, 6]
+      
+      - name: iso_day_of_week_num
+        description: "ISO standard day of week number where Monday = 1 and Sunday = 7"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4, 5, 6, 7]
+      
+      - name: day_of_month_num
+        description: "Day number within the month (1-31)"
+        data_tests:
+          - not_null
+      
+      - name: day_of_quarter_num
+        description: "Day number within the quarter (1-92)"
+        data_tests:
+          - not_null
+      
+      - name: day_of_year_num
+        description: "Day number within the year (1-366)"
+        data_tests:
+          - not_null
+      
+      - name: day_overall_num
+        description: "Sequential day number since 1970-01-01, useful for day-over-day calculations"
+        data_tests:
+          - not_null
+      
+      # Day descriptors
+      - name: day_nm
+        description: "Full name of the day of week (Sunday, Monday, Tuesday, etc.)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+      
+      - name: day_abbr
+        description: "Three-letter abbreviation of the day of week (Sun, Mon, Tue, etc.)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+      
+      - name: day_suffix_txt
+        description: "Day number suffix (st, nd, rd, th)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['st', 'nd', 'rd', 'th']
+      
+      - name: epoch_num
+        description: "Number of seconds since Unix epoch (1970-01-01 00:00:00 UTC)"
+        data_tests:
+          - not_null
+      
+      # Day flags
+      - name: weekday_flg
+        description: "Flag indicating if the day is a weekday (Weekday) or weekend (Weekend)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['Weekday', 'Weekend']
+      
+      - name: last_day_of_week_flg
+        description: "Flag indicating if this is the last day of the week (Saturday)"
+        data_tests:
+          - not_null
+      
+      - name: first_day_of_month_flg
+        description: "Flag indicating if this is the first day of the month"
+        data_tests:
+          - not_null
+      
+      - name: last_day_of_month_flg
+        description: "Flag indicating if this is the last day of the month"
+        data_tests:
+          - not_null
+      
+      - name: last_day_of_quarter_flg
+        description: "Flag indicating if this is the last day of the quarter"
+        data_tests:
+          - not_null
+      
+      - name: last_day_of_year_flg
+        description: "Flag indicating if this is the last day of the year"
+        data_tests:
+          - not_null
+      
+      # WEEK Level
+      - name: week_num
+        description: "Week number within the year (1-53)"
+        data_tests:
+          - not_null
+      
+      - name: week_of_year_num
+        description: "Week number within the year (same as week_num)"
+        data_tests:
+          - not_null
+      
+      - name: week_of_month_num
+        description: "Week number within the month (1-6)"
+        data_tests:
+          - not_null
+      
+      - name: week_of_quarter_num
+        description: "Week number within the quarter (1-14)"
+        data_tests:
+          - not_null
+      
+      - name: week_overall_num
+        description: "Sequential week number since 1970-01-01, useful for week-over-week calculations"
+        data_tests:
+          - not_null
+      
+      - name: week_start_dt
+        description: "First day (Sunday) of the week"
+        data_tests:
+          - not_null
+      
+      - name: week_start_key
+        description: "Date key (YYYYMMDD) of the week's Sunday"
+        data_tests:
+          - not_null
+      
+      - name: week_end_dt
+        description: "Last day (Saturday) of the week"
+        data_tests:
+          - not_null
+      
+      - name: week_end_key
+        description: "Date key (YYYYMMDD) of the week's Saturday"
+        data_tests:
+          - not_null
+      
+      # MONTH Level
+      - name: month_num
+        description: "Month number within the year (1-12)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      
+      - name: month_nm
+        description: "Full name of the month (January, February, March, etc.)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+      
+      - name: month_abbr
+        description: "Three-letter abbreviation of the month (Jan, Feb, Mar, etc.)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      
+      - name: month_in_quarter_num
+        description: "Month position within the quarter (1, 2, or 3)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3]
+      
+      - name: month_overall_num
+        description: "Sequential month number since 1970-01-01, useful for month-over-month calculations"
+        data_tests:
+          - not_null
+      
+      - name: yearmonth_num
+        description: "Year and month as integer (YYYYMM format)"
+        data_tests:
+          - not_null
+      
+      - name: month_start_dt
+        description: "First day of the month"
+        data_tests:
+          - not_null
+      
+      - name: month_start_key
+        description: "Date key (YYYYMMDD) of the month's first day"
+        data_tests:
+          - not_null
+      
+      - name: month_end_dt
+        description: "Last day of the month"
+        data_tests:
+          - not_null
+      
+      - name: month_end_key
+        description: "Date key (YYYYMMDD) of the month's last day"
+        data_tests:
+          - not_null
+      
+      # QUARTER Level
+      - name: quarter_num
+        description: "Quarter number within the year (1-4)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4]
+      
+      - name: quarter_nm
+        description: "Quarter name (First, Second, Third, Fourth)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['First', 'Second', 'Third', 'Fourth']
+      
+      - name: quarter_start_dt
+        description: "First day of the quarter"
+        data_tests:
+          - not_null
+      
+      - name: quarter_start_key
+        description: "Date key (YYYYMMDD) of the quarter's first day"
+        data_tests:
+          - not_null
+      
+      - name: quarter_end_dt
+        description: "Last day of the quarter"
+        data_tests:
+          - not_null
+      
+      - name: quarter_end_key
+        description: "Date key (YYYYMMDD) of the quarter's last day"
+        data_tests:
+          - not_null
+      
+      # YEAR Level
+      - name: year_num
+        description: "Year number (e.g., 2023)"
+        data_tests:
+          - not_null
+      
+      - name: year_start_dt
+        description: "First day of the year (January 1st)"
+        data_tests:
+          - not_null
+      
+      - name: year_start_key
+        description: "Date key (YYYYMMDD) of the year's first day"
+        data_tests:
+          - not_null
+      
+      - name: year_end_dt
+        description: "Last day of the year (December 31st)"
+        data_tests:
+          - not_null
+      
+      - name: year_end_key
+        description: "Date key (YYYYMMDD) of the year's last day"
+        data_tests:
+          - not_null
+      
+      - name: is_leap_year_flg
+        description: "Flag indicating if this is a leap year"
+        data_tests:
+          - not_null
+      
+      # ISO Week Columns
+      - name: iso_year_num
+        description: "ISO week year (may differ from calendar year for dates near year boundaries)"
+        data_tests:
+          - not_null
+      
+      - name: iso_week_of_year_txt
+        description: "ISO week of year in YYYY-WNN format (e.g., '2023-W01')"
+        data_tests:
+          - not_null
+      
+      - name: iso_week_overall_num
+        description: "Sequential ISO week number since 1970-01-01"
+        data_tests:
+          - not_null
+      
+      - name: iso_week_start_dt
+        description: "First day (Monday) of the ISO week"
+        data_tests:
+          - not_null
+      
+      - name: iso_week_start_key
+        description: "Date key (YYYYMMDD) of the ISO week's Monday"
+        data_tests:
+          - not_null
+      
+      - name: iso_week_end_dt
+        description: "Last day (Sunday) of the ISO week"
+        data_tests:
+          - not_null
+      
+      - name: iso_week_end_key
+        description: "Date key (YYYYMMDD) of the ISO week's Sunday"
+        data_tests:
+          - not_null
+      
+      # Metadata Columns
+      - name: dw_synced_ts
+        description: "Timestamp when record was created/updated"
+        data_tests:
+          - not_null
+      
+      - name: dw_source_nm
+        description: "Source system name (dim_trade_date)"
+        data_tests:
+          - not_null
+      
+      - name: create_user_id
+        description: "User who created the record"
+        data_tests:
+          - not_null
+      
+      - name: create_timestamp
+        description: "Timestamp when record was created"
+        data_tests:
+          - not_null
     
-    # Day attributes
-    - name: day_nm
-      description: "Full name of the day of week (Monday, Tuesday, Wednesday, etc.)"
-    - name: day_abbr
-      description: "Three-letter abbreviation of the day of week (Mon, Tue, Wed, etc.)"
-    - name: day_of_week_num
-      description: "Day of week number where Sunday = 1 and Saturday = 7 (Snowflake standard)"
-    - name: iso_day_of_week_num
-      description: "ISO standard day of week number where Monday = 1 and Sunday = 7"
-    - name: weekday_flg
-      description: "Flag indicating if the day is a weekday (Weekday) or weekend (Weekend)"
-    - name: end_of_week_flg
-      description: "Binary flag: 1 if the date is the last day of the week (Sunday), 0 otherwise"
-    
-    # Month attributes
-    - name: month_nm
-      description: "Full name of the month (January, February, March, etc.)"
-    - name: month_abbr
-      description: "Three-letter abbreviation of the month (Jan, Feb, Mar, etc.)"
-    - name: month_num
-      description: "Month number within the year (1-12)"
-    - name: month_overall_num
-      description: "Sequential month number since 1970-01-01, useful for month-over-month calculations"
-    - name: month_in_quarter_num
-      description: "Month position within the quarter (1, 2, or 3)"
-    - name: day_of_month_num
-      description: "Day number within the month (1-31)"
-    - name: last_day_of_month
-      description: "Last calendar date of the month"
-    - name: end_of_month_flg
-      description: "Binary flag: 1 if the date is the last day of the month, 0 otherwise"
-    - name: day_suffix_txt
-      description: "Day number with ordinal suffix (1st, 2nd, 3rd, 4th, etc.)"
-    - name: first_day_of_month
-      description: "First calendar date of the month"
-    - name: first_day_of_month_flg
-      description: "Binary flag: 1 if the date is the first day of the month, 0 otherwise"
-    
-    # Quarter attributes
-    - name: day_of_quarter_num
-      description: "Day number within the quarter (1-92)"
-    - name: first_day_of_quarter
-      description: "First calendar date of the quarter"
-    - name: last_day_of_quarter
-      description: "Last calendar date of the quarter"
-    
-    # Year attributes
-    - name: day_of_year_num
-      description: "Day number within the year (1-365 or 366 for leap years)"
-    - name: first_day_of_year
-      description: "First calendar date of the year (January 1st)"
-    - name: last_day_of_year
-      description: "Last calendar date of the year (December 31st)"
-    - name: day_overall_num
-      description: "Sequential day number since 1970-01-01, useful for date arithmetic"
-    
-    # Week attributes
-    - name: week_of_month_num
-      description: "Week number within the month (1-5)"
-    - name: week_of_year_num
-      description: "Week number within the year using Snowflake's week numbering (1-53)"
-    - name: iso_week_of_year_txt
-      description: "ISO 8601 week notation (YYYY-Www-d format, e.g., 2023-W15-3)"
-    - name: week_overall_num
-      description: "Sequential week number since 1970-01-01, useful for week-over-week calculations"
-    - name: week_begin_dt
-      description: "First day (Monday) of the week containing this date"
-    - name: week_begin_key
-      description: "Date key (YYYYMMDD) of the first day of the week"
-    - name: week_end_dt
-      description: "Last day (Sunday) of the week containing this date"
-    - name: week_end_key
-      description: "Date key (YYYYMMDD) of the last day of the week"
-    
-    # Quarter and Year identifiers
-    - name: quarter_num
-      description: "Quarter number within the year (1-4)"
-    - name: quarter_nm
-      description: "Quarter name (First, Second, Third, Fourth)"
-    - name: year_num
-      description: "Calendar year as 4-digit integer"
-    - name: iso_year_num
-      description: "ISO week year, which may differ from calendar year for dates near year boundaries"
-    - name: yearmonth_num
-      description: "Year and month combination as YYYYMM integer, useful for month-level grouping"
-    
-    # Other attributes
-    - name: end_of_year_flg
-      description: "Binary flag: 1 if the date is December 31st, 0 otherwise"
-    - name: epoch
-      description: "Unix timestamp - seconds since 1970-01-01 00:00:00 UTC"
-    - name: yyyymmdd
-      description: "Date formatted as YYYYMMDD string"
-    - name: create_user_id
-      description: "User ID who created the record (populated with CURRENT_USER)"
-    - name: create_timestamp
-      description: "Timestamp when the record was created"
+    data_tests:
+      # Test that date_key matches the expected format based on full_dt
+      - dbt_utils.expression_is_true:
+          expression: "date_key = to_number(to_char(full_dt, 'YYYYMMDD'))"
+          config:
+            error_if: ">0"
+      
+      # Test that week boundaries are correct (Sunday to Saturday)
+      - dbt_utils.expression_is_true:
+          expression: "dayofweek(week_start_dt) = 0"  # Sunday
+          config:
+            error_if: ">0"
+      
+      - dbt_utils.expression_is_true:
+          expression: "dayofweek(week_end_dt) = 6"  # Saturday
+          config:
+            error_if: ">0"
+      
+      # Test that ISO week boundaries are correct (Monday to Sunday)
+      - dbt_utils.expression_is_true:
+          expression: "dayofweek(iso_week_start_dt) = 1"  # Monday
+          config:
+            error_if: ">0"
+      
+      - dbt_utils.expression_is_true:
+          expression: "dayofweek(iso_week_end_dt) = 0"  # Sunday
+          config:
+            error_if: ">0"
+      
+      # Test that month boundaries are correct
+      - dbt_utils.expression_is_true:
+          expression: "day(month_start_dt) = 1"
+          config:
+            error_if: ">0"
+      
+      - dbt_utils.expression_is_true:
+          expression: "month_end_dt = last_day(month_start_dt)"
+          config:
+            error_if: ">0"
+      
+      # Test that quarter boundaries align with months
+      - dbt_utils.expression_is_true:
+          expression: |
+            case 
+              when quarter_num = 1 then month(quarter_start_dt) = 1 and month(quarter_end_dt) = 3
+              when quarter_num = 2 then month(quarter_start_dt) = 4 and month(quarter_end_dt) = 6
+              when quarter_num = 3 then month(quarter_start_dt) = 7 and month(quarter_end_dt) = 9
+              when quarter_num = 4 then month(quarter_start_dt) = 10 and month(quarter_end_dt) = 12
+              else false
+            end
+          config:
+            error_if: ">0"
