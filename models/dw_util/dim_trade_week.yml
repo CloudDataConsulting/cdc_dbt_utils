@@ -5,7 +5,7 @@ models:
     description: |
       Trade calendar week dimension table containing one row per trade week, derived from dim_trade_date for consistency.
       Provides week-level aggregations and attributes for retail/trade calendar analysis at weekly granularity.
-      Includes all three common retail patterns (445, 454, 544) in a single table.
+      Includes all three common retail patterns (445, 454, 544) month attributes in a single table.
       
       Column naming follows CDC standards:
       - _dt for dates/timestamps
@@ -16,8 +16,8 @@ models:
       - _txt for text strings
       
       Key Features:
-      - Single table with all three patterns (445, 454, 544)
-      - Columns suffixed with pattern type (_445_num, _454_num, _544_num)
+      - Primary key is trade_week_start_key (the Sunday of each week)
+      - Single table with all three pattern month attributes (445, 454, 544)
       - Derived from dim_trade_date to ensure consistency
       - Trade weeks run Sunday to Saturday following retail calendar conventions
       
@@ -28,12 +28,12 @@ models:
     
     columns:
       - name: trade_week_key
-        description: "Primary key as trade year * 100 + trade week number (e.g., 202353 for trade year 2023, week 53)"
+        description: "Primary key using the trade_week_start_key (first day of week in YYYYMMDD format)"
         data_tests:
           - unique
           - not_null
       
-      # Week dates
+      # Week boundaries
       - name: trade_week_start_dt
         description: "First day (Sunday) of the trade week"
         data_tests:
@@ -44,10 +44,17 @@ models:
         data_tests:
           - not_null
       
+      - name: trade_week_start_key
+        description: "Date key (YYYYMMDD) of the trade week's Sunday (same as primary key)"
+        data_tests:
+          - not_null
+      
       - name: trade_week_end_key
         description: "Date key (YYYYMMDD) of the trade week's Saturday"
+        data_tests:
+          - not_null
       
-      # Core trade calendar
+      # Core trade identifiers
       - name: trade_year_num
         description: "Trade year (same for all patterns)"
         data_tests:
@@ -60,7 +67,22 @@ models:
           - accepted_values:
               values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53]
       
-      # 445 Pattern attributes
+      - name: trade_week_of_year_num
+        description: "Trade week number within the year (same as trade_week_num)"
+        data_tests:
+          - not_null
+      
+      - name: trade_week_of_quarter_num
+        description: "Week number within the quarter (1-13, or 14 for leap weeks)"
+        data_tests:
+          - not_null
+      
+      - name: trade_week_overall_num
+        description: "Sequential trade week number since earliest trade week, useful for week-over-week calculations"
+        data_tests:
+          - not_null
+      
+      # 445 Pattern month attributes
       - name: trade_month_445_num
         description: "Trade month for 4-4-5 pattern (1-12)"
         data_tests:
@@ -73,29 +95,12 @@ models:
         data_tests:
           - not_null
       
-      - name: trade_quarter_445_num
-        description: "Trade quarter for 4-4-5 pattern (1-4)"
-        data_tests:
-          - not_null
-          - accepted_values:
-              values: [1, 2, 3, 4]
-      
-      - name: trade_quarter_nm
-        description: "Trade quarter name for 4-4-5 pattern (First, Second, Third, Fourth)"
-        data_tests:
-          - not_null
-      
       - name: trade_week_of_month_445_num
         description: "Week number within the month for 4-4-5 pattern"
         data_tests:
           - not_null
       
-      - name: trade_week_of_quarter_num
-        description: "Week number within the quarter (1-13, or 14 for leap weeks) - same for all patterns"
-        data_tests:
-          - not_null
-      
-      # 454 Pattern attributes
+      # 454 Pattern month attributes
       - name: trade_month_454_num
         description: "Trade month for 4-5-4 pattern (1-12)"
         data_tests:
@@ -108,21 +113,12 @@ models:
         data_tests:
           - not_null
       
-      - name: trade_quarter_454_num
-        description: "Trade quarter for 4-5-4 pattern (1-4)"
-        data_tests:
-          - not_null
-          - accepted_values:
-              values: [1, 2, 3, 4]
-      
-      
       - name: trade_week_of_month_454_num
         description: "Week number within the month for 4-5-4 pattern"
         data_tests:
           - not_null
       
-      
-      # 544 Pattern attributes
+      # 544 Pattern month attributes
       - name: trade_month_544_num
         description: "Trade month for 5-4-4 pattern (1-12)"
         data_tests:
@@ -135,63 +131,25 @@ models:
         data_tests:
           - not_null
       
-      - name: trade_quarter_544_num
-        description: "Trade quarter for 5-4-4 pattern (1-4)"
-        data_tests:
-          - not_null
-          - accepted_values:
-              values: [1, 2, 3, 4]
-      
-      
       - name: trade_week_of_month_544_num
         description: "Week number within the month for 5-4-4 pattern"
         data_tests:
           - not_null
       
+      # Quarter attributes (same for all patterns)
+      - name: trade_quarter_num
+        description: "Trade quarter number (1-4, same for all patterns)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4]
       
-      # Week descriptions (445 pattern as default)
-      - name: trade_month_year_445_nm
-        description: "Month and year description for 4-4-5 pattern (e.g., 'January 2023')"
-      
-      - name: trade_week_of_month_445_txt
-        description: "Descriptive text for week of month in 4-4-5 pattern (e.g., 'Week 2 of January')"
-      
-      - name: trade_week_year_txt
-        description: "Trade week and year text (e.g., 'TW01 2023')"
-      
-      # Week descriptions (454 pattern)
-      - name: trade_month_year_454_nm
-        description: "Month and year description for 4-5-4 pattern (e.g., 'January 2023')"
-      
-      - name: trade_week_of_month_454_txt
-        description: "Descriptive text for week of month in 4-5-4 pattern (e.g., 'Week 2 of January')"
-      
-      # Week descriptions (544 pattern)
-      - name: trade_month_year_544_nm
-        description: "Month and year description for 5-4-4 pattern (e.g., 'January 2023')"
-      
-      - name: trade_week_of_month_544_txt
-        description: "Descriptive text for week of month in 5-4-4 pattern (e.g., 'Week 2 of January')"
-      
-      # Flags and indicators
-      - name: is_trade_leap_week_flg
-        description: "Flag indicating if this is the 53rd week (leap week)"
-      
-      - name: is_current_trade_week_flg
-        description: "Flag indicating if this is the current trade week"
-      
-      - name: is_prior_trade_week_flg
-        description: "Flag indicating if this is the prior trade week"
-      
-      - name: is_current_trade_year_flg
-        description: "Flag indicating if this week is in the current trade year"
-      
-      # Relative metrics
-      - name: trade_weeks_ago_num
-        description: "Number of trade weeks ago from current date (negative for future weeks)"
-      
-      - name: trade_week_pct_of_year_num
-        description: "Percentage of trade year completed as of this week (0.0-100.0)"
+      - name: trade_quarter_nm
+        description: "Trade quarter name (First, Second, Third, Fourth)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['First', 'Second', 'Third', 'Fourth']
       
       # Week metrics
       - name: days_in_week_num
@@ -210,19 +168,54 @@ models:
           - accepted_values:
               values: [52, 53]
       
-      - name: trade_week_overall_num
-        description: "Sequential trade week number since earliest trade week, useful for week-over-week calculations"
+      - name: is_trade_leap_week_flg
+        description: "Flag indicating if this is the 53rd week (leap week)"
         data_tests:
           - not_null
       
-      # ETL metadata
+      # Display columns
+      - name: trade_year_week_txt
+        description: "Trade year and week text (e.g., 'TY2023-W01')"
+        data_tests:
+          - not_null
+      
+      # Current period flags
+      - name: is_current_trade_week_flg
+        description: "Flag indicating if this is the current trade week"
+        data_tests:
+          - not_null
+      
+      - name: is_prior_trade_week_flg
+        description: "Flag indicating if this is the prior trade week"
+        data_tests:
+          - not_null
+      
+      - name: is_current_trade_year_flg
+        description: "Flag indicating if this week is in the current trade year"
+        data_tests:
+          - not_null
+      
+      - name: is_past_trade_week_flg
+        description: "Flag indicating if this week has ended (trade_week_end_dt < current date)"
+        data_tests:
+          - not_null
+      
+      # Relative metrics
+      - name: trade_weeks_ago_num
+        description: "Number of trade weeks ago from current date (negative for future weeks)"
+        data_tests:
+          - not_null
+      
+      # Metadata columns
       - name: dw_synced_ts
         description: "Timestamp when record was created/updated"
         data_tests:
           - not_null
       
       - name: dw_source_nm
-        description: "Source system name"
+        description: "Source system name (always 'dim_trade_week')"
+        data_tests:
+          - not_null
       
       - name: create_user_id
         description: "User who created the record"
@@ -235,6 +228,12 @@ models:
           - not_null
     
     data_tests:
+      # Test that trade week key matches the start key
+      - dbt_utils.expression_is_true:
+          expression: "trade_week_key = trade_week_start_key"
+          config:
+            error_if: ">0"
+      
       # Test 445 pattern: months 1,4,7,10 have max 4 weeks; 2,5,8,11 have max 4 weeks; 3,6,9,12 have max 5 weeks
       - dbt_utils.expression_is_true:
           expression: |
@@ -245,7 +244,7 @@ models:
               else false
             end
           config:
-            where: "is_trade_leap_week_flg = false"  # Exclude leap weeks from this test
+            where: "is_trade_leap_week_flg = 0"  # Exclude leap weeks from this test
             error_if: ">0"
       
       # Test 454 pattern: months 1,4,7,10 have max 4 weeks; 2,5,8,11 have max 5 weeks; 3,6,9,12 have max 4 weeks
@@ -258,7 +257,7 @@ models:
               else false
             end
           config:
-            where: "is_trade_leap_week_flg = false"  # Exclude leap weeks from this test
+            where: "is_trade_leap_week_flg = 0"  # Exclude leap weeks from this test
             error_if: ">0"
       
       # Test 544 pattern: months 1,4,7,10 have max 5 weeks; 2,5,8,11 have max 4 weeks; 3,6,9,12 have max 4 weeks
@@ -271,7 +270,7 @@ models:
               else false
             end
           config:
-            where: "is_trade_leap_week_flg = false"  # Exclude leap weeks from this test
+            where: "is_trade_leap_week_flg = 0"  # Exclude leap weeks from this test
             error_if: ">0"
       
       # Test that all patterns have reasonable values for week of month (1-6, allowing for leap weeks)
@@ -293,11 +292,5 @@ models:
       # Test that trade week end date is exactly 6 days after start date
       - dbt_utils.expression_is_true:
           expression: "datediff(day, trade_week_start_dt, trade_week_end_dt) = 6"
-          config:
-            error_if: ">0"
-      
-      # Test that trade week key matches year and week components
-      - dbt_utils.expression_is_true:
-          expression: "trade_week_key = trade_year_num * 100 + trade_week_num"
           config:
             error_if: ">0"

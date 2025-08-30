@@ -3,11 +3,11 @@ version: 2
 models:
   - name: dim_trade_month
     description: |
-      Trade calendar month dimension table containing one row per trade month per pattern, derived from dim_trade_date for consistency.
+      Trade calendar month dimension table containing one row per trade month, derived from dim_trade_week for consistency.
       Provides month-level aggregations and attributes for retail/trade calendar analysis at monthly granularity.
       
-      Since trade calendar patterns have different week allocations per month, each pattern creates different month boundaries.
-      This model includes all three patterns (445, 454, 544) with separate records for each pattern combination.
+      Since all trade calendar patterns have the same month boundaries (they differ only in week allocation within months),
+      this model has a single record per trade month with pattern-specific week count columns.
       
       Column naming follows CDC standards:
       - _dt for dates/timestamps
@@ -16,46 +16,30 @@ models:
       - _nm for names
       - _key for date keys in YYYYMMDD format
       - _txt for text strings
+      - _abbr for abbreviations
       
       Key Features:
-      - Separate records for each pattern (445, 454, 544)
-      - Pattern-specific month boundaries and metrics
-      - Derived from dim_trade_date to ensure consistency
-      - Trade months follow retail calendar conventions with Sunday start weeks
+      - Single record per trade month (not per pattern)
+      - Pattern-specific week count columns (trade_weeks_in_month_445_num, etc.)
+      - Derived from dim_trade_week to ensure consistency
+      - Trade months follow retail calendar conventions
       
       Pattern Details:
       - 445: Each quarter has 4-4-5 week months (13 weeks per quarter)
       - 454: Each quarter has 4-5-4 week months (13 weeks per quarter)  
       - 544: Each quarter has 5-4-4 week months (13 weeks per quarter)
-      
-      Primary Key Logic:
-      - trade_month_pattern_key: Unique across all patterns (YYYYMM###)
-      - trade_month_key: Pattern-specific key (YYYYMM format)
     
     columns:
-      # Primary keys
-      - name: trade_month_pattern_key
-        description: "Unique primary key across all patterns as trade_year * 10000 + trade_month * 100 + pattern (e.g., 20230445 for 2023 January 445 pattern)"
+      # Primary key
+      - name: trade_month_key
+        description: "Primary key as trade year * 100 + trade month number (e.g., 202301 for January 2023)"
         data_tests:
           - unique
           - not_null
 
-      - name: trade_month_key
-        description: "Pattern-specific key as trade year * 100 + trade month number (e.g., 202301 for 2023 January)"
-        data_tests:
-          - not_null
-
-      # Pattern identifier
-      - name: trade_pattern_txt
-        description: "Trade calendar pattern identifier (445, 454, or 544)"
-        data_tests:
-          - not_null
-          - accepted_values:
-              values: ['445', '454', '544']
-
       # Core trade calendar
       - name: trade_year_num
-        description: "Trade year (same for all patterns)"
+        description: "Trade year"
         data_tests:
           - not_null
 
@@ -73,6 +57,13 @@ models:
           - accepted_values:
               values: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
+      - name: trade_month_abbr
+        description: "Three-letter month abbreviation (Jan, Feb, etc.)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
       - name: trade_quarter_num
         description: "Trade quarter number (1-4)"
         data_tests:
@@ -87,21 +78,14 @@ models:
           - accepted_values:
               values: ['First', 'Second', 'Third', 'Fourth']
 
-      - name: month_in_quarter_num
-        description: "Position of month within the quarter (1-3)"
-        data_tests:
-          - not_null
-          - accepted_values:
-              values: [1, 2, 3]
-
       # Month boundaries
       - name: trade_month_start_dt
-        description: "First day (Sunday) of the trade month for this pattern"
+        description: "First day (Sunday) of the trade month"
         data_tests:
           - not_null
 
       - name: trade_month_end_dt
-        description: "Last day (Saturday) of the trade month for this pattern"
+        description: "Last day (Saturday) of the trade month"
         data_tests:
           - not_null
 
@@ -115,58 +99,15 @@ models:
         data_tests:
           - not_null
 
-      # Quarter and month descriptions
-      - name: trade_quarter_txt
-        description: "Trade quarter text (Q1, Q2, Q3, Q4)"
+      # Position metrics
+      - name: trade_month_in_quarter_num
+        description: "Position of month within the quarter (1-3)"
         data_tests:
           - not_null
           - accepted_values:
-              values: ['Q1', 'Q2', 'Q3', 'Q4']
+              values: [1, 2, 3]
 
-      - name: trade_month_year_nm
-        description: "Month and year description (e.g., 'January 2023')"
-        data_tests:
-          - not_null
-
-      - name: trade_month_year_abbr
-        description: "Abbreviated month and year (e.g., 'Jan 2023')"
-        data_tests:
-          - not_null
-
-      - name: trade_year_month_txt
-        description: "ISO-style year-month text (e.g., '2023-01')"
-        data_tests:
-          - not_null
-
-      - name: trade_month_abbr
-        description: "Three-letter month abbreviation (Jan, Feb, etc.)"
-        data_tests:
-          - not_null
-          - accepted_values:
-              values: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
-      # Pattern-specific descriptions
-      - name: trade_month_pattern_desc_txt
-        description: "Full descriptive text including pattern (e.g., '445 Pattern: January 2023')"
-        data_tests:
-          - not_null
-
-      - name: trade_month_pattern_code_txt
-        description: "Coded text with pattern (e.g., 'TM01 2023 (445)')"
-        data_tests:
-          - not_null
-
-      # Month metrics
-      - name: days_in_month_num
-        description: "Number of days in the trade month for this pattern"
-        data_tests:
-          - not_null
-
-      - name: weeks_in_month_num
-        description: "Number of weeks in the trade month for this pattern"
-        data_tests:
-          - not_null
-
+      # Week metrics
       - name: first_week_of_month_num
         description: "Trade week number of the first week in this month"
         data_tests:
@@ -177,81 +118,85 @@ models:
         data_tests:
           - not_null
 
-      - name: expected_weeks_in_month_num
-        description: "Expected number of weeks based on the pattern rules"
+      - name: weeks_in_month_num
+        description: "Total number of weeks in the month (4 or 5 depending on pattern and position)"
         data_tests:
           - not_null
           - accepted_values:
-              values: [4, 5]
+              values: [4, 5, 6]  # 6 possible in leap week scenarios
 
-      - name: trade_week_span_txt
-        description: "Descriptive text of week span (e.g., 'Weeks 1-4' or 'Week 5')"
+      - name: days_in_month_num
+        description: "Total number of days in the month (28 or 35 typically)"
         data_tests:
           - not_null
 
-      # Flags
-      - name: is_current_trade_month_flg
-        description: "Flag indicating if this is the current trade month"
-        data_tests:
-          - not_null
-
-      - name: is_prior_trade_month_flg
-        description: "Flag indicating if this is the prior trade month"
-        data_tests:
-          - not_null
-
-      - name: is_current_trade_year_flg
-        description: "Flag indicating if this month is in the current trade year"
-        data_tests:
-          - not_null
-
-      - name: is_past_trade_month_flg
-        description: "Flag indicating if this trade month is in the past"
-        data_tests:
-          - not_null
-
-      # Relative calculations
-      - name: trade_months_ago_num
-        description: "Number of trade months ago from current date (negative for future months)"
-        data_tests:
-          - not_null
-
-      - name: trade_months_from_now_num
-        description: "Number of trade months from current date (negative for past months)"
-        data_tests:
-          - not_null
-
-      # Position metrics
-      - name: trade_month_of_year_num
-        description: "Month position in the trade year (1-12)"
+      # Pattern-specific week counts
+      - name: trade_weeks_in_month_445_num
+        description: "Number of weeks in this month for 4-4-5 pattern"
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              values: [4, 5, 6]  # 6 possible in leap week scenarios
 
-      - name: trade_month_pct_of_year_num
-        description: "Percentage of trade year completed as of this month (0.0-100.0)"
+      - name: is_5_week_month_445_flg
+        description: "Flag indicating if this is a 5-week month in 4-4-5 pattern"
         data_tests:
           - not_null
 
+      - name: trade_weeks_in_month_454_num
+        description: "Number of weeks in this month for 4-5-4 pattern"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [4, 5, 6]  # 6 possible in leap week scenarios
+
+      - name: is_5_week_month_454_flg
+        description: "Flag indicating if this is a 5-week month in 4-5-4 pattern"
+        data_tests:
+          - not_null
+
+      - name: trade_weeks_in_month_544_num
+        description: "Number of weeks in this month for 5-4-4 pattern"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [4, 5, 6]  # 6 possible in leap week scenarios
+
+      - name: is_5_week_month_544_flg
+        description: "Flag indicating if this is a 5-week month in 5-4-4 pattern"
+        data_tests:
+          - not_null
+
+      - name: contains_leap_week_flg
+        description: "Flag indicating if this month contains the 53rd week (leap week)"
+        data_tests:
+          - not_null
+
+      # Display formats
+      - name: trade_month_year_nm
+        description: "Month and year description (e.g., 'January 2023')"
+        data_tests:
+          - not_null
+
+      - name: trade_year_month_txt
+        description: "Trade year and month text (e.g., 'TY2023-M01')"
+        data_tests:
+          - not_null
+
+      # Overall numbering
       - name: trade_month_overall_num
-        description: "Sequential trade month number within pattern since earliest trade month, useful for month-over-month calculations"
+        description: "Sequential trade month number since earliest trade month, useful for month-over-month calculations"
         data_tests:
           - not_null
 
-      - name: trade_month_sort_num
-        description: "Sorting helper for chronological ordering"
-        data_tests:
-          - not_null
-
-      # ETL metadata
+      # Metadata columns
       - name: dw_synced_ts
         description: "Timestamp when record was created/updated"
         data_tests:
           - not_null
 
       - name: dw_source_nm
-        description: "Source system name"
+        description: "Source system name (always 'dim_trade_month')"
         data_tests:
           - not_null
 
@@ -264,88 +209,67 @@ models:
         description: "Timestamp when record was created"
         data_tests:
           - not_null
-
+    
     data_tests:
-      # Test that expected weeks matches actual weeks for each pattern (excluding leap week months and partial year)
+      # Test that trade month key follows expected format
       - dbt_utils.expression_is_true:
-          expression: "weeks_in_month_num = expected_weeks_in_month_num"
+          expression: "trade_month_key = trade_year_num * 100 + trade_month_num"
           config:
-            where: "contains_leap_week_flg = false and trade_year_num < 2041"
             error_if: ">0"
 
-      # Test 445 pattern: months 1,2,4,5,7,8,10,11 have 4 weeks; 3,6,9,12 have 5 weeks (excluding leap weeks)
+      # Test 445 pattern: months 1,4,7,10 have 4 weeks; 2,5,8,11 have 4 weeks; 3,6,9,12 have 5 weeks
       - dbt_utils.expression_is_true:
           expression: |
             case 
-              when trade_pattern_txt = '445' and month_in_quarter_num in (1, 2) then weeks_in_month_num = 4
-              when trade_pattern_txt = '445' and month_in_quarter_num = 3 then weeks_in_month_num = 5
-              else true
+              when trade_month_num in (1, 4, 7, 10) then trade_weeks_in_month_445_num = 4
+              when trade_month_num in (2, 5, 8, 11) then trade_weeks_in_month_445_num = 4
+              when trade_month_num in (3, 6, 9, 12) then trade_weeks_in_month_445_num = 5
+              else false
             end
           config:
-            where: "contains_leap_week_flg = false and trade_year_num < 2041"  # Exclude leap weeks and partial year
+            where: "contains_leap_week_flg = 0"  # Exclude months with leap weeks
             error_if: ">0"
 
-      # Test 454 pattern: months 1,3,4,6,7,9,10,12 have 4 weeks; 2,5,8,11 have 5 weeks (excluding leap weeks)
+      # Test 454 pattern: months 1,4,7,10 have 4 weeks; 2,5,8,11 have 5 weeks; 3,6,9,12 have 4 weeks
       - dbt_utils.expression_is_true:
           expression: |
             case 
-              when trade_pattern_txt = '454' and month_in_quarter_num in (1, 3) then weeks_in_month_num = 4
-              when trade_pattern_txt = '454' and month_in_quarter_num = 2 then weeks_in_month_num = 5
-              else true
+              when trade_month_num in (1, 4, 7, 10) then trade_weeks_in_month_454_num = 4
+              when trade_month_num in (2, 5, 8, 11) then trade_weeks_in_month_454_num = 5
+              when trade_month_num in (3, 6, 9, 12) then trade_weeks_in_month_454_num = 4
+              else false
             end
           config:
-            where: "contains_leap_week_flg = false and trade_year_num < 2041"  # Exclude leap weeks and partial year
+            where: "contains_leap_week_flg = 0"  # Exclude months with leap weeks
             error_if: ">0"
 
-      # Test 544 pattern: months 1,4,7,10 have 5 weeks; 2,3,5,6,8,9,11,12 have 4 weeks (excluding leap weeks)
+      # Test 544 pattern: months 1,4,7,10 have 5 weeks; 2,5,8,11 have 4 weeks; 3,6,9,12 have 4 weeks
       - dbt_utils.expression_is_true:
           expression: |
             case 
-              when trade_pattern_txt = '544' and month_in_quarter_num = 1 then weeks_in_month_num = 5
-              when trade_pattern_txt = '544' and month_in_quarter_num in (2, 3) then weeks_in_month_num = 4
-              else true
+              when trade_month_num in (1, 4, 7, 10) then trade_weeks_in_month_544_num = 5
+              when trade_month_num in (2, 5, 8, 11) then trade_weeks_in_month_544_num = 4
+              when trade_month_num in (3, 6, 9, 12) then trade_weeks_in_month_544_num = 4
+              else false
             end
           config:
-            where: "contains_leap_week_flg = false and trade_year_num < 2041"  # Exclude leap weeks and partial year
+            where: "contains_leap_week_flg = 0"  # Exclude months with leap weeks
             error_if: ">0"
 
-      # Test that trade month end date is after start date
+      # Test that days in month aligns with weeks (7 days per week)
       - dbt_utils.expression_is_true:
-          expression: "trade_month_end_dt > trade_month_start_dt"
+          expression: "days_in_month_num = weeks_in_month_num * 7"
           config:
             error_if: ">0"
 
-      # Test that days in month is reasonable (28-35 days normally, up to 42 for leap week months)
-      - dbt_utils.expression_is_true:
-          expression: "days_in_month_num between 28 and 42"
-          config:
-            where: "trade_year_num < 2041"  # Exclude partial year data
-            error_if: ">0"
-
-      # Test that trade month key is constructed correctly (includes pattern suffix)
-      - dbt_utils.expression_is_true:
-          expression: "trade_month_key = trade_year_num::varchar || lpad(trade_month_num::varchar, 2, '0') || trade_pattern_txt"
-          config:
-            error_if: ">0"
-
-      # Test that trade month pattern key is constructed correctly
-      - dbt_utils.expression_is_true:
-          expression: "trade_month_pattern_key = trade_year_num * 10000 + trade_month_num * 100 + trade_pattern_txt::int"
-          config:
-            error_if: ">0"
-
-      # Test that all three patterns exist for each trade year and month combination
-      - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - trade_year_num
-            - trade_month_num
-            - trade_pattern_txt
-
-      # Test that week span is within reasonable bounds (1-53)
+      # Test that month in quarter is correct based on month number
       - dbt_utils.expression_is_true:
           expression: |
-            first_week_of_month_num between 1 and 53
-            and last_week_of_month_num between 1 and 53
-            and last_week_of_month_num >= first_week_of_month_num
+            case 
+              when trade_month_num in (1, 4, 7, 10) then trade_month_in_quarter_num = 1
+              when trade_month_num in (2, 5, 8, 11) then trade_month_in_quarter_num = 2
+              when trade_month_num in (3, 6, 9, 12) then trade_month_in_quarter_num = 3
+              else false
+            end
           config:
             error_if: ">0"
