@@ -1,6 +1,6 @@
 {{ config(materialized='table') }}
 
-with dim_week as (select * from {{ ref('dim_week') }})
+with dim_date as (select * from {{ ref('dim_date') }})
 , months as (
     select
         -- Natural key: Year * 100 + Month
@@ -15,25 +15,25 @@ with dim_week as (select * from {{ ref('dim_week') }})
         , max(quarter_nm) as quarter_nm
         
         -- Month boundaries
-        , min(week_start_dt) as month_start_dt
-        , max(week_end_dt) as month_end_dt
-        , min(week_start_key) as month_start_key
-        , max(week_end_key) as month_end_key
+        , min(full_dt) as month_start_dt
+        , max(full_dt) as month_end_dt
+        , min(date_key) as month_start_key
+        , max(date_key) as month_end_key
         
-        -- Month metrics
+        -- Month metrics - count distinct weeks that have any day in this month
         , count(distinct week_num) as weeks_in_month_num
-        , sum(days_in_week_num) as days_in_month_num
+        , count(*) as days_in_month_num
         , min(week_num) as first_week_of_month_num
         , max(week_num) as last_week_of_month_num
         
-        -- Position metrics (taking most common value in month)
+        -- Position metrics
         , max(case 
             when month_num in (1, 4, 7, 10) then 1
             when month_num in (2, 5, 8, 11) then 2
             else 3
         end) as month_in_quarter_num
         
-    from dim_week
+    from dim_date
     group by year_num, month_num
 )
 , final as (

@@ -114,7 +114,11 @@ with date_sequence as ( select
         , year(ds.calendar_date) as calendar_year
         , quarter(ds.calendar_date) as calendar_quarter
         , month(ds.calendar_date) as calendar_month
-        , weekofyear(ds.calendar_date) as calendar_week
+        -- Calculate week number within year (Sunday-Saturday weeks)
+        -- Week 1 starts with the first Sunday of the year or Jan 1 if it's a Sunday
+        , floor(datediff(day, 
+            date_trunc('year', ds.calendar_date) - dayofweek(date_trunc('year', ds.calendar_date)), 
+            ds.calendar_date - dayofweek(ds.calendar_date)) / 7) + 1 as calendar_week
         , dayofweek(ds.calendar_date) as day_of_week
         , dayname(ds.calendar_date) as day_name
         , rp.trade_year_num
@@ -233,7 +237,7 @@ with date_sequence as ( select
         -- Week numbers
         , trade_dates.calendar_week as calendar_week_num
         , trade_dates.trade_week_num
-        , weekofyear(trade_dates.calendar_date) as calendar_week_of_year_num
+        , trade_dates.calendar_week as calendar_week_of_year_num
         , trade_dates.trade_week_num as trade_week_of_year_num
         , ceil(day(trade_dates.calendar_date) / 7.0) as calendar_week_of_month_num
         , trade_dates.trade_week_of_month_445_num
@@ -241,7 +245,7 @@ with date_sequence as ( select
         , trade_dates.trade_week_of_month_544_num
         , dense_rank() over (
             partition by year(trade_dates.calendar_date), quarter(trade_dates.calendar_date)
-            order by weekofyear(trade_dates.calendar_date)) as calendar_week_of_quarter_num
+            order by trade_dates.calendar_week) as calendar_week_of_quarter_num
         , dense_rank() over (
             partition by trade_dates.trade_year_num, ceil(trade_dates.trade_month_445_num / 3.0)
             order by trade_dates.trade_week_num) as trade_week_of_quarter_num
