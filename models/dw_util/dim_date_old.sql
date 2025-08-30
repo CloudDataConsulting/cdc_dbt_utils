@@ -1,14 +1,13 @@
 {{ config(materialized='table') }}
-
 with sequence_gen as (
     select
-      dateadd(day, seq4(), '1970-1-1' :: date) as datum
-      , dateadd(day, seq4(), '1970-1-1' :: date) as fy_datum
+      dateadd(day, seq4(), '1970-1-1'::date) as datum
+      , dateadd(day, seq4(), '1970-1-1'::date) as fy_datum
     from table(generator(rowcount => 50000))
 )
 , gen_date as (
 select
-  to_char(datum, 'yyyymmdd') :: int as date_key
+  to_char(datum, 'yyyymmdd')::int as date_key
   , datum as full_date
   , datum - interval '1 year' as same_dt_last_year
   , case
@@ -31,7 +30,7 @@ select
   , extract(dayofweek from datum) + 1 as day_of_week_num
   , extract(dayofweekiso from datum) as iso_day_of_week_num
   , case
-  when extract(dayofweekiso from datum) IN (6, 7)
+  when extract(dayofweekiso from datum) in (6, 7)
     then 'Weekend'
     else 'Weekday'
   end as weekday_flg
@@ -40,7 +39,7 @@ select
       then 1
     else 0
   end as end_of_week_flg
-  , extract(DAY from datum) as day_of_month_num
+  , extract(day from datum) as day_of_month_num
   , last_day(datum, 'month') as last_day_of_month_dt
   , case
     when day_of_month_num = extract(day from last_day_of_month_dt)
@@ -48,17 +47,17 @@ select
     else 0
   end as end_of_month_flg
   , case
-    when mod(to_char(datum, 'dd') :: int, 10) = 1
-      then to_char(datum, 'dd') :: int || 'st'
-    when mod(to_char(datum, 'dd') :: int, 10) = 2
-      then to_char(datum, 'dd') :: int || 'nd'
-    when mod(to_char(datum, 'dd') :: int, 10) = 3
-      then to_char(datum, 'dd') :: int || 'rd'
-    else to_char(datum, 'dd') :: int || 'th'
+    when mod(to_char(datum, 'dd')::int, 10) = 1
+      then to_char(datum, 'dd')::int || 'st'
+    when mod(to_char(datum, 'dd')::int, 10) = 2
+      then to_char(datum, 'dd')::int || 'nd'
+    when mod(to_char(datum, 'dd')::int, 10) = 3
+      then to_char(datum, 'dd')::int || 'rd'
+    else to_char(datum, 'dd')::int || 'th'
   end::varchar(10) as day_suffix_txt
   , date_trunc('month', datum) as first_day_of_month_dt
   , case
-    when date_trunc('month', datum) =  datum
+    when date_trunc('month', datum) = datum
       then 1
     else 0
   end as first_day_of_month_flg
@@ -66,9 +65,9 @@ select
   , date_trunc('quarter', datum) as first_day_of_quarter_dt
   , last_day(datum, 'quarter') as last_day_of_quarter_dt
   , extract(dayofyear from datum) as day_of_year_num
-  , (extract(year from datum) || '-01-01') :: date as first_day_of_year_dt
-  , (extract(year from datum) || '-12-31') :: date as last_day_of_year_dt
-  , datediff('d',datefromparts(1970,1,1), datum) as day_overall_num
+  , (extract(year from datum) || '-01-01')::date as first_day_of_year_dt
+  , (extract(year from datum) || '-12-31')::date as last_day_of_year_dt
+  , datediff('d', datefromparts(1970, 1, 1), datum) as day_overall_num
   , datediff(week, date_trunc('month', datum), datum) + 1 as week_of_month_num
   , extract(week from datum) as week_of_year_num
   , (yearofweekiso(datum)
@@ -78,19 +77,19 @@ select
      else concat('-W', weekiso(datum))
      end
   || concat('-', dayofweekiso(datum)))::varchar(15) as iso_week_of_year_txt
-  , datediff('w',datefromparts(1970,1,1), datum) as week_overall_num
+  , datediff('w', datefromparts(1970, 1, 1), datum) as week_overall_num
   , dateadd(day, 1 - extract(dayofweekiso from datum), datum) as week_begin_dt
   , to_number(
     to_char(
       dateadd(day
-              , 1 - extract(dayofweekiso from datum),
-              datum), 'yyyymmdd')) as week_begin_key
+              , 1 - extract(dayofweekiso from datum)
+              , datum), 'yyyymmdd')) as week_begin_key
   , dateadd(day, 7 - extract(dayofweekiso from datum), datum) as week_end_dt
   , to_number(
     to_char(
       dateadd(day
-              , 7 - extract(dayofweekiso from datum),
-              datum), 'yyyymmdd')) as week_end_key
+              , 7 - extract(dayofweekiso from datum)
+              , datum), 'yyyymmdd')) as week_end_key
   , case
     when monthname(datum) = 'Jan'
       then 'January'
@@ -118,8 +117,8 @@ select
       then 'December'
   end::varchar(30) as month_nm
   , monthname(datum) as month_abbr
-  , extract(MONTH from datum) as month_num
-  , datediff('month',datefromparts(1970,1,1), datum) as month_overall_num
+  , extract(month from datum) as month_num
+  , datediff('month', datefromparts(1970, 1, 1), datum) as month_overall_num
   , mod(month_num - 1, 3) + 1 as month_in_quarter_num
   , extract(quarter from datum) as quarter_num
   , case
@@ -136,7 +135,7 @@ select
   , extract(yearofweekiso from datum) as iso_year_num
   , to_char(datum, 'yyyymm')::number as yearmonth_num
   , case
-    when (extract(year from fy_datum) || '-12-31') :: date = datum
+    when (extract(year from fy_datum) || '-12-31')::date = datum
       then 1
     else 0
   end as end_of_year_flg
@@ -146,12 +145,11 @@ select
   , current_timestamp as create_ts
 from sequence_gen
 )
-, final as
-( select * from gen_date
-union
+, final as (select * from gen_date
+union distinct
 select
     -1 as date_key
-    , to_date('99991231','yyyymmdd') as full_date
+    , to_date('99991231', 'yyyymmdd') as full_date
     , null as same_dt_last_year
     , 'Not Set' as day_nm
     , 'N/A' as day_abbr
