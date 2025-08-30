@@ -44,6 +44,187 @@ Organizations typically choose one primary pattern, but having all three availab
    - TRADE_QUARTER_NUM (same for all patterns - quarters always have 13/14 weeks)
    - TRADE_WEEK_START_DT, TRADE_WEEK_END_DT (same for all patterns)
 
+## Special Records Specification
+
+### Purpose
+Special records handle cases where fact table date values are missing, invalid, or unknown. These records ensure referential integrity while providing meaningful reporting categories.
+
+### Standard Special Records
+
+| DATE_KEY | Meaning | Usage |
+|----------|---------|-------|
+| -1 | Not Available / NULL | Default for missing dates |
+| -2 | Invalid Date | Date failed validation rules |
+| -3 | Not Applicable | Date doesn't apply in this context |
+| -4 | Unknown | Date exists but is unknown |
+
+### Special Record Values by Data Type
+
+#### Numeric Fields (Integer/Number)
+Use the special record key value:
+- DATE_KEY: -1, -2, -3, -4
+- YEAR_NUM: -1, -2, -3, -4
+- MONTH_NUM: -1, -2, -3, -4
+- WEEK_NUM: -1, -2, -3, -4
+- DAY_OF_WEEK_NUM: -1, -2, -3, -4
+- All other numeric fields: Same pattern
+
+#### Text Fields (VARCHAR)
+Use descriptive text for reporting clarity:
+- DAY_NM: 'Not Available', 'Invalid', 'Not Applicable', 'Unknown'
+- MONTH_NM: 'Not Available', 'Invalid', 'Not Applicable', 'Unknown'
+- QUARTER_NM: 'N/A', 'Invalid', 'N/A', 'Unknown'
+- All abbreviated fields: 'N/A', 'INV', 'N/A', 'UNK'
+
+#### Date Fields (DATE)
+**Recommended Approach - Use Sentinel Dates:**
+- For -1 (Not Available): DATE '1900-01-01'
+- For -2 (Invalid): DATE '1900-01-02'
+- For -3 (Not Applicable): DATE '1900-01-03'
+- For -4 (Unknown): DATE '1900-01-04'
+
+**Alternative Approach - Far Future:**
+- For -1: DATE '9999-12-31'
+- For -2: DATE '9999-12-30'
+- For -3: DATE '9999-12-29'
+- For -4: DATE '9999-12-28'
+
+#### Boolean/Flag Fields
+Use 0 (zero) for all special records:
+- WEEKDAY_FLG: 0
+- IS_LEAP_YEAR_FLG: 0
+- All other flags: 0
+
+### Implementation Examples
+
+#### DIM_DATE Special Records
+```sql
+INSERT INTO DIM_DATE (
+    DATE_KEY, FULL_DATE, YEAR_NUM, MONTH_NUM, MONTH_NM,
+    DAY_OF_MONTH_NUM, DAY_OF_WEEK_NUM, DAY_NM, WEEK_NUM,
+    WEEK_START_DT, WEEK_END_DT, QUARTER_NUM, QUARTER_NM
+) VALUES
+-- Not Available record
+(-1, '1900-01-01', -1, -1, 'Not Available',
+ -1, -1, 'Not Available', -1,
+ '1900-01-01', '1900-01-01', -1, 'N/A'),
+
+-- Invalid record
+(-2, '1900-01-02', -2, -2, 'Invalid',
+ -2, -2, 'Invalid', -2,
+ '1900-01-02', '1900-01-02', -2, 'Invalid'),
+
+-- Not Applicable record
+(-3, '1900-01-03', -3, -3, 'Not Applicable',
+ -3, -3, 'Not Applicable', -3,
+ '1900-01-03', '1900-01-03', -3, 'N/A'),
+
+-- Unknown record
+(-4, '1900-01-04', -4, -4, 'Unknown',
+ -4, -4, 'Unknown', -4,
+ '1900-01-04', '1900-01-04', -4, 'Unknown');
+```
+
+#### DIM_TRADE_DATE Special Records
+```sql
+INSERT INTO DIM_TRADE_DATE (
+    DATE_KEY, CALENDAR_FULL_DT, TRADE_YEAR_NUM, TRADE_WEEK_NUM,
+    TRADE_MONTH_445_NUM, TRADE_MONTH_445_NM,
+    TRADE_MONTH_454_NUM, TRADE_MONTH_454_NM,
+    TRADE_MONTH_544_NUM, TRADE_MONTH_544_NM,
+    TRADE_QUARTER_NUM, TRADE_QUARTER_NM
+) VALUES
+-- Not Available record (all patterns)
+(-1, '1900-01-01', -1, -1,
+ -1, 'Not Available',
+ -1, 'Not Available',
+ -1, 'Not Available',
+ -1, 'N/A'),
+
+-- Similar for -2, -3, -4 records
+```
+
+### Validation Query Adjustments
+
+All validation queries should exclude special records:
+
+```sql
+-- Example: Adjust Test 1 to exclude special records
+WITH week_one AS (
+    SELECT
+        YEAR_NUM,
+        MIN(FULL_DATE) as week_start,
+        MAX(FULL_DATE) as week_end
+    FROM DIM_DATE
+    WHERE WEEK_NUM = 1
+      AND DATE_KEY > 0  -- Exclude special records
+    GROUP BY YEAR_NUM
+)
+-- Rest of query...
+```
+
+### ETL Considerations
+
+#### Fact Table Loading
+```sql
+-- Example: Loading fact with NULL date handling
+INSERT INTO fact_sales (
+    date_key,
+    product_key,
+    sales_amount
+)
+SELECT
+    COALESCE(d.DATE_KEY, -1) as date_key,  -- Default to -1 for NULL dates
+    p.product_key,
+    s.sales_amount
+FROM staging_sales s
+LEFT JOIN DIM_DATE d ON s.sale_date = d.FULL_DATE
+LEFT JOIN dim_product p ON s.product_id = p.product_id;
+```
+
+#### Data Quality Rules
+```sql
+-- Identify invalid dates that should use -2 record
+UPDATE fact_sales
+SET date_key = -2
+WHERE date_key = -1  -- Currently NULL
+  AND original_date_string IS NOT NULL  -- Had a value
+  AND original_date_string NOT LIKE '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]%';
+```
+
+### Reporting Considerations
+
+1. **Default Exclusion**: Most reports should exclude special records by default
+```sql
+SELECT * FROM fact_sales f
+JOIN DIM_DATE d ON f.date_key = d.DATE_KEY
+WHERE d.DATE_KEY > 0  -- Exclude special records
+```
+
+2. **Data Quality Reports**: Include special records to show data completeness
+```sql
+SELECT
+    CASE
+        WHEN d.DATE_KEY = -1 THEN 'Missing Dates'
+        WHEN d.DATE_KEY = -2 THEN 'Invalid Dates'
+        WHEN d.DATE_KEY = -3 THEN 'Not Applicable'
+        WHEN d.DATE_KEY = -4 THEN 'Unknown Dates'
+        ELSE 'Valid Dates'
+    END as data_quality_category,
+    COUNT(*) as record_count
+FROM fact_sales f
+JOIN DIM_DATE d ON f.date_key = d.DATE_KEY
+GROUP BY 1;
+```
+
+### Best Practices
+
+1. **Consistency**: Use the same special record keys across all dimension tables
+2. **Documentation**: Clearly document what each special value means in your data dictionary
+3. **NOT NULL Constraints**: Keep NOT NULL constraints on dimension columns - special records satisfy these
+4. **Referential Integrity**: Always include special records to maintain foreign key relationships
+5. **Testing**: Separate test queries for special records vs regular data validation
+
 ---
 
 ## DIM_DATE (Standard Calendar) Specification
@@ -676,7 +857,7 @@ SELECT * FROM final_trade_dates;
 
 ## Contact and Version Information
 
-- **Version**: 1.0
+- **Version**: 1.3
 - **Last Updated**: Current as of pattern discussion
 - **Purpose**: Standard specification for calendar and trade date dimensions
 - **Usage**: Reference for implementation and validation of date dimension tables
