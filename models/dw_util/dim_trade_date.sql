@@ -174,21 +174,96 @@ with date_sequence as ( select
 )
 , final as (
     select
-        -- Primary key
+        -- Primary Key
         trade_dates.date_key
         
-        -- Calendar columns (calendar_*)
+        -- DAY Level (Most Granular)
+        -- Core day identifiers
         , trade_dates.calendar_date as calendar_full_dt
-        , trade_dates.calendar_date - interval '1 year' as calendar_same_dt_last_year
-        , trade_dates.calendar_year as calendar_year_num
-        , trade_dates.calendar_quarter as calendar_quarter_num
+        , trade_dates.calendar_date as trade_full_dt  -- same as calendar_full_dt
+        , to_char(trade_dates.calendar_date - interval '1 year', 'yyyymmdd')::int as calendar_date_last_year_key
+        , tyc.trade_date_last_year_key
+        
+        -- Day position metrics
+        , trade_dates.day_of_week as calendar_day_of_week_num
+        , dayofweekiso(trade_dates.calendar_date) as iso_day_of_week_num
+        , day(trade_dates.calendar_date) as calendar_day_of_month_num
+        , datediff(day, date_trunc('quarter', trade_dates.calendar_date), trade_dates.calendar_date) + 1 as calendar_day_of_quarter_num
+        , dayofyear(trade_dates.calendar_date) as calendar_day_of_year_num
+        , trade_dates.trade_day_of_year_num
+        , datediff('d', date('1970-01-01'), trade_dates.calendar_date) as calendar_day_overall_num
+        
+        -- Day descriptors
+        , case dayofweek(trade_dates.calendar_date)
+            when 0 then 'Sunday'
+            when 1 then 'Monday'
+            when 2 then 'Tuesday'
+            when 3 then 'Wednesday'
+            when 4 then 'Thursday'
+            when 5 then 'Friday'
+            when 6 then 'Saturday'
+        end as calendar_day_nm
+        , trade_dates.day_name as calendar_day_abbr
         , case
-            when quarter(trade_dates.calendar_date) = 1 then 'First'
-            when quarter(trade_dates.calendar_date) = 2 then 'Second'
-            when quarter(trade_dates.calendar_date) = 3 then 'Third'
-            when quarter(trade_dates.calendar_date) = 4 then 'Fourth'
-        end as calendar_quarter_nm
+            when mod(day(trade_dates.calendar_date), 10) = 1 and day(trade_dates.calendar_date) not in (11)
+                then day(trade_dates.calendar_date)::varchar || 'st'
+            when mod(day(trade_dates.calendar_date), 10) = 2 and day(trade_dates.calendar_date) not in (12)
+                then day(trade_dates.calendar_date)::varchar || 'nd'
+            when mod(day(trade_dates.calendar_date), 10) = 3 and day(trade_dates.calendar_date) not in (13)
+                then day(trade_dates.calendar_date)::varchar || 'rd'
+            else day(trade_dates.calendar_date)::varchar || 'th'
+        end as calendar_day_suffix_txt
+        , date_part(epoch_second, trade_dates.calendar_date) as calendar_epoch_num
+        
+        -- Day flags
+        , case 
+            when trade_dates.day_of_week in (0, 6) then 'Weekend'
+            else 'Weekday'
+        end as calendar_weekday_flg
+        , case
+            when trade_dates.calendar_date = dateadd(day, 6, date_trunc('week', trade_dates.calendar_date)) then 1
+            else 0
+        end as calendar_last_day_of_week_flg
+        , case when date_trunc('month', trade_dates.calendar_date) = trade_dates.calendar_date then 1 else 0 end as calendar_first_day_of_month_flg
+        , case when last_day(trade_dates.calendar_date, 'month') = trade_dates.calendar_date then 1 else 0 end as calendar_last_day_of_month_flg
+        , case when last_day(trade_dates.calendar_date, 'quarter') = trade_dates.calendar_date then 1 else 0 end as calendar_last_day_of_quarter_flg
+        , case when month(trade_dates.calendar_date) = 12 and day(trade_dates.calendar_date) = 31 then 1 else 0 end as calendar_last_day_of_year_flg
+        
+        -- WEEK Level
+        -- Week numbers
+        , trade_dates.calendar_week as calendar_week_num
+        , trade_dates.trade_week_num
+        , weekofyear(trade_dates.calendar_date) as calendar_week_of_year_num
+        , trade_dates.trade_week_num as trade_week_of_year_num
+        , ceil(day(trade_dates.calendar_date) / 7.0) as calendar_week_of_month_num
+        , trade_dates.trade_week_of_month_445_num
+        , trade_dates.trade_week_of_month_454_num
+        , trade_dates.trade_week_of_month_544_num
+        , dense_rank() over (
+            partition by year(trade_dates.calendar_date), quarter(trade_dates.calendar_date)
+            order by weekofyear(trade_dates.calendar_date)) as calendar_week_of_quarter_num
+        , dense_rank() over (
+            partition by trade_dates.trade_year_num, ceil(trade_dates.trade_month_445_num / 3.0)
+            order by trade_dates.trade_week_num) as trade_week_of_quarter_num
+        , datediff('w', date('1970-01-01'), dateadd(day, -dayofweek(trade_dates.calendar_date), trade_dates.calendar_date)) as calendar_week_overall_num
+        , datediff('w', date('1970-01-01'), trade_dates.trade_week_start_dt) as trade_week_overall_num
+        
+        -- Week boundaries
+        , dateadd(day, -dayofweek(trade_dates.calendar_date), trade_dates.calendar_date) as calendar_week_start_dt
+        , trade_dates.trade_week_start_dt
+        , to_char(dateadd(day, -dayofweek(trade_dates.calendar_date), trade_dates.calendar_date), 'yyyymmdd')::int as calendar_week_start_key
+        , to_char(trade_dates.trade_week_start_dt, 'yyyymmdd')::int as trade_week_start_key
+        , dateadd(day, 6 - dayofweek(trade_dates.calendar_date), trade_dates.calendar_date) as calendar_week_end_dt
+        , trade_dates.trade_week_end_dt
+        , to_char(dateadd(day, 6 - dayofweek(trade_dates.calendar_date), trade_dates.calendar_date), 'yyyymmdd')::int as calendar_week_end_key
+        , to_char(trade_dates.trade_week_end_dt, 'yyyymmdd')::int as trade_week_end_key
+        
+        -- MONTH Level
+        -- Month identifiers
         , trade_dates.calendar_month as calendar_month_num
+        , trade_dates.trade_month_445_num
+        , trade_dates.trade_month_454_num
+        , trade_dates.trade_month_544_num
         , case month(trade_dates.calendar_date)
             when 1 then 'January'
             when 2 then 'February'
@@ -203,138 +278,120 @@ with date_sequence as ( select
             when 11 then 'November'
             when 12 then 'December'
         end as calendar_month_nm
-        , monthname(trade_dates.calendar_date) as calendar_month_abbr
-        , trade_dates.calendar_week as calendar_week_num
-        , trade_dates.day_of_week as day_of_week_num
-        , case dayofweek(trade_dates.calendar_date)
-            when 0 then 'Sunday'
-            when 1 then 'Monday'
-            when 2 then 'Tuesday'
-            when 3 then 'Wednesday'
-            when 4 then 'Thursday'
-            when 5 then 'Friday'
-            when 6 then 'Saturday'
-        end as calendar_day_nm
-        , trade_dates.day_name as calendar_day_abbr
-        , case 
-            when trade_dates.day_of_week in (0, 6) then 'Weekend'
-            else 'Weekday'
-        end as calendar_weekday_flg
-        , case
-            when trade_dates.calendar_date = dateadd(day, 6, date_trunc('week', trade_dates.calendar_date)) then 1
-            else 0
-        end as calendar_end_of_week_flg
-        , case
-            when mod(day(trade_dates.calendar_date), 10) = 1 and day(trade_dates.calendar_date) not in (11)
-                then day(trade_dates.calendar_date)::varchar || 'st'
-            when mod(day(trade_dates.calendar_date), 10) = 2 and day(trade_dates.calendar_date) not in (12)
-                then day(trade_dates.calendar_date)::varchar || 'nd'
-            when mod(day(trade_dates.calendar_date), 10) = 3 and day(trade_dates.calendar_date) not in (13)
-                then day(trade_dates.calendar_date)::varchar || 'rd'
-            else day(trade_dates.calendar_date)::varchar || 'th'
-        end as calendar_day_suffix_txt
-        , datediff('d', date('1970-01-01'), trade_dates.calendar_date) as calendar_day_overall_num
-        , day(trade_dates.calendar_date) as calendar_day_of_month_num
-        , datediff('month', date('1970-01-01'), trade_dates.calendar_date) as calendar_month_overall_num
-        , mod(month(trade_dates.calendar_date) - 1, 3) + 1 as calendar_month_in_quarter_num
-        , date_trunc('month', trade_dates.calendar_date) as calendar_first_day_of_month
-        , last_day(trade_dates.calendar_date, 'month') as calendar_last_day_of_month
-        , case when date_trunc('month', trade_dates.calendar_date) = trade_dates.calendar_date then 1 else 0 end as calendar_first_day_of_month_flg
-        , case when last_day(trade_dates.calendar_date, 'month') = trade_dates.calendar_date then 1 else 0 end as calendar_end_of_month_flg
-        , datediff(day, date_trunc('quarter', trade_dates.calendar_date), trade_dates.calendar_date) + 1 as calendar_day_of_quarter_num
-        , date_trunc('quarter', trade_dates.calendar_date) as calendar_first_day_of_quarter
-        , last_day(trade_dates.calendar_date, 'quarter') as calendar_last_day_of_quarter
-        , to_char(trade_dates.calendar_date, 'yyyymm')::int as calendar_yearmonth_num
-        , date_trunc('year', trade_dates.calendar_date) as calendar_first_day_of_year_dt
-        , dateadd(day, -1, dateadd(year, 1, date_trunc('year', trade_dates.calendar_date))) as calendar_last_day_of_year_dt
-        , dayofyear(trade_dates.calendar_date) as calendar_day_of_year_num
-        , case when month(trade_dates.calendar_date) = 12 and day(trade_dates.calendar_date) = 31 then 1 else 0 end as calendar_end_of_year_flg
-        , case 
-            when (year(trade_dates.calendar_date) % 4 = 0 and year(trade_dates.calendar_date) % 100 != 0) 
-                or (year(trade_dates.calendar_date) % 400 = 0) 
-            then 1 else 0 
-        end as calendar_is_leap_year_flg
-        , weekofyear(trade_dates.calendar_date) as calendar_week_of_year_num
-        , ceil(day(trade_dates.calendar_date) / 7.0) as calendar_week_of_month_num
-        , datediff('w', date('1970-01-01'), dateadd(day, -dayofweek(trade_dates.calendar_date), trade_dates.calendar_date)) as calendar_week_overall_num
-        , dateadd(day, -dayofweek(trade_dates.calendar_date), trade_dates.calendar_date) as calendar_week_begin_dt
-        , to_char(dateadd(day, -dayofweek(trade_dates.calendar_date), trade_dates.calendar_date), 'yyyymmdd')::int as calendar_week_begin_key
-        , dateadd(day, 6 - dayofweek(trade_dates.calendar_date), trade_dates.calendar_date) as calendar_week_end_dt
-        , to_char(dateadd(day, 6 - dayofweek(trade_dates.calendar_date), trade_dates.calendar_date), 'yyyymmdd')::int as calendar_week_end_key
-        , date_part(epoch_second, trade_dates.calendar_date) as calendar_epoch_num
-        
-        -- Trade columns (trade_*)
-        , tyc.trade_date_last_year_key
-        , trade_dates.trade_year_num
-        , trade_dates.trade_year_start as trade_year_start_dt
-        , trade_dates.trade_year_end as trade_year_end_dt
-        , trade_dates.weeks_in_trade_year_num
-        , trade_dates.trade_day_of_year_num
-        , trade_dates.trade_week_num
-        , trade_dates.trade_week_start_dt
-        , trade_dates.trade_week_end_dt
-        , trade_dates.trade_week_num as trade_week_of_year_num
-        , trade_dates.trade_month_445_num
         , case trade_dates.trade_month_445_num
             when 1 then 'January' when 2 then 'February' when 3 then 'March'
             when 4 then 'April' when 5 then 'May' when 6 then 'June'
             when 7 then 'July' when 8 then 'August' when 9 then 'September'
             when 10 then 'October' when 11 then 'November' when 12 then 'December'
         end as trade_month_445_nm
-        , trade_dates.trade_month_445_start_dt
-        , trade_dates.trade_month_445_end_dt
-        , trade_dates.trade_week_of_month_445_num
-        , trade_dates.trade_month_454_num
         , case trade_dates.trade_month_454_num
             when 1 then 'January' when 2 then 'February' when 3 then 'March'
             when 4 then 'April' when 5 then 'May' when 6 then 'June'
             when 7 then 'July' when 8 then 'August' when 9 then 'September'
             when 10 then 'October' when 11 then 'November' when 12 then 'December'
         end as trade_month_454_nm
-        , trade_dates.trade_month_454_start_dt
-        , trade_dates.trade_month_454_end_dt
-        , trade_dates.trade_week_of_month_454_num
-        , trade_dates.trade_month_544_num
         , case trade_dates.trade_month_544_num
             when 1 then 'January' when 2 then 'February' when 3 then 'March'
             when 4 then 'April' when 5 then 'May' when 6 then 'June'
             when 7 then 'July' when 8 then 'August' when 9 then 'September'
             when 10 then 'October' when 11 then 'November' when 12 then 'December'
         end as trade_month_544_nm
+        , monthname(trade_dates.calendar_date) as calendar_month_abbr
+        , case trade_dates.trade_month_445_num
+            when 1 then 'Jan' when 2 then 'Feb' when 3 then 'Mar'
+            when 4 then 'Apr' when 5 then 'May' when 6 then 'Jun'
+            when 7 then 'Jul' when 8 then 'Aug' when 9 then 'Sep'
+            when 10 then 'Oct' when 11 then 'Nov' when 12 then 'Dec'
+        end as trade_month_abbr
+        
+        -- Month metrics
+        , mod(month(trade_dates.calendar_date) - 1, 3) + 1 as calendar_month_in_quarter_num
+        , datediff('month', date('1970-01-01'), trade_dates.calendar_date) as calendar_month_overall_num
+        , (trade_dates.trade_year_num - 1990) * 12 + trade_dates.trade_month_445_num as trade_month_overall_num
+        , to_char(trade_dates.calendar_date, 'yyyymm')::int as calendar_yearmonth_num
+        , (trade_dates.trade_year_num * 100) + trade_dates.trade_month_445_num as trade_yearmonth_num
+        
+        -- Month boundaries
+        , date_trunc('month', trade_dates.calendar_date) as calendar_month_start_dt
+        , trade_dates.trade_month_445_start_dt
+        , trade_dates.trade_month_454_start_dt
         , trade_dates.trade_month_544_start_dt
+        , to_char(date_trunc('month', trade_dates.calendar_date), 'yyyymmdd')::int as calendar_month_start_key
+        , to_char(trade_dates.trade_month_445_start_dt, 'yyyymmdd')::int as trade_month_445_start_key
+        , to_char(trade_dates.trade_month_454_start_dt, 'yyyymmdd')::int as trade_month_454_start_key
+        , to_char(trade_dates.trade_month_544_start_dt, 'yyyymmdd')::int as trade_month_544_start_key
+        , last_day(trade_dates.calendar_date, 'month') as calendar_month_end_dt
+        , trade_dates.trade_month_445_end_dt
+        , trade_dates.trade_month_454_end_dt
         , trade_dates.trade_month_544_end_dt
-        , trade_dates.trade_week_of_month_544_num
-        , ceil(trade_dates.trade_month_445_num / 3.0) as trade_quarter_445_num
+        , to_char(last_day(trade_dates.calendar_date, 'month'), 'yyyymmdd')::int as calendar_month_end_key
+        , to_char(trade_dates.trade_month_445_end_dt, 'yyyymmdd')::int as trade_month_445_end_key
+        , to_char(trade_dates.trade_month_454_end_dt, 'yyyymmdd')::int as trade_month_454_end_key
+        , to_char(trade_dates.trade_month_544_end_dt, 'yyyymmdd')::int as trade_month_544_end_key
+        
+        -- QUARTER Level
+        -- Quarter identifiers
+        , trade_dates.calendar_quarter as calendar_quarter_num
+        , ceil(trade_dates.trade_month_445_num / 3.0) as trade_quarter_num
+        , case
+            when quarter(trade_dates.calendar_date) = 1 then 'First'
+            when quarter(trade_dates.calendar_date) = 2 then 'Second'
+            when quarter(trade_dates.calendar_date) = 3 then 'Third'
+            when quarter(trade_dates.calendar_date) = 4 then 'Fourth'
+        end as calendar_quarter_nm
         , case ceil(trade_dates.trade_month_445_num / 3.0)
             when 1 then 'First'
             when 2 then 'Second'
             when 3 then 'Third'
             when 4 then 'Fourth'
         end as trade_quarter_nm
-        , ceil(trade_dates.trade_month_454_num / 3.0) as trade_quarter_454_num
-        , ceil(trade_dates.trade_month_544_num / 3.0) as trade_quarter_544_num
-        , trade_dates.trade_quarter_start_dt
-        , trade_dates.trade_quarter_end_dt
-        , to_char(trade_dates.trade_quarter_start_dt, 'yyyymmdd')::int as trade_quarter_start_key
-        , to_char(trade_dates.trade_quarter_end_dt, 'yyyymmdd')::int as trade_quarter_end_key
-        , dense_rank() over (
-            partition by trade_dates.trade_year_num, ceil(trade_dates.trade_month_445_num / 3.0)
-            order by trade_dates.trade_week_num) as trade_week_of_quarter_num
-        , trade_dates.is_trade_leap_week_flg
         
-        -- ISO columns (iso_*)
-        , dayofweekiso(trade_dates.calendar_date) as iso_day_of_week_num
+        -- Quarter boundaries
+        , date_trunc('quarter', trade_dates.calendar_date) as calendar_quarter_start_dt
+        , trade_dates.trade_quarter_start_dt
+        , to_char(date_trunc('quarter', trade_dates.calendar_date), 'yyyymmdd')::int as calendar_quarter_start_key
+        , to_char(trade_dates.trade_quarter_start_dt, 'yyyymmdd')::int as trade_quarter_start_key
+        , last_day(trade_dates.calendar_date, 'quarter') as calendar_quarter_end_dt
+        , trade_dates.trade_quarter_end_dt
+        , to_char(last_day(trade_dates.calendar_date, 'quarter'), 'yyyymmdd')::int as calendar_quarter_end_key
+        , to_char(trade_dates.trade_quarter_end_dt, 'yyyymmdd')::int as trade_quarter_end_key
+        
+        -- YEAR Level
+        -- Year identifiers
+        , trade_dates.calendar_year as calendar_year_num
+        , trade_dates.trade_year_num
+        
+        -- Year boundaries
+        , date_trunc('year', trade_dates.calendar_date) as calendar_year_start_dt
+        , trade_dates.trade_year_start as trade_year_start_dt
+        , to_char(date_trunc('year', trade_dates.calendar_date), 'yyyymmdd')::int as calendar_year_start_key
+        , to_char(trade_dates.trade_year_start, 'yyyymmdd')::int as trade_year_start_key
+        , dateadd(day, -1, dateadd(year, 1, date_trunc('year', trade_dates.calendar_date))) as calendar_year_end_dt
+        , trade_dates.trade_year_end as trade_year_end_dt
+        , to_char(dateadd(day, -1, dateadd(year, 1, date_trunc('year', trade_dates.calendar_date))), 'yyyymmdd')::int as calendar_year_end_key
+        , to_char(trade_dates.trade_year_end, 'yyyymmdd')::int as trade_year_end_key
+        
+        -- Year flags and metrics
+        , case 
+            when (year(trade_dates.calendar_date) % 4 = 0 and year(trade_dates.calendar_date) % 100 != 0) 
+                or (year(trade_dates.calendar_date) % 400 = 0) 
+            then 1 else 0 
+        end as calendar_is_leap_year_flg
+        , trade_dates.is_trade_leap_week_flg
+        , trade_dates.weeks_in_trade_year_num
+        
+        -- ISO Columns (Special Group)
         , yearofweekiso(trade_dates.calendar_date) as iso_year_num
         , yearofweekiso(trade_dates.calendar_date)::varchar || '-W' || 
             lpad(weekiso(trade_dates.calendar_date)::varchar, 2, '0') || '-' || 
             dayofweekiso(trade_dates.calendar_date)::varchar as iso_week_of_year_txt
         , datediff('w', date('1970-01-01'), dateadd(day, 1 - dayofweekiso(trade_dates.calendar_date), trade_dates.calendar_date)) as iso_week_overall_num
-        , dateadd(day, 1 - dayofweekiso(trade_dates.calendar_date), trade_dates.calendar_date) as iso_week_begin_dt
-        , to_char(dateadd(day, 1 - dayofweekiso(trade_dates.calendar_date), trade_dates.calendar_date), 'yyyymmdd')::int as iso_week_begin_key
+        , dateadd(day, 1 - dayofweekiso(trade_dates.calendar_date), trade_dates.calendar_date) as iso_week_start_dt
+        , to_char(dateadd(day, 1 - dayofweekiso(trade_dates.calendar_date), trade_dates.calendar_date), 'yyyymmdd')::int as iso_week_start_key
         , dateadd(day, 7 - dayofweekiso(trade_dates.calendar_date), trade_dates.calendar_date) as iso_week_end_dt
         , to_char(dateadd(day, 7 - dayofweekiso(trade_dates.calendar_date), trade_dates.calendar_date), 'yyyymmdd')::int as iso_week_end_key
         
-        -- Metadata columns (dw_*, create_*)
+        -- Metadata Columns
         , current_timestamp as dw_synced_ts
         , 'dim_trade_date' as dw_source_nm
         , current_user as create_user_id
