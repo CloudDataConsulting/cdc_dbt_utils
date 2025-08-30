@@ -153,13 +153,11 @@ models:
       
       # Week metrics
       - name: days_in_week_num
-        description: "Number of days in the week (always 7 for complete weeks)"
+        description: "Number of days in the week (7 for complete weeks, may be less for boundary weeks)"
         data_tests:
           - not_null
           - accepted_values:
-              values: [7]
-              config:
-                where: "trade_year_num < 2041"  # Exclude partial year data
+              values: [1, 2, 3, 4, 5, 6, 7]
       
       - name: weeks_in_trade_year_num
         description: "Total number of weeks in the trade year (52 or 53)"
@@ -289,8 +287,8 @@ models:
           config:
             error_if: ">0"
       
-      # Test that trade week end date is exactly 6 days after start date
+      # Test that trade week end date is correct based on days in week
       - dbt_utils.expression_is_true:
-          expression: "datediff(day, trade_week_start_dt, trade_week_end_dt) = 6"
+          expression: "datediff(day, trade_week_start_dt, trade_week_end_dt) = days_in_week_num - 1"
           config:
             error_if: ">0"

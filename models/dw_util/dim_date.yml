@@ -93,11 +93,9 @@ models:
               values: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
       
       - name: day_suffix_txt
-        description: "Day number suffix (st, nd, rd, th)"
+        description: "Day number with suffix (1st, 2nd, 3rd, 4th, etc.)"
         data_tests:
           - not_null
-          - accepted_values:
-              values: ['st', 'nd', 'rd', 'th']
       
       - name: epoch_num
         description: "Number of seconds since Unix epoch (1970-01-01 00:00:00 UTC)"
