@@ -7,6 +7,43 @@
 4. [Generation Approach](#generation-approach)
 5. [Critical Validation Checklist](#critical-validation-checklist)
 
+## Pattern Selection Guidance
+
+### When to Use Each Pattern
+
+Organizations typically choose one primary pattern, but having all three available allows for:
+- **Flexibility** in reporting to different stakeholders
+- **Comparison** between patterns for analysis
+- **Migration** from one pattern to another without rebuilding
+
+#### 4-4-5 Pattern
+- **Best for**: Retail organizations that want stronger end-of-quarter comparisons
+- **Advantage**: Quarter-end months (Mar, Jun, Sep, Dec) are all 5-week months, making quarter-end reporting more comparable
+
+#### 4-5-4 Pattern (Most Common)
+- **Best for**: General retail and most organizations
+- **Advantage**: Balanced distribution with the middle month of each quarter being longer
+- **Note**: This is the most widely adopted pattern
+
+#### 5-4-4 Pattern
+- **Best for**: Organizations that want strong start-of-quarter comparisons
+- **Advantage**: Quarter-start months (Jan, Apr, Jul, Oct) are all 5-week months
+
+### Implementation Notes
+
+1. **Single Row Per Date**: Each date appears only once with columns for all three patterns
+2. **Pattern-Specific Columns**: Only the columns that differ between patterns are duplicated:
+   - TRADE_MONTH_445_NUM, TRADE_MONTH_454_NUM, TRADE_MONTH_544_NUM
+   - TRADE_MONTH_445_START_DT, TRADE_MONTH_454_START_DT, TRADE_MONTH_544_START_DT
+   - TRADE_MONTH_445_END_DT, TRADE_MONTH_454_END_DT, TRADE_MONTH_544_END_DT
+   - TRADE_WEEK_OF_MONTH_445_NUM, TRADE_WEEK_OF_MONTH_454_NUM, TRADE_WEEK_OF_MONTH_544_NUM
+
+3. **Shared Columns**: Columns that are the same across all patterns appear only once:
+   - TRADE_YEAR_NUM (same for all patterns)
+   - TRADE_WEEK_NUM (same for all patterns)
+   - TRADE_QUARTER_NUM (same for all patterns - quarters always have 13/14 weeks)
+   - TRADE_WEEK_START_DT, TRADE_WEEK_END_DT (same for all patterns)
+
 ---
 
 ## DIM_DATE (Standard Calendar) Specification
@@ -61,7 +98,7 @@
 
 ---
 
-## DIM_TRADE_DATE (4-5-4 Calendar) Specification
+## DIM_TRADE_DATE (Multi-Pattern Trade Calendar) Specification
 
 ### Core Business Rules
 
@@ -76,25 +113,58 @@
 - **No partial weeks** ever
 - Weeks are numbered 1-52 (or 1-53 in leap years)
 
-#### Month Pattern (4-5-4 Repeating)
-The 4-5-4 pattern repeats each quarter:
+#### Multiple Pattern Support (4-4-5, 4-5-4, 5-4-4)
+The table supports ALL THREE patterns simultaneously through parallel columns. Each pattern repeats each quarter but distributes the 13 weeks differently:
 
-| Quarter | Month | Month Number | Weeks | Week Numbers |
-|---------|-------|--------------|-------|--------------|
-| Q1 | January | 1 | 4 weeks | 1-4 |
-| Q1 | February | 2 | 5 weeks | 5-9 |
-| Q1 | March | 3 | 4 weeks | 10-13 |
-| Q2 | April | 4 | 4 weeks | 14-17 |
-| Q2 | May | 5 | 5 weeks | 18-22 |
-| Q2 | June | 6 | 4 weeks | 23-26 |
-| Q3 | July | 7 | 4 weeks | 27-30 |
-| Q3 | August | 8 | 5 weeks | 31-35 |
-| Q3 | September | 9 | 4 weeks | 36-39 |
-| Q4 | October | 10 | 4 weeks | 40-43 |
-| Q4 | November | 11 | 5 weeks | 44-48 |
-| Q4 | December | 12 | 4 weeks* | 49-52 |
+##### 4-4-5 Pattern
+| Quarter | Month | Weeks | Week Numbers |
+|---------|-------|-------|--------------|
+| Q1 | January | 4 | 1-4 |
+| Q1 | February | 4 | 5-8 |
+| Q1 | March | 5 | 9-13 |
+| Q2 | April | 4 | 14-17 |
+| Q2 | May | 4 | 18-21 |
+| Q2 | June | 5 | 22-26 |
+| Q3 | July | 4 | 27-30 |
+| Q3 | August | 4 | 31-34 |
+| Q3 | September | 5 | 35-39 |
+| Q4 | October | 4 | 40-43 |
+| Q4 | November | 4 | 44-47 |
+| Q4 | December | 5* | 48-52 |
 
-*December has 5 weeks (49-53) in 53-week years
+##### 4-5-4 Pattern
+| Quarter | Month | Weeks | Week Numbers |
+|---------|-------|-------|--------------|
+| Q1 | January | 4 | 1-4 |
+| Q1 | February | 5 | 5-9 |
+| Q1 | March | 4 | 10-13 |
+| Q2 | April | 4 | 14-17 |
+| Q2 | May | 5 | 18-22 |
+| Q2 | June | 4 | 23-26 |
+| Q3 | July | 4 | 27-30 |
+| Q3 | August | 5 | 31-35 |
+| Q3 | September | 4 | 36-39 |
+| Q4 | October | 4 | 40-43 |
+| Q4 | November | 5 | 44-48 |
+| Q4 | December | 4* | 49-52 |
+
+##### 5-4-4 Pattern
+| Quarter | Month | Weeks | Week Numbers |
+|---------|-------|-------|--------------|
+| Q1 | January | 5 | 1-5 |
+| Q1 | February | 4 | 6-9 |
+| Q1 | March | 4 | 10-13 |
+| Q2 | April | 5 | 14-18 |
+| Q2 | May | 4 | 19-22 |
+| Q2 | June | 4 | 23-26 |
+| Q3 | July | 5 | 27-31 |
+| Q3 | August | 4 | 32-35 |
+| Q3 | September | 4 | 36-39 |
+| Q4 | October | 5 | 40-44 |
+| Q4 | November | 4 | 45-48 |
+| Q4 | December | 4* | 49-52 |
+
+*In 53-week years, the leap week (week 53) is added to December in all patterns
 
 #### Leap Week Handling
 - Occurs approximately every 5-6 years
@@ -122,18 +192,40 @@ The 4-5-4 pattern repeats each quarter:
 
 ### Required Core Columns
 
+#### Common Columns (Same for All Patterns)
 | Column Name | Data Type | Description | Example |
 |------------|-----------|-------------|---------|
 | DATE_KEY | INTEGER | YYYYMMDD format | 20250202 |
 | CALENDAR_FULL_DT | DATE | Actual date value | 2025-02-02 |
 | TRADE_YEAR_NUM | INTEGER | Trade year | 2025 |
-| TRADE_MONTH_NUM | INTEGER | Trade month (1-12) | 1 |
 | TRADE_WEEK_NUM | INTEGER | Week in trade year (1-53) | 1 |
 | TRADE_WEEK_START_DT | DATE | Sunday of trade week | 2025-02-02 |
 | TRADE_WEEK_END_DT | DATE | Saturday of trade week | 2025-02-08 |
 | TRADE_DAY_OF_YEAR_NUM | INTEGER | Day in trade year (1-371) | 1 |
-| TRADE_QUARTER_NUM | INTEGER | Trade quarter (1-4) | 1 |
+| TRADE_QUARTER_NUM | INTEGER | Trade quarter (1-4) - same for all patterns | 1 |
 | WEEKS_IN_TRADE_YEAR_NUM | INTEGER | 52 or 53 | 52 |
+
+#### Pattern-Specific Columns (Parallel Columns for Each Pattern)
+| Column Name | Data Type | Description | Example |
+|------------|-----------|-------------|---------|
+| **4-4-5 Pattern Columns** | | | |
+| TRADE_MONTH_445_NUM | INTEGER | Month number in 4-4-5 pattern | 1 |
+| TRADE_MONTH_445_NM | VARCHAR | Month name | January |
+| TRADE_MONTH_445_START_DT | DATE | Month start in 4-4-5 | 2025-02-02 |
+| TRADE_MONTH_445_END_DT | DATE | Month end in 4-4-5 | 2025-03-01 |
+| TRADE_WEEK_OF_MONTH_445_NUM | INTEGER | Week within month (1-5) | 1 |
+| **4-5-4 Pattern Columns** | | | |
+| TRADE_MONTH_454_NUM | INTEGER | Month number in 4-5-4 pattern | 1 |
+| TRADE_MONTH_454_NM | VARCHAR | Month name | January |
+| TRADE_MONTH_454_START_DT | DATE | Month start in 4-5-4 | 2025-02-02 |
+| TRADE_MONTH_454_END_DT | DATE | Month end in 4-5-4 | 2025-03-01 |
+| TRADE_WEEK_OF_MONTH_454_NUM | INTEGER | Week within month (1-5) | 1 |
+| **5-4-4 Pattern Columns** | | | |
+| TRADE_MONTH_544_NUM | INTEGER | Month number in 5-4-4 pattern | 1 |
+| TRADE_MONTH_544_NM | VARCHAR | Month name | January |
+| TRADE_MONTH_544_START_DT | DATE | Month start in 5-4-4 | 2025-02-02 |
+| TRADE_MONTH_544_END_DT | DATE | Month end in 5-4-4 | 2025-03-08 |
+| TRADE_WEEK_OF_MONTH_544_NUM | INTEGER | Week within month (1-5) | 1 |
 
 ---
 
@@ -248,33 +340,74 @@ GROUP BY TRADE_YEAR_NUM, TRADE_WEEK_NUM
 HAVING COUNT(*) != 7;
 ```
 
-#### Test 7: Validate 4-5-4 Pattern
+#### Test 7: Validate All Three Patterns Simultaneously
 ```sql
--- Expected: 0 rows (all months follow pattern)
-WITH month_weeks AS (
+-- Validate 4-4-5 Pattern
+WITH month_weeks_445 AS (
     SELECT
         TRADE_YEAR_NUM,
-        TRADE_MONTH_NUM,
+        TRADE_MONTH_445_NUM,
         COUNT(DISTINCT TRADE_WEEK_NUM) as weeks_in_month
     FROM DIM_TRADE_DATE
-    GROUP BY TRADE_YEAR_NUM, TRADE_MONTH_NUM
+    GROUP BY TRADE_YEAR_NUM, TRADE_MONTH_445_NUM
 )
 SELECT
     TRADE_YEAR_NUM,
-    TRADE_MONTH_NUM,
+    TRADE_MONTH_445_NUM as month_num,
     weeks_in_month,
-    CASE
-        WHEN TRADE_MONTH_NUM IN (1,3,4,6,7,9,10) THEN 4
-        WHEN TRADE_MONTH_NUM IN (2,5,8,11) THEN 5
-        WHEN TRADE_MONTH_NUM = 12 THEN 4  -- or 5 in leap years
-    END as expected_weeks,
-    'ERROR: Month does not follow 4-5-4 pattern' as error_message
-FROM month_weeks
+    '4-4-5' as pattern,
+    'ERROR: Month does not follow 4-4-5 pattern' as error_message
+FROM month_weeks_445
 WHERE NOT (
-    (TRADE_MONTH_NUM IN (1,3,4,6,7,9,10) AND weeks_in_month = 4) OR
-    (TRADE_MONTH_NUM IN (2,5,8,11) AND weeks_in_month = 5) OR
-    (TRADE_MONTH_NUM = 12 AND weeks_in_month IN (4,5))
+    (TRADE_MONTH_445_NUM IN (1,2,4,5,7,8,10,11) AND weeks_in_month = 4) OR
+    (TRADE_MONTH_445_NUM IN (3,6,9) AND weeks_in_month = 5) OR
+    (TRADE_MONTH_445_NUM = 12 AND weeks_in_month IN (5,6))  -- 6 in leap years
 );
+
+-- Validate 4-5-4 Pattern
+WITH month_weeks_454 AS (
+    SELECT
+        TRADE_YEAR_NUM,
+        TRADE_MONTH_454_NUM,
+        COUNT(DISTINCT TRADE_WEEK_NUM) as weeks_in_month
+    FROM DIM_TRADE_DATE
+    GROUP BY TRADE_YEAR_NUM, TRADE_MONTH_454_NUM
+)
+SELECT
+    TRADE_YEAR_NUM,
+    TRADE_MONTH_454_NUM as month_num,
+    weeks_in_month,
+    '4-5-4' as pattern,
+    'ERROR: Month does not follow 4-5-4 pattern' as error_message
+FROM month_weeks_454
+WHERE NOT (
+    (TRADE_MONTH_454_NUM IN (1,3,4,6,7,9,10) AND weeks_in_month = 4) OR
+    (TRADE_MONTH_454_NUM IN (2,5,8,11) AND weeks_in_month = 5) OR
+    (TRADE_MONTH_454_NUM = 12 AND weeks_in_month IN (4,5))  -- 5 in leap years
+);
+
+-- Validate 5-4-4 Pattern
+WITH month_weeks_544 AS (
+    SELECT
+        TRADE_YEAR_NUM,
+        TRADE_MONTH_544_NUM,
+        COUNT(DISTINCT TRADE_WEEK_NUM) as weeks_in_month
+    FROM DIM_TRADE_DATE
+    GROUP BY TRADE_YEAR_NUM, TRADE_MONTH_544_NUM
+)
+SELECT
+    TRADE_YEAR_NUM,
+    TRADE_MONTH_544_NUM as month_num,
+    weeks_in_month,
+    '5-4-4' as pattern,
+    'ERROR: Month does not follow 5-4-4 pattern' as error_message
+FROM month_weeks_544
+WHERE NOT (
+    (TRADE_MONTH_544_NUM IN (1,4,7,10) AND weeks_in_month = 5) OR
+    (TRADE_MONTH_544_NUM IN (2,3,5,6,8,9,11,12) AND weeks_in_month = 4) OR
+    (TRADE_MONTH_544_NUM = 12 AND weeks_in_month = 5)  -- 5 in leap years with week 53
+);
+```
 ```
 
 #### Test 8: Trade Weeks Are Complete Sunday-Saturday
@@ -380,7 +513,7 @@ SELECT
 FROM date_enriched;
 ```
 
-### Generating DIM_TRADE_DATE
+### Generating DIM_TRADE_DATE with Multi-Pattern Support
 
 ```sql
 -- Step 1: Define trade year boundaries
@@ -396,7 +529,7 @@ WITH trade_years AS (
     ) years
 ),
 
--- Step 2: Generate all dates with trade year assignment
+-- Step 2: Generate all dates with trade year and week assignment
 trade_dates AS (
     SELECT
         d.full_date,
@@ -410,28 +543,82 @@ trade_dates AS (
         AND d.full_date < DATEADD('YEAR', 1, t.trade_year_start)
 ),
 
--- Step 3: Assign months based on 4-5-4 pattern
-trade_with_months AS (
+-- Step 3: Assign months for ALL THREE patterns
+trade_with_patterns AS (
     SELECT
         *,
+        -- 4-4-5 Pattern
         CASE
-            WHEN trade_week_num <= 4 THEN 1
-            WHEN trade_week_num <= 9 THEN 2
-            WHEN trade_week_num <= 13 THEN 3
-            WHEN trade_week_num <= 17 THEN 4
-            WHEN trade_week_num <= 22 THEN 5
-            WHEN trade_week_num <= 26 THEN 6
-            WHEN trade_week_num <= 30 THEN 7
-            WHEN trade_week_num <= 35 THEN 8
-            WHEN trade_week_num <= 39 THEN 9
-            WHEN trade_week_num <= 43 THEN 10
-            WHEN trade_week_num <= 48 THEN 11
-            ELSE 12
-        END as trade_month_num
+            WHEN trade_week_num <= 4 THEN 1   -- Jan: weeks 1-4
+            WHEN trade_week_num <= 8 THEN 2   -- Feb: weeks 5-8
+            WHEN trade_week_num <= 13 THEN 3  -- Mar: weeks 9-13
+            WHEN trade_week_num <= 17 THEN 4  -- Apr: weeks 14-17
+            WHEN trade_week_num <= 21 THEN 5  -- May: weeks 18-21
+            WHEN trade_week_num <= 26 THEN 6  -- Jun: weeks 22-26
+            WHEN trade_week_num <= 30 THEN 7  -- Jul: weeks 27-30
+            WHEN trade_week_num <= 34 THEN 8  -- Aug: weeks 31-34
+            WHEN trade_week_num <= 39 THEN 9  -- Sep: weeks 35-39
+            WHEN trade_week_num <= 43 THEN 10 -- Oct: weeks 40-43
+            WHEN trade_week_num <= 47 THEN 11 -- Nov: weeks 44-47
+            ELSE 12                            -- Dec: weeks 48-52/53
+        END as trade_month_445_num,
+
+        -- 4-5-4 Pattern
+        CASE
+            WHEN trade_week_num <= 4 THEN 1   -- Jan: weeks 1-4
+            WHEN trade_week_num <= 9 THEN 2   -- Feb: weeks 5-9
+            WHEN trade_week_num <= 13 THEN 3  -- Mar: weeks 10-13
+            WHEN trade_week_num <= 17 THEN 4  -- Apr: weeks 14-17
+            WHEN trade_week_num <= 22 THEN 5  -- May: weeks 18-22
+            WHEN trade_week_num <= 26 THEN 6  -- Jun: weeks 23-26
+            WHEN trade_week_num <= 30 THEN 7  -- Jul: weeks 27-30
+            WHEN trade_week_num <= 35 THEN 8  -- Aug: weeks 31-35
+            WHEN trade_week_num <= 39 THEN 9  -- Sep: weeks 36-39
+            WHEN trade_week_num <= 43 THEN 10 -- Oct: weeks 40-43
+            WHEN trade_week_num <= 48 THEN 11 -- Nov: weeks 44-48
+            ELSE 12                            -- Dec: weeks 49-52/53
+        END as trade_month_454_num,
+
+        -- 5-4-4 Pattern
+        CASE
+            WHEN trade_week_num <= 5 THEN 1   -- Jan: weeks 1-5
+            WHEN trade_week_num <= 9 THEN 2   -- Feb: weeks 6-9
+            WHEN trade_week_num <= 13 THEN 3  -- Mar: weeks 10-13
+            WHEN trade_week_num <= 18 THEN 4  -- Apr: weeks 14-18
+            WHEN trade_week_num <= 22 THEN 5  -- May: weeks 19-22
+            WHEN trade_week_num <= 26 THEN 6  -- Jun: weeks 23-26
+            WHEN trade_week_num <= 31 THEN 7  -- Jul: weeks 27-31
+            WHEN trade_week_num <= 35 THEN 8  -- Aug: weeks 32-35
+            WHEN trade_week_num <= 39 THEN 9  -- Sep: weeks 36-39
+            WHEN trade_week_num <= 44 THEN 10 -- Oct: weeks 40-44
+            WHEN trade_week_num <= 48 THEN 11 -- Nov: weeks 45-48
+            ELSE 12                            -- Dec: weeks 49-52/53
+        END as trade_month_544_num
     FROM trade_dates
+),
+
+-- Step 4: Calculate week of month for each pattern
+final_trade_dates AS (
+    SELECT
+        *,
+        -- Week of month for 4-4-5 pattern
+        CASE
+            WHEN trade_month_445_num IN (1,2,4,5,7,8,10,11) THEN
+                trade_week_num - (SELECT MIN(trade_week_num) FROM trade_with_patterns t2
+                                  WHERE t2.trade_year_num = trade_with_patterns.trade_year_num
+                                  AND t2.trade_month_445_num = trade_with_patterns.trade_month_445_num) + 1
+            ELSE -- Months with 5 weeks
+                trade_week_num - (SELECT MIN(trade_week_num) FROM trade_with_patterns t2
+                                  WHERE t2.trade_year_num = trade_with_patterns.trade_year_num
+                                  AND t2.trade_month_445_num = trade_with_patterns.trade_month_445_num) + 1
+        END as trade_week_of_month_445_num,
+
+        -- Similar calculations for 4-5-4 and 5-4-4 patterns
+        -- (abbreviated for space)
+    FROM trade_with_patterns
 )
 
-SELECT * FROM trade_with_months;
+SELECT * FROM final_trade_dates;
 ```
 
 ---
@@ -451,12 +638,15 @@ SELECT * FROM trade_with_months;
 ### DIM_TRADE_DATE Checklist
 - [ ] All weeks have exactly 7 days
 - [ ] All weeks run Sunday through Saturday
-- [ ] 4-5-4 pattern is maintained for months
-- [ ] Each quarter has 13 weeks (14 in leap quarters)
+- [ ] **4-4-5 pattern** is maintained (4,4,5,4,4,5,4,4,5,4,4,5 weeks per month)
+- [ ] **4-5-4 pattern** is maintained (4,5,4,4,5,4,4,5,4,4,5,4 weeks per month)
+- [ ] **5-4-4 pattern** is maintained (5,4,4,5,4,4,5,4,4,5,4,4 weeks per month)
+- [ ] Each quarter has 13 weeks (14 in leap quarters) across all patterns
 - [ ] Trade year starts on correct Sunday (4 weeks before Sunday on/before Feb 1)
 - [ ] No partial weeks at year boundaries
 - [ ] Week 53 only exists in designated leap years
-- [ ] Trade months align with week boundaries
+- [ ] Trade months align with week boundaries for each pattern
+- [ ] Pattern-specific columns have consistent values within each week
 
 ### Cross-Calendar Checklist
 - [ ] Same DATE_KEY values exist in both tables
