@@ -1,100 +1,100 @@
 select
     d.date_key
-    , d.calendar_full_dt
+    , d.full_dt
     , d.trade_full_dt
-    , d.calendar_date_last_year_key
+    , d.date_last_year_key
     , d.trade_date_last_year_key
-    , d.calendar_day_of_week_num
+    , d.day_of_week_num
     , d.iso_day_of_week_num
-    , d.calendar_day_of_month_num
-    , d.calendar_day_of_quarter_num
-    , d.calendar_day_of_year_num
+    , d.day_of_month_num
+    , d.day_of_quarter_num
+    , d.day_of_year_num
     , d.trade_day_of_year_num
-    , d.calendar_day_overall_num
-    , d.calendar_day_nm
-    , d.calendar_day_abbr
-    , d.calendar_day_suffix_txt
-    , d.calendar_epoch_num
-    , d.calendar_weekday_flg
-    , d.calendar_last_day_of_week_flg
-    , d.calendar_first_day_of_month_flg
-    , d.calendar_last_day_of_month_flg
-    , d.calendar_last_day_of_quarter_flg
-    , d.calendar_last_day_of_year_flg
-    , d.calendar_week_num
+    , d.day_overall_num
+    , d.day_nm
+    , d.day_abbr
+    , d.day_suffix_txt
+    , d.epoch_num
+    , d.weekday_flg
+    , d.last_day_of_week_flg
+    , d.first_day_of_month_flg
+    , d.last_day_of_month_flg
+    , d.last_day_of_quarter_flg
+    , d.last_day_of_year_flg
+    , d.week_num
     , d.trade_week_num
-    , d.calendar_week_of_year_num
+    , d.week_of_year_num
     , d.trade_week_of_year_num
-    , d.calendar_week_of_month_num
+    , d.week_of_month_num
     , d.trade_week_of_month_445_num
     , d.trade_week_of_month_454_num
     , d.trade_week_of_month_544_num
-    , d.calendar_week_of_quarter_num
+    , d.week_of_quarter_num
     , d.trade_week_of_quarter_num
-    , d.calendar_week_overall_num
+    , d.week_overall_num
     , d.trade_week_overall_num
-    , d.calendar_week_start_dt
+    , d.week_start_dt
     , d.trade_week_start_dt
-    , d.calendar_week_start_key
+    , d.week_start_key
     , d.trade_week_start_key
-    , d.calendar_week_end_dt
+    , d.week_end_dt
     , d.trade_week_end_dt
-    , d.calendar_week_end_key
+    , d.week_end_key
     , d.trade_week_end_key
-    , d.calendar_month_num
+    , d.month_num
     , d.trade_month_445_num
     , d.trade_month_454_num
     , d.trade_month_544_num
-    , d.calendar_month_nm
+    , d.month_nm
     , d.trade_month_445_nm
     , d.trade_month_454_nm
     , d.trade_month_544_nm
-    , d.calendar_month_abbr
+    , d.month_abbr
     , d.trade_month_abbr
-    , d.calendar_month_in_quarter_num
-    , d.calendar_month_overall_num
+    , d.month_in_quarter_num
+    , d.month_overall_num
     , d.trade_month_overall_num
-    , d.calendar_yearmonth_num
+    , d.yearmonth_num
     , d.trade_yearmonth_num
-    , d.calendar_month_start_dt
+    , d.month_start_dt
     , d.trade_month_445_start_dt
     , d.trade_month_454_start_dt
     , d.trade_month_544_start_dt
-    , d.calendar_month_start_key
+    , d.month_start_key
     , d.trade_month_445_start_key
     , d.trade_month_454_start_key
     , d.trade_month_544_start_key
-    , d.calendar_month_end_dt
+    , d.month_end_dt
     , d.trade_month_445_end_dt
     , d.trade_month_454_end_dt
     , d.trade_month_544_end_dt
-    , d.calendar_month_end_key
+    , d.month_end_key
     , d.trade_month_445_end_key
     , d.trade_month_454_end_key
     , d.trade_month_544_end_key
-    , d.calendar_quarter_num
+    , d.quarter_num
     , d.trade_quarter_num
-    , d.calendar_quarter_nm
+    , d.quarter_nm
     , d.trade_quarter_nm
-    , d.calendar_quarter_start_dt
+    , d.quarter_start_dt
     , d.trade_quarter_start_dt
-    , d.calendar_quarter_start_key
+    , d.quarter_start_key
     , d.trade_quarter_start_key
-    , d.calendar_quarter_end_dt
+    , d.quarter_end_dt
     , d.trade_quarter_end_dt
-    , d.calendar_quarter_end_key
+    , d.quarter_end_key
     , d.trade_quarter_end_key
-    , d.calendar_year_num
+    , d.year_num
     , d.trade_year_num
-    , d.calendar_year_start_dt
+    , d.year_start_dt
     , d.trade_year_start_dt
-    , d.calendar_year_start_key
+    , d.year_start_key
     , d.trade_year_start_key
-    , d.calendar_year_end_dt
+    , d.year_end_dt
     , d.trade_year_end_dt
-    , d.calendar_year_end_key
+    , d.year_end_key
     , d.trade_year_end_key
-    , d.calendar_leap_year_flg
+    , d.leap_year_flg
     , d.trade_leap_week_flg
     , d.weeks_in_trade_year_num
     , d.iso_year_num

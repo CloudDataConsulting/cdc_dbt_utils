@@ -1,229 +1,32 @@
 # DIM_DATE and DIM_TRADE_DATE Complete Specification
 
 ## Table of Contents
-1. [DIM_DATE (Standard Calendar) Specification](#dim_date-standard-calendar-specification)
-2. [DIM_TRADE_DATE (4-5-4 Calendar) Specification](#dim_trade_date-4-5-4-calendar-specification)
-3. [SQL Validation Queries](#sql-validation-queries)
-4. [Generation Approach](#generation-approach)
-5. [Critical Validation Checklist](#critical-validation-checklist)
+1. [Overview](#overview)
+2. [DIM_DATE (Standard Calendar) Specification](#dim_date-standard-calendar-specification)
+3. [DIM_TRADE_DATE (Multi-Pattern Trade Calendar) Specification](#dim_trade_date-multi-pattern-trade-calendar-specification)
+4. [Special Records Specification](#special-records-specification)
+5. [SQL Validation Queries](#sql-validation-queries)
+6. [Generation Approach](#generation-approach)
+7. [Aggregate Table Specifications](#aggregate-table-specifications)
+8. [Critical Validation Checklist](#critical-validation-checklist)
 
-## Pattern Selection Guidance
+---
 
-### When to Use Each Pattern
-
-Organizations typically choose one primary pattern, but having all three available allows for:
-- **Flexibility** in reporting to different stakeholders
-- **Comparison** between patterns for analysis
-- **Migration** from one pattern to another without rebuilding
-
-#### 4-4-5 Pattern
-- **Best for**: Retail organizations that want stronger end-of-quarter comparisons
-- **Advantage**: Quarter-end months (Mar, Jun, Sep, Dec) are all 5-week months, making quarter-end reporting more comparable
-
-#### 4-5-4 Pattern (Most Common)
-- **Best for**: General retail and most organizations
-- **Advantage**: Balanced distribution with the middle month of each quarter being longer
-- **Note**: This is the most widely adopted pattern
-
-#### 5-4-4 Pattern
-- **Best for**: Organizations that want strong start-of-quarter comparisons
-- **Advantage**: Quarter-start months (Jan, Apr, Jul, Oct) are all 5-week months
-
-### Implementation Notes
-
-1. **Single Row Per Date**: Each date appears only once with columns for all three patterns
-2. **Pattern-Specific Columns**: Only the columns that differ between patterns are duplicated:
-   - TRADE_MONTH_445_NUM, TRADE_MONTH_454_NUM, TRADE_MONTH_544_NUM
-   - TRADE_MONTH_445_START_DT, TRADE_MONTH_454_START_DT, TRADE_MONTH_544_START_DT
-   - TRADE_MONTH_445_END_DT, TRADE_MONTH_454_END_DT, TRADE_MONTH_544_END_DT
-   - TRADE_WEEK_OF_MONTH_445_NUM, TRADE_WEEK_OF_MONTH_454_NUM, TRADE_WEEK_OF_MONTH_544_NUM
-
-3. **Shared Columns**: Columns that are the same across all patterns appear only once:
-   - TRADE_YEAR_NUM (same for all patterns)
-   - TRADE_WEEK_NUM (same for all patterns)
-   - TRADE_QUARTER_NUM (same for all patterns - quarters always have 13/14 weeks)
-   - TRADE_WEEK_START_DT, TRADE_WEEK_END_DT (same for all patterns)
-
-## Special Records Specification
+## Overview
 
 ### Purpose
-Special records handle cases where fact table date values are missing, invalid, or unknown. These records ensure referential integrity while providing meaningful reporting categories.
+This specification defines two separate date dimension tables for data warehouse implementation:
+- **DIM_DATE**: Standard calendar following US business conventions
+- **DIM_TRADE_DATE**: Trade calendar supporting three patterns (4-4-5, 4-5-4, 5-4-4)
 
-### Standard Special Records
+### Date Range
+**2000-01-01 to 2030-12-31** (31 years of data)
 
-| DATE_KEY | Meaning | Usage |
-|----------|---------|-------|
-| -1 | Not Available / NULL | Default for missing dates |
-| -2 | Invalid Date | Date failed validation rules |
-| -3 | Not Applicable | Date doesn't apply in this context |
-| -4 | Unknown | Date exists but is unknown |
-
-### Special Record Values by Data Type
-
-#### Numeric Fields (Integer/Number)
-Use the special record key value:
-- DATE_KEY: -1, -2, -3, -4
-- YEAR_NUM: -1, -2, -3, -4
-- MONTH_NUM: -1, -2, -3, -4
-- WEEK_NUM: -1, -2, -3, -4
-- DAY_OF_WEEK_NUM: -1, -2, -3, -4
-- All other numeric fields: Same pattern
-
-#### Text Fields (VARCHAR)
-Use descriptive text for reporting clarity:
-- DAY_NM: 'Not Available', 'Invalid', 'Not Applicable', 'Unknown'
-- MONTH_NM: 'Not Available', 'Invalid', 'Not Applicable', 'Unknown'
-- QUARTER_NM: 'N/A', 'Invalid', 'N/A', 'Unknown'
-- All abbreviated fields: 'N/A', 'INV', 'N/A', 'UNK'
-
-#### Date Fields (DATE)
-**Recommended Approach - Use Sentinel Dates:**
-- For -1 (Not Available): DATE '1900-01-01'
-- For -2 (Invalid): DATE '1900-01-02'
-- For -3 (Not Applicable): DATE '1900-01-03'
-- For -4 (Unknown): DATE '1900-01-04'
-
-**Alternative Approach - Far Future:**
-- For -1: DATE '9999-12-31'
-- For -2: DATE '9999-12-30'
-- For -3: DATE '9999-12-29'
-- For -4: DATE '9999-12-28'
-
-#### Boolean/Flag Fields
-Use 0 (zero) for all special records:
-- WEEKDAY_FLG: 0
-- IS_LEAP_YEAR_FLG: 0
-- All other flags: 0
-
-### Implementation Examples
-
-#### DIM_DATE Special Records
-```sql
-INSERT INTO DIM_DATE (
-    DATE_KEY, FULL_DATE, YEAR_NUM, MONTH_NUM, MONTH_NM,
-    DAY_OF_MONTH_NUM, DAY_OF_WEEK_NUM, DAY_NM, WEEK_NUM,
-    WEEK_START_DT, WEEK_END_DT, QUARTER_NUM, QUARTER_NM
-) VALUES
--- Not Available record
-(-1, '1900-01-01', -1, -1, 'Not Available',
- -1, -1, 'Not Available', -1,
- '1900-01-01', '1900-01-01', -1, 'N/A'),
-
--- Invalid record
-(-2, '1900-01-02', -2, -2, 'Invalid',
- -2, -2, 'Invalid', -2,
- '1900-01-02', '1900-01-02', -2, 'Invalid'),
-
--- Not Applicable record
-(-3, '1900-01-03', -3, -3, 'Not Applicable',
- -3, -3, 'Not Applicable', -3,
- '1900-01-03', '1900-01-03', -3, 'N/A'),
-
--- Unknown record
-(-4, '1900-01-04', -4, -4, 'Unknown',
- -4, -4, 'Unknown', -4,
- '1900-01-04', '1900-01-04', -4, 'Unknown');
-```
-
-#### DIM_TRADE_DATE Special Records
-```sql
-INSERT INTO DIM_TRADE_DATE (
-    DATE_KEY, CALENDAR_FULL_DT, TRADE_YEAR_NUM, TRADE_WEEK_NUM,
-    TRADE_MONTH_445_NUM, TRADE_MONTH_445_NM,
-    TRADE_MONTH_454_NUM, TRADE_MONTH_454_NM,
-    TRADE_MONTH_544_NUM, TRADE_MONTH_544_NM,
-    TRADE_QUARTER_NUM, TRADE_QUARTER_NM
-) VALUES
--- Not Available record (all patterns)
-(-1, '1900-01-01', -1, -1,
- -1, 'Not Available',
- -1, 'Not Available',
- -1, 'Not Available',
- -1, 'N/A'),
-
--- Similar for -2, -3, -4 records
-```
-
-### Validation Query Adjustments
-
-All validation queries should exclude special records:
-
-```sql
--- Example: Adjust Test 1 to exclude special records
-WITH week_one AS (
-    SELECT
-        YEAR_NUM,
-        MIN(FULL_DATE) as week_start,
-        MAX(FULL_DATE) as week_end
-    FROM DIM_DATE
-    WHERE WEEK_NUM = 1
-      AND DATE_KEY > 0  -- Exclude special records
-    GROUP BY YEAR_NUM
-)
--- Rest of query...
-```
-
-### ETL Considerations
-
-#### Fact Table Loading
-```sql
--- Example: Loading fact with NULL date handling
-INSERT INTO fact_sales (
-    date_key,
-    product_key,
-    sales_amount
-)
-SELECT
-    COALESCE(d.DATE_KEY, -1) as date_key,  -- Default to -1 for NULL dates
-    p.product_key,
-    s.sales_amount
-FROM staging_sales s
-LEFT JOIN DIM_DATE d ON s.sale_date = d.FULL_DATE
-LEFT JOIN dim_product p ON s.product_id = p.product_id;
-```
-
-#### Data Quality Rules
-```sql
--- Identify invalid dates that should use -2 record
-UPDATE fact_sales
-SET date_key = -2
-WHERE date_key = -1  -- Currently NULL
-  AND original_date_string IS NOT NULL  -- Had a value
-  AND original_date_string NOT LIKE '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]%';
-```
-
-### Reporting Considerations
-
-1. **Default Exclusion**: Most reports should exclude special records by default
-```sql
-SELECT * FROM fact_sales f
-JOIN DIM_DATE d ON f.date_key = d.DATE_KEY
-WHERE d.DATE_KEY > 0  -- Exclude special records
-```
-
-2. **Data Quality Reports**: Include special records to show data completeness
-```sql
-SELECT
-    CASE
-        WHEN d.DATE_KEY = -1 THEN 'Missing Dates'
-        WHEN d.DATE_KEY = -2 THEN 'Invalid Dates'
-        WHEN d.DATE_KEY = -3 THEN 'Not Applicable'
-        WHEN d.DATE_KEY = -4 THEN 'Unknown Dates'
-        ELSE 'Valid Dates'
-    END as data_quality_category,
-    COUNT(*) as record_count
-FROM fact_sales f
-JOIN DIM_DATE d ON f.date_key = d.DATE_KEY
-GROUP BY 1;
-```
-
-### Best Practices
-
-1. **Consistency**: Use the same special record keys across all dimension tables
-2. **Documentation**: Clearly document what each special value means in your data dictionary
-3. **NOT NULL Constraints**: Keep NOT NULL constraints on dimension columns - special records satisfy these
-4. **Referential Integrity**: Always include special records to maintain foreign key relationships
-5. **Testing**: Separate test queries for special records vs regular data validation
+### Key Design Principles
+1. **Separate Tables**: DIM_DATE and DIM_TRADE_DATE are completely separate
+2. **Shared Key**: Both tables use DATE_KEY (YYYYMMDD format) for joining
+3. **No Column Overlap**: Except for DATE_KEY and metadata, no shared columns
+4. **Special Records**: Both tables include -1, -2, -3, -4 records for NULL handling
 
 ---
 
@@ -261,21 +64,72 @@ GROUP BY 1;
 - Week 2 of 2026:  Sun Jan 4, 2026 - Sat Jan 10, 2026
 ```
 
-### Required Core Columns
+### Complete Column Specification for DIM_DATE
 
 | Column Name | Data Type | Description | Example |
 |------------|-----------|-------------|---------|
 | DATE_KEY | INTEGER | YYYYMMDD format | 20250101 |
-| FULL_DATE | DATE | Actual date value | 2025-01-01 |
-| YEAR_NUM | INTEGER | Calendar year | 2025 |
-| MONTH_NUM | INTEGER | Month (1-12) | 1 |
+| FULL_DT | DATE | Actual date value | 2025-01-01 |
+| date_last_year_dt | DATE | Same date last year | 2024-01-01 |
+| DATE_LAST_YEAR_KEY | INTEGER | Key for last year's date | 20240101 |
+| DAY_OF_WEEK_NUM | INTEGER | 1=Sunday, 7=Saturday | 4 |
 | DAY_OF_MONTH_NUM | INTEGER | Day of month (1-31) | 1 |
-| DAY_OF_WEEK_NUM | INTEGER | 1=Sunday, 7=Saturday | 4 (for Wed) |
-| WEEK_NUM | INTEGER | Week of year (1-53) | 1 |
-| WEEK_START_DT | DATE | Sunday of the week | 2024-12-29 |
-| WEEK_END_DT | DATE | Saturday of the week | 2025-01-04 |
-| QUARTER_NUM | INTEGER | Quarter (1-4) | 1 |
+| DAY_OF_QUARTER_NUM | INTEGER | Day within quarter | 1 |
 | DAY_OF_YEAR_NUM | INTEGER | Day number in year (1-366) | 1 |
+| DAY_OVERALL_NUM | INTEGER | Cumulative from 2000-01-01 | 9132 |
+| DAY_NM | VARCHAR(20) | Day name | Wednesday |
+| DAY_ABBR | VARCHAR(3) | Day abbreviation | Wed |
+| DAY_SUFFIX_TXT | VARCHAR(4) | Ordinal suffix | st |
+| EPOCH_NUM | INTEGER | Unix timestamp | 1735689600 |
+| WEEKDAY_FLG | INTEGER | 1=Mon-Fri, 0=Sat-Sun | 1 |
+| LAST_DAY_OF_WEEK_FLG | INTEGER | 1 if Saturday | 0 |
+| FIRST_DAY_OF_MONTH_FLG | INTEGER | 1 if first day | 1 |
+| LAST_DAY_OF_MONTH_FLG | INTEGER | 1 if last day | 0 |
+| LAST_DAY_OF_QUARTER_FLG | INTEGER | 1 if last day of quarter | 0 |
+| LAST_DAY_OF_YEAR_FLG | INTEGER | 1 if Dec 31 | 0 |
+| WEEK_NUM | INTEGER | Week of year (1-53) | 1 |
+| WEEK_OF_YEAR_NUM | INTEGER | Same as WEEK_NUM | 1 |
+| WEEK_OF_MONTH_NUM | INTEGER | Week within month | 1 |
+| WEEK_OF_QUARTER_NUM | INTEGER | Week within quarter | 1 |
+| WEEK_OVERALL_NUM | INTEGER | Cumulative from 2000-01-01 | 1305 |
+| WEEK_START_DT | DATE | Sunday of the week | 2024-12-29 |
+| WEEK_START_KEY | INTEGER | Key for week start | 20241229 |
+| WEEK_END_DT | DATE | Saturday of the week | 2025-01-04 |
+| WEEK_END_KEY | INTEGER | Key for week end | 20250104 |
+| MONTH_NUM | INTEGER | Month (1-12) | 1 |
+| MONTH_NM | VARCHAR(20) | Month name | January |
+| MONTH_ABBR | VARCHAR(3) | Month abbreviation | Jan |
+| MONTH_IN_QUARTER_NUM | INTEGER | Month within quarter (1-3) | 1 |
+| MONTH_OVERALL_NUM | INTEGER | Cumulative from 2000-01-01 | 301 |
+| YEARMONTH_NUM | INTEGER | YYYYMM format | 202501 |
+| MONTH_START_DT | DATE | First day of month | 2025-01-01 |
+| MONTH_START_KEY | INTEGER | Key for month start | 20250101 |
+| MONTH_END_DT | DATE | Last day of month | 2025-01-31 |
+| MONTH_END_KEY | INTEGER | Key for month end | 20250131 |
+| QUARTER_NUM | INTEGER | Quarter (1-4) | 1 |
+| QUARTER_NM | VARCHAR(10) | Quarter name | Q1 |
+| QUARTER_START_DT | DATE | Quarter start | 2025-01-01 |
+| QUARTER_START_KEY | INTEGER | Quarter start key | 20250101 |
+| QUARTER_END_DT | DATE | Quarter end | 2025-03-31 |
+| QUARTER_END_KEY | INTEGER | Quarter end key | 20250331 |
+| YEAR_NUM | INTEGER | Calendar year | 2025 |
+| YEAR_START_DT | DATE | Year start | 2025-01-01 |
+| YEAR_START_KEY | INTEGER | Year start key | 20250101 |
+| YEAR_END_DT | DATE | Year end | 2025-12-31 |
+| YEAR_END_KEY | INTEGER | Year end key | 20251231 |
+| IS_LEAP_YEAR_FLG | INTEGER | 1 if leap year | 0 |
+| ISO_DAY_OF_WEEK_NUM | INTEGER | 1=Monday, 7=Sunday | 3 |
+| ISO_YEAR_NUM | INTEGER | ISO year | 2025 |
+| ISO_WEEK_OF_YEAR_TXT | VARCHAR(10) | ISO week | W01 |
+| ISO_WEEK_OVERALL_NUM | INTEGER | Cumulative ISO week | 1305 |
+| ISO_WEEK_START_DT | DATE | ISO week start (Monday) | 2024-12-30 |
+| ISO_WEEK_START_KEY | INTEGER | ISO week start key | 20241230 |
+| ISO_WEEK_END_DT | DATE | ISO week end (Sunday) | 2025-01-05 |
+| ISO_WEEK_END_KEY | INTEGER | ISO week end key | 20250105 |
+| DW_SYNCED_TS | TIMESTAMP | ETL timestamp | 2025-01-01 00:00:00 |
+| DW_SOURCE_NM | VARCHAR(50) | Source system | CALENDAR |
+| CREATE_USER_ID | VARCHAR(50) | ETL user | ETL_PROCESS |
+| CREATE_TIMESTAMP | TIMESTAMP | Load timestamp | 2025-01-01 00:00:00 |
 
 ---
 
@@ -347,11 +201,6 @@ The table supports ALL THREE patterns simultaneously through parallel columns. E
 
 *In 53-week years, the leap week (week 53) is added to December in all patterns
 
-#### Leap Week Handling
-- Occurs approximately every 5-6 years
-- Week 53 is added to December (making it a 5-week month)
-- The year needs 53 weeks when the period would otherwise be too short
-
 ### Example Trade Years
 
 ```
@@ -371,48 +220,189 @@ The table supports ALL THREE patterns simultaneously through parallel columns. E
 - Weeks: 52
 ```
 
-### Required Core Columns
+### Complete Column Specification for DIM_TRADE_DATE
 
-#### Common Columns (Same for All Patterns)
 | Column Name | Data Type | Description | Example |
 |------------|-----------|-------------|---------|
 | DATE_KEY | INTEGER | YYYYMMDD format | 20250202 |
-| CALENDAR_FULL_DT | DATE | Actual date value | 2025-02-02 |
-| TRADE_YEAR_NUM | INTEGER | Trade year | 2025 |
-| TRADE_WEEK_NUM | INTEGER | Week in trade year (1-53) | 1 |
-| TRADE_WEEK_START_DT | DATE | Sunday of trade week | 2025-02-02 |
-| TRADE_WEEK_END_DT | DATE | Saturday of trade week | 2025-02-08 |
+| TRADE_FULL_DT | DATE | Actual date value | 2025-02-02 |
+| TRADE_DATE_LAST_YEAR_KEY | INTEGER | Key for last year | 20240204 |
 | TRADE_DAY_OF_YEAR_NUM | INTEGER | Day in trade year (1-371) | 1 |
-| TRADE_QUARTER_NUM | INTEGER | Trade quarter (1-4) - same for all patterns | 1 |
+| TRADE_WEEK_NUM | INTEGER | Week in trade year (1-53) | 1 |
+| TRADE_WEEK_OF_YEAR_NUM | INTEGER | Same as TRADE_WEEK_NUM | 1 |
+| TRADE_WEEK_OF_MONTH_445_NUM | INTEGER | Week within month (4-4-5) | 1 |
+| TRADE_WEEK_OF_MONTH_454_NUM | INTEGER | Week within month (4-5-4) | 1 |
+| TRADE_WEEK_OF_MONTH_544_NUM | INTEGER | Week within month (5-4-4) | 1 |
+| TRADE_WEEK_OF_QUARTER_NUM | INTEGER | Week within quarter | 1 |
+| TRADE_WEEK_OVERALL_NUM | INTEGER | Cumulative from 2000 | 1287 |
+| TRADE_WEEK_START_DT | DATE | Sunday of trade week | 2025-02-02 |
+| TRADE_WEEK_START_KEY | INTEGER | Week start key | 20250202 |
+| TRADE_WEEK_END_DT | DATE | Saturday of trade week | 2025-02-08 |
+| TRADE_WEEK_END_KEY | INTEGER | Week end key | 20250208 |
+| TRADE_MONTH_445_NUM | INTEGER | Month in 4-4-5 pattern | 1 |
+| TRADE_MONTH_454_NUM | INTEGER | Month in 4-5-4 pattern | 1 |
+| TRADE_MONTH_544_NUM | INTEGER | Month in 5-4-4 pattern | 1 |
+| TRADE_MONTH_445_NM | VARCHAR(20) | Month name | January |
+| TRADE_MONTH_454_NM | VARCHAR(20) | Month name | January |
+| TRADE_MONTH_544_NM | VARCHAR(20) | Month name | January |
+| TRADE_MONTH_ABBR | VARCHAR(3) | Month abbreviation | Jan |
+| TRADE_MONTH_OVERALL_NUM | INTEGER | Cumulative from 2000 | 301 |
+| TRADE_YEARMONTH_NUM | INTEGER | YYYYMM format | 202501 |
+| TRADE_MONTH_445_START_DT | DATE | Month start (4-4-5) | 2025-02-02 |
+| TRADE_MONTH_454_START_DT | DATE | Month start (4-5-4) | 2025-02-02 |
+| TRADE_MONTH_544_START_DT | DATE | Month start (5-4-4) | 2025-02-02 |
+| TRADE_MONTH_445_START_KEY | INTEGER | Month start key | 20250202 |
+| TRADE_MONTH_454_START_KEY | INTEGER | Month start key | 20250202 |
+| TRADE_MONTH_544_START_KEY | INTEGER | Month start key | 20250202 |
+| TRADE_MONTH_445_END_DT | DATE | Month end (4-4-5) | 2025-03-01 |
+| TRADE_MONTH_454_END_DT | DATE | Month end (4-5-4) | 2025-03-01 |
+| TRADE_MONTH_544_END_DT | DATE | Month end (5-4-4) | 2025-03-08 |
+| TRADE_MONTH_445_END_KEY | INTEGER | Month end key | 20250301 |
+| TRADE_MONTH_454_END_KEY | INTEGER | Month end key | 20250301 |
+| TRADE_MONTH_544_END_KEY | INTEGER | Month end key | 20250308 |
+| TRADE_QUARTER_NUM | INTEGER | Trade quarter (1-4) | 1 |
+| TRADE_QUARTER_NM | VARCHAR(10) | Quarter name | Q1 |
+| TRADE_QUARTER_START_DT | DATE | Quarter start | 2025-02-02 |
+| TRADE_QUARTER_START_KEY | INTEGER | Quarter start key | 20250202 |
+| TRADE_QUARTER_END_DT | DATE | Quarter end | 2025-05-03 |
+| TRADE_QUARTER_END_KEY | INTEGER | Quarter end key | 20250503 |
+| TRADE_YEAR_NUM | INTEGER | Trade year | 2025 |
+| TRADE_YEAR_START_DT | DATE | Trade year start | 2025-02-02 |
+| TRADE_YEAR_START_KEY | INTEGER | Year start key | 20250202 |
+| TRADE_YEAR_END_DT | DATE | Trade year end | 2026-01-31 |
+| TRADE_YEAR_END_KEY | INTEGER | Year end key | 20260131 |
+| IS_TRADE_LEAP_WEEK_FLG | INTEGER | 1 if 53-week year | 0 |
 | WEEKS_IN_TRADE_YEAR_NUM | INTEGER | 52 or 53 | 52 |
+| DW_SYNCED_TS | TIMESTAMP | ETL timestamp | 2025-01-01 00:00:00 |
+| DW_SOURCE_NM | VARCHAR(50) | Source system | TRADE_CALENDAR |
+| CREATE_USER_ID | VARCHAR(50) | ETL user | ETL_PROCESS |
+| CREATE_TIMESTAMP | TIMESTAMP | Load timestamp | 2025-01-01 00:00:00 |
 
-#### Pattern-Specific Columns (Parallel Columns for Each Pattern)
-| Column Name | Data Type | Description | Example |
-|------------|-----------|-------------|---------|
-| **4-4-5 Pattern Columns** | | | |
-| TRADE_MONTH_445_NUM | INTEGER | Month number in 4-4-5 pattern | 1 |
-| TRADE_MONTH_445_NM | VARCHAR | Month name | January |
-| TRADE_MONTH_445_START_DT | DATE | Month start in 4-4-5 | 2025-02-02 |
-| TRADE_MONTH_445_END_DT | DATE | Month end in 4-4-5 | 2025-03-01 |
-| TRADE_WEEK_OF_MONTH_445_NUM | INTEGER | Week within month (1-5) | 1 |
-| **4-5-4 Pattern Columns** | | | |
-| TRADE_MONTH_454_NUM | INTEGER | Month number in 4-5-4 pattern | 1 |
-| TRADE_MONTH_454_NM | VARCHAR | Month name | January |
-| TRADE_MONTH_454_START_DT | DATE | Month start in 4-5-4 | 2025-02-02 |
-| TRADE_MONTH_454_END_DT | DATE | Month end in 4-5-4 | 2025-03-01 |
-| TRADE_WEEK_OF_MONTH_454_NUM | INTEGER | Week within month (1-5) | 1 |
-| **5-4-4 Pattern Columns** | | | |
-| TRADE_MONTH_544_NUM | INTEGER | Month number in 5-4-4 pattern | 1 |
-| TRADE_MONTH_544_NM | VARCHAR | Month name | January |
-| TRADE_MONTH_544_START_DT | DATE | Month start in 5-4-4 | 2025-02-02 |
-| TRADE_MONTH_544_END_DT | DATE | Month end in 5-4-4 | 2025-03-08 |
-| TRADE_WEEK_OF_MONTH_544_NUM | INTEGER | Week within month (1-5) | 1 |
+---
+
+## Special Records Specification
+
+### Purpose
+Special records handle cases where fact table date values are missing, invalid, or unknown. These records ensure referential integrity while providing meaningful reporting categories.
+
+### Standard Special Records
+
+| DATE_KEY | Meaning | Usage |
+|----------|---------|-------|
+| -1 | Not Available / NULL | Default for missing dates |
+| -2 | Invalid Date | Date failed validation rules |
+| -3 | Not Applicable | Date doesn't apply in this context |
+| -4 | Unknown | Date exists but is unknown |
+
+### Special Record Values by Data Type
+
+#### Numeric Fields (Integer/Number)
+Use the special record key value:
+- DATE_KEY: -1, -2, -3, -4
+- YEAR_NUM: -1, -2, -3, -4
+- MONTH_NUM: -1, -2, -3, -4
+- WEEK_NUM: -1, -2, -3, -4
+- DAY_OF_WEEK_NUM: -1, -2, -3, -4
+- All other numeric fields: Same pattern
+
+#### Text Fields (VARCHAR)
+Use descriptive text for reporting clarity:
+- DAY_NM: 'Not Available', 'Invalid', 'Not Applicable', 'Unknown'
+- MONTH_NM: 'Not Available', 'Invalid', 'Not Applicable', 'Unknown'
+- QUARTER_NM: 'N/A', 'Invalid', 'N/A', 'Unknown'
+- All abbreviated fields: 'N/A', 'INV', 'N/A', 'UNK'
+
+#### Date Fields (DATE)
+Use Sentinel Dates:
+- For -1 (Not Available): DATE '1900-01-01'
+- For -2 (Invalid): DATE '1900-01-02'
+- For -3 (Not Applicable): DATE '1900-01-03'
+- For -4 (Unknown): DATE '1900-01-04'
+
+#### Boolean/Flag Fields
+Use 0 (zero) for all special records
+
+### DIM_DATE Special Records
+```sql
+INSERT INTO DIM_DATE (
+    DATE_KEY, FULL_DT, YEAR_NUM, MONTH_NUM, MONTH_NM,
+    DAY_OF_MONTH_NUM, DAY_OF_WEEK_NUM, DAY_NM, WEEK_NUM,
+    WEEK_START_DT, WEEK_END_DT, QUARTER_NUM, QUARTER_NM,
+    DW_SOURCE_NM, CREATE_USER_ID, CREATE_TIMESTAMP
+) VALUES
+-- Not Available record
+(-1, '1900-01-01', -1, -1, 'Not Available',
+ -1, -1, 'Not Available', -1,
+ '1900-01-01', '1900-01-01', -1, 'N/A',
+ 'SPECIAL', 'SYSTEM', CURRENT_TIMESTAMP),
+
+-- Invalid record
+(-2, '1900-01-02', -2, -2, 'Invalid',
+ -2, -2, 'Invalid', -2,
+ '1900-01-02', '1900-01-02', -2, 'Invalid',
+ 'SPECIAL', 'SYSTEM', CURRENT_TIMESTAMP),
+
+-- Not Applicable record
+(-3, '1900-01-03', -3, -3, 'Not Applicable',
+ -3, -3, 'Not Applicable', -3,
+ '1900-01-03', '1900-01-03', -3, 'N/A',
+ 'SPECIAL', 'SYSTEM', CURRENT_TIMESTAMP),
+
+-- Unknown record
+(-4, '1900-01-04', -4, -4, 'Unknown',
+ -4, -4, 'Unknown', -4,
+ '1900-01-04', '1900-01-04', -4, 'Unknown',
+ 'SPECIAL', 'SYSTEM', CURRENT_TIMESTAMP);
+```
+
+### DIM_TRADE_DATE Special Records
+```sql
+INSERT INTO DIM_TRADE_DATE (
+    DATE_KEY, TRADE_FULL_DT, TRADE_YEAR_NUM, TRADE_WEEK_NUM,
+    TRADE_MONTH_445_NUM, TRADE_MONTH_445_NM,
+    TRADE_MONTH_454_NUM, TRADE_MONTH_454_NM,
+    TRADE_MONTH_544_NUM, TRADE_MONTH_544_NM,
+    TRADE_QUARTER_NUM, TRADE_QUARTER_NM,
+    DW_SOURCE_NM, CREATE_USER_ID, CREATE_TIMESTAMP
+) VALUES
+-- Not Available record (all patterns)
+(-1, '1900-01-01', -1, -1,
+ -1, 'Not Available',
+ -1, 'Not Available',
+ -1, 'Not Available',
+ -1, 'N/A',
+ 'SPECIAL', 'SYSTEM', CURRENT_TIMESTAMP),
+
+-- Invalid record
+(-2, '1900-01-02', -2, -2,
+ -2, 'Invalid',
+ -2, 'Invalid',
+ -2, 'Invalid',
+ -2, 'Invalid',
+ 'SPECIAL', 'SYSTEM', CURRENT_TIMESTAMP),
+
+-- Not Applicable record
+(-3, '1900-01-03', -3, -3,
+ -3, 'Not Applicable',
+ -3, 'Not Applicable',
+ -3, 'Not Applicable',
+ -3, 'N/A',
+ 'SPECIAL', 'SYSTEM', CURRENT_TIMESTAMP),
+
+-- Unknown record
+(-4, '1900-01-04', -4, -4,
+ -4, 'Unknown',
+ -4, 'Unknown',
+ -4, 'Unknown',
+ -4, 'Unknown',
+ 'SPECIAL', 'SYSTEM', CURRENT_TIMESTAMP);
+```
 
 ---
 
 ## SQL Validation Queries
 
-### Calendar Date (DIM_DATE) Validations
+### DIM_DATE Validations
 
 #### Test 1: Week 1 Must Contain January 1st
 ```sql
@@ -420,10 +410,11 @@ The table supports ALL THREE patterns simultaneously through parallel columns. E
 WITH week_one AS (
     SELECT
         YEAR_NUM,
-        MIN(FULL_DATE) as week_start,
-        MAX(FULL_DATE) as week_end
+        MIN(FULL_DT) as week_start,
+        MAX(FULL_DT) as week_end
     FROM DIM_DATE
     WHERE WEEK_NUM = 1
+      AND DATE_KEY > 0  -- Exclude special records
     GROUP BY YEAR_NUM
 )
 SELECT
@@ -441,15 +432,16 @@ WHERE DATE(YEAR_NUM || '-01-01') NOT BETWEEN week_start AND week_end;
 -- Expected: 0 rows
 SELECT
     DATE_KEY,
-    FULL_DATE,
+    FULL_DT,
     WEEK_START_DT,
     WEEK_END_DT,
     DAYOFWEEK(WEEK_START_DT) as start_dow,
     DAYOFWEEK(WEEK_END_DT) as end_dow,
     'ERROR: Week does not start on Sunday or end on Saturday' as error_message
 FROM DIM_DATE
-WHERE DAYOFWEEK(WEEK_START_DT) != 1  -- Not Sunday
-   OR DAYOFWEEK(WEEK_END_DT) != 7;    -- Not Saturday
+WHERE DATE_KEY > 0  -- Exclude special records
+  AND (DAYOFWEEK(WEEK_START_DT) != 1  -- Not Sunday
+   OR DAYOFWEEK(WEEK_END_DT) != 7);    -- Not Saturday
 ```
 
 #### Test 3: No Missing Dates
@@ -457,10 +449,11 @@ WHERE DAYOFWEEK(WEEK_START_DT) != 1  -- Not Sunday
 -- Expected: 0 rows
 WITH date_gaps AS (
     SELECT
-        FULL_DATE as current_date,
-        LEAD(FULL_DATE) OVER (ORDER BY FULL_DATE) as next_date,
-        DATEDIFF('DAY', FULL_DATE, LEAD(FULL_DATE) OVER (ORDER BY FULL_DATE)) as day_gap
+        FULL_DT as current_date,
+        LEAD(FULL_DT) OVER (ORDER BY FULL_DT) as next_date,
+        DATEDIFF('DAY', FULL_DT, LEAD(FULL_DT) OVER (ORDER BY FULL_DT)) as day_gap
     FROM DIM_DATE
+    WHERE DATE_KEY > 0  -- Exclude special records
 )
 SELECT
     current_date,
@@ -482,6 +475,7 @@ WITH week_sequence AS (
     FROM (
         SELECT DISTINCT YEAR_NUM, WEEK_NUM
         FROM DIM_DATE
+        WHERE DATE_KEY > 0  -- Exclude special records
     ) w
 )
 SELECT
@@ -498,17 +492,27 @@ WHERE WEEK_NUM - prev_week > 1
 ```sql
 -- Expected: 0 rows
 SELECT
-    FULL_DATE,
+    FULL_DT,
     YEAR_NUM as dim_year,
-    YEAR(FULL_DATE) as actual_year,
+    YEAR(FULL_DT) as actual_year,
     'ERROR: Year attribution mismatch' as error_message
 FROM DIM_DATE
-WHERE YEAR_NUM != YEAR(FULL_DATE);
+WHERE DATE_KEY > 0  -- Exclude special records
+  AND YEAR_NUM != YEAR(FULL_DT);
 ```
 
-### Trade Date (DIM_TRADE_DATE) Validations
+#### Test 6: Special Records Exist
+```sql
+-- Expected: 0 rows
+SELECT COUNT(*) as missing_special_records
+FROM (SELECT -1 as key UNION SELECT -2 UNION SELECT -3 UNION SELECT -4) expected
+LEFT JOIN DIM_DATE d ON expected.key = d.DATE_KEY
+WHERE d.DATE_KEY IS NULL;
+```
 
-#### Test 6: All Trade Weeks Have Exactly 7 Days
+### DIM_TRADE_DATE Validations
+
+#### Test 1: All Trade Weeks Have Exactly 7 Days
 ```sql
 -- Expected: 0 rows
 SELECT
@@ -517,19 +521,21 @@ SELECT
     COUNT(*) as days_in_week,
     'ERROR: Trade week does not have exactly 7 days' as error_message
 FROM DIM_TRADE_DATE
+WHERE DATE_KEY > 0  -- Exclude special records
 GROUP BY TRADE_YEAR_NUM, TRADE_WEEK_NUM
 HAVING COUNT(*) != 7;
 ```
 
-#### Test 7: Validate All Three Patterns Simultaneously
+#### Test 2: Validate 4-4-5 Pattern
 ```sql
--- Validate 4-4-5 Pattern
+-- Expected: 0 rows
 WITH month_weeks_445 AS (
     SELECT
         TRADE_YEAR_NUM,
         TRADE_MONTH_445_NUM,
         COUNT(DISTINCT TRADE_WEEK_NUM) as weeks_in_month
     FROM DIM_TRADE_DATE
+    WHERE DATE_KEY > 0  -- Exclude special records
     GROUP BY TRADE_YEAR_NUM, TRADE_MONTH_445_NUM
 )
 SELECT
@@ -544,14 +550,18 @@ WHERE NOT (
     (TRADE_MONTH_445_NUM IN (3,6,9) AND weeks_in_month = 5) OR
     (TRADE_MONTH_445_NUM = 12 AND weeks_in_month IN (5,6))  -- 6 in leap years
 );
+```
 
--- Validate 4-5-4 Pattern
+#### Test 3: Validate 4-5-4 Pattern
+```sql
+-- Expected: 0 rows
 WITH month_weeks_454 AS (
     SELECT
         TRADE_YEAR_NUM,
         TRADE_MONTH_454_NUM,
         COUNT(DISTINCT TRADE_WEEK_NUM) as weeks_in_month
     FROM DIM_TRADE_DATE
+    WHERE DATE_KEY > 0  -- Exclude special records
     GROUP BY TRADE_YEAR_NUM, TRADE_MONTH_454_NUM
 )
 SELECT
@@ -566,14 +576,18 @@ WHERE NOT (
     (TRADE_MONTH_454_NUM IN (2,5,8,11) AND weeks_in_month = 5) OR
     (TRADE_MONTH_454_NUM = 12 AND weeks_in_month IN (4,5))  -- 5 in leap years
 );
+```
 
--- Validate 5-4-4 Pattern
+#### Test 4: Validate 5-4-4 Pattern
+```sql
+-- Expected: 0 rows
 WITH month_weeks_544 AS (
     SELECT
         TRADE_YEAR_NUM,
         TRADE_MONTH_544_NUM,
         COUNT(DISTINCT TRADE_WEEK_NUM) as weeks_in_month
     FROM DIM_TRADE_DATE
+    WHERE DATE_KEY > 0  -- Exclude special records
     GROUP BY TRADE_YEAR_NUM, TRADE_MONTH_544_NUM
 )
 SELECT
@@ -589,26 +603,26 @@ WHERE NOT (
     (TRADE_MONTH_544_NUM = 12 AND weeks_in_month = 5)  -- 5 in leap years with week 53
 );
 ```
-```
 
-#### Test 8: Trade Weeks Are Complete Sunday-Saturday
+#### Test 5: Trade Weeks Are Complete Sunday-Saturday
 ```sql
 -- Expected: 0 rows
 SELECT
     TRADE_WEEK_NUM,
     TRADE_YEAR_NUM,
-    MIN(CALENDAR_FULL_DT) as week_start,
-    MAX(CALENDAR_FULL_DT) as week_end,
-    DAYOFWEEK(MIN(CALENDAR_FULL_DT)) as start_dow,
-    DAYOFWEEK(MAX(CALENDAR_FULL_DT)) as end_dow,
+    MIN(TRADE_FULL_DT) as week_start,
+    MAX(TRADE_FULL_DT) as week_end,
+    DAYOFWEEK(MIN(TRADE_FULL_DT)) as start_dow,
+    DAYOFWEEK(MAX(TRADE_FULL_DT)) as end_dow,
     'ERROR: Trade week is not Sunday-Saturday' as error_message
 FROM DIM_TRADE_DATE
+WHERE DATE_KEY > 0  -- Exclude special records
 GROUP BY TRADE_WEEK_NUM, TRADE_YEAR_NUM
-HAVING DAYOFWEEK(MIN(CALENDAR_FULL_DT)) != 1  -- Not Sunday
-    OR DAYOFWEEK(MAX(CALENDAR_FULL_DT)) != 7;  -- Not Saturday
+HAVING DAYOFWEEK(MIN(TRADE_FULL_DT)) != 1  -- Not Sunday
+    OR DAYOFWEEK(MAX(TRADE_FULL_DT)) != 7;  -- Not Saturday
 ```
 
-#### Test 9: Validate Quarter Assignments
+#### Test 6: Validate Quarter Assignments
 ```sql
 -- Expected: Exactly 13 weeks per quarter (14 in leap quarter)
 SELECT
@@ -621,13 +635,23 @@ SELECT
         ELSE 'OK'
     END as status
 FROM DIM_TRADE_DATE
+WHERE DATE_KEY > 0  -- Exclude special records
 GROUP BY TRADE_YEAR_NUM, TRADE_QUARTER_NUM
 HAVING COUNT(DISTINCT TRADE_WEEK_NUM) NOT IN (13, 14);
 ```
 
+#### Test 7: Special Records Exist
+```sql
+-- Expected: 0 rows
+SELECT COUNT(*) as missing_special_records
+FROM (SELECT -1 as key UNION SELECT -2 UNION SELECT -3 UNION SELECT -4) expected
+LEFT JOIN DIM_TRADE_DATE d ON expected.key = d.DATE_KEY
+WHERE d.DATE_KEY IS NULL;
+```
+
 ### Cross-Calendar Validations
 
-#### Test 10: Same DATE_KEY in Both Tables
+#### Test 1: Same DATE_KEY in Both Tables
 ```sql
 -- Expected: 0 rows (all dates exist in both)
 SELECT
@@ -638,7 +662,24 @@ SELECT
     END as error_message
 FROM DIM_DATE d
 FULL OUTER JOIN DIM_TRADE_DATE t ON d.DATE_KEY = t.DATE_KEY
-WHERE d.DATE_KEY IS NULL OR t.DATE_KEY IS NULL;
+WHERE (d.DATE_KEY IS NULL OR t.DATE_KEY IS NULL)
+  AND COALESCE(d.DATE_KEY, t.DATE_KEY) > 0;  -- Exclude special records
+```
+
+#### Test 2: Same Date Range
+```sql
+-- Expected: 0 rows
+SELECT CASE
+    WHEN d.min_date = t.min_date AND d.max_date = t.max_date
+    THEN 0 ELSE 1 END as date_range_mismatch
+FROM (
+    SELECT MIN(FULL_DT) as min_date, MAX(FULL_DT) as max_date
+    FROM DIM_DATE WHERE DATE_KEY > 0
+) d
+CROSS JOIN (
+    SELECT MIN(TRADE_FULL_DT) as min_date, MAX(TRADE_FULL_DT) as max_date
+    FROM DIM_TRADE_DATE WHERE DATE_KEY > 0
+) t;
 ```
 
 ---
@@ -650,7 +691,7 @@ WHERE d.DATE_KEY IS NULL OR t.DATE_KEY IS NULL;
 ```sql
 -- Step 1: Create date spine
 WITH RECURSIVE date_spine AS (
-    SELECT DATE('2020-01-01') as full_date
+    SELECT DATE('2000-01-01') as full_date
     UNION ALL
     SELECT full_date + INTERVAL 1 DAY
     FROM date_spine
@@ -681,7 +722,7 @@ date_enriched AS (
 
 SELECT
     YEAR(full_date) * 10000 + MONTH(full_date) * 100 + DAY(full_date) as DATE_KEY,
-    full_date as FULL_DATE,
+    full_date as FULL_DT,
     year_num as YEAR_NUM,
     MONTH(full_date) as MONTH_NUM,
     DAY(full_date) as DAY_OF_MONTH_NUM,
@@ -704,9 +745,9 @@ WITH trade_years AS (
         -- Sunday on or before Feb 1, minus 4 weeks
         DATE_TRUNC('WEEK', DATE(year_num || '-02-01')) - INTERVAL 28 DAY as trade_year_start
     FROM (
-        SELECT 2020 + n as year_num
+        SELECT 2000 + n as year_num
         FROM numbers_table
-        WHERE n < 10
+        WHERE n < 31
     ) years
 ),
 
@@ -776,30 +817,181 @@ trade_with_patterns AS (
             ELSE 12                            -- Dec: weeks 49-52/53
         END as trade_month_544_num
     FROM trade_dates
-),
-
--- Step 4: Calculate week of month for each pattern
-final_trade_dates AS (
-    SELECT
-        *,
-        -- Week of month for 4-4-5 pattern
-        CASE
-            WHEN trade_month_445_num IN (1,2,4,5,7,8,10,11) THEN
-                trade_week_num - (SELECT MIN(trade_week_num) FROM trade_with_patterns t2
-                                  WHERE t2.trade_year_num = trade_with_patterns.trade_year_num
-                                  AND t2.trade_month_445_num = trade_with_patterns.trade_month_445_num) + 1
-            ELSE -- Months with 5 weeks
-                trade_week_num - (SELECT MIN(trade_week_num) FROM trade_with_patterns t2
-                                  WHERE t2.trade_year_num = trade_with_patterns.trade_year_num
-                                  AND t2.trade_month_445_num = trade_with_patterns.trade_month_445_num) + 1
-        END as trade_week_of_month_445_num,
-
-        -- Similar calculations for 4-5-4 and 5-4-4 patterns
-        -- (abbreviated for space)
-    FROM trade_with_patterns
 )
 
-SELECT * FROM final_trade_dates;
+SELECT * FROM trade_with_patterns;
+```
+
+---
+
+## Aggregate Table Specifications
+
+### DIM_WEEK (from DIM_DATE)
+```sql
+CREATE TABLE DIM_WEEK AS
+SELECT
+    MIN(DATE_KEY) as WEEK_KEY,
+    MIN(FULL_DT) as WEEK_START_DT,
+    MAX(FULL_DT) as WEEK_END_DT,
+    MIN(DATE_KEY) as WEEK_START_KEY,
+    MAX(DATE_KEY) as WEEK_END_KEY,
+    MAX(YEAR_NUM) as YEAR_NUM,
+    MAX(WEEK_NUM) as WEEK_NUM,
+    MAX(WEEK_OF_YEAR_NUM) as WEEK_OF_YEAR_NUM,
+    COUNT(*) as DAYS_IN_WEEK_NUM,
+    CURRENT_TIMESTAMP as CREATE_TIMESTAMP
+FROM DIM_DATE
+WHERE DATE_KEY > 0
+GROUP BY YEAR_NUM, WEEK_NUM;
+```
+
+### DIM_MONTH (from DIM_DATE)
+```sql
+CREATE TABLE DIM_MONTH AS
+SELECT
+    MIN(DATE_KEY) as MONTH_KEY,
+    MAX(YEAR_NUM) as YEAR_NUM,
+    MAX(MONTH_NUM) as MONTH_NUM,
+    MAX(MONTH_NM) as MONTH_NM,
+    MIN(FULL_DT) as MONTH_START_DT,
+    MAX(FULL_DT) as MONTH_END_DT,
+    MIN(DATE_KEY) as MONTH_START_KEY,
+    MAX(DATE_KEY) as MONTH_END_KEY,
+    COUNT(*) as DAYS_IN_MONTH_NUM,
+    COUNT(DISTINCT WEEK_NUM) as WEEKS_IN_MONTH_NUM,
+    CURRENT_TIMESTAMP as CREATE_TIMESTAMP
+FROM DIM_DATE
+WHERE DATE_KEY > 0
+GROUP BY YEAR_NUM, MONTH_NUM;
+```
+
+### DIM_QUARTER (from DIM_DATE)
+```sql
+CREATE TABLE DIM_QUARTER AS
+SELECT
+    YEAR_NUM * 10 + QUARTER_NUM as QUARTER_KEY,
+    MAX(YEAR_NUM) as YEAR_NUM,
+    MAX(QUARTER_NUM) as QUARTER_NUM,
+    MAX(QUARTER_NM) as QUARTER_NM,
+    MIN(FULL_DT) as QUARTER_START_DT,
+    MAX(FULL_DT) as QUARTER_END_DT,
+    MIN(DATE_KEY) as QUARTER_START_KEY,
+    MAX(DATE_KEY) as QUARTER_END_KEY,
+    COUNT(*) as DAYS_IN_QUARTER_NUM,
+    COUNT(DISTINCT MONTH_NUM) as MONTHS_IN_QUARTER_NUM,
+    COUNT(DISTINCT WEEK_NUM) as WEEKS_IN_QUARTER_NUM,
+    CURRENT_TIMESTAMP as CREATE_TIMESTAMP
+FROM DIM_DATE
+WHERE DATE_KEY > 0
+GROUP BY YEAR_NUM, QUARTER_NUM;
+```
+
+### DIM_YEAR (from DIM_DATE)
+```sql
+CREATE TABLE DIM_YEAR AS
+SELECT
+    YEAR_NUM as YEAR_KEY,
+    YEAR_NUM,
+    MIN(FULL_DT) as YEAR_START_DT,
+    MAX(FULL_DT) as YEAR_END_DT,
+    MIN(DATE_KEY) as YEAR_START_KEY,
+    MAX(DATE_KEY) as YEAR_END_KEY,
+    COUNT(*) as DAYS_IN_YEAR_NUM,
+    COUNT(DISTINCT WEEK_NUM) as WEEKS_IN_YEAR_NUM,
+    MAX(IS_LEAP_YEAR_FLG) as IS_LEAP_YEAR_FLG,
+    CURRENT_TIMESTAMP as CREATE_TIMESTAMP
+FROM DIM_DATE
+WHERE DATE_KEY > 0
+GROUP BY YEAR_NUM;
+```
+
+### DIM_TRADE_WEEK (from DIM_TRADE_DATE)
+```sql
+CREATE TABLE DIM_TRADE_WEEK AS
+SELECT
+    MIN(DATE_KEY) as TRADE_WEEK_KEY,
+    MAX(TRADE_YEAR_NUM) as TRADE_YEAR_NUM,
+    MAX(TRADE_WEEK_NUM) as TRADE_WEEK_NUM,
+    MAX(TRADE_WEEK_OF_YEAR_NUM) as TRADE_WEEK_OF_YEAR_NUM,
+    MAX(TRADE_WEEK_OF_QUARTER_NUM) as TRADE_WEEK_OF_QUARTER_NUM,
+    MIN(TRADE_FULL_DT) as TRADE_WEEK_START_DT,
+    MAX(TRADE_FULL_DT) as TRADE_WEEK_END_DT,
+    MIN(DATE_KEY) as TRADE_WEEK_START_KEY,
+    MAX(DATE_KEY) as TRADE_WEEK_END_KEY,
+    MAX(TRADE_MONTH_445_NUM) as TRADE_MONTH_445_NUM,
+    MAX(TRADE_MONTH_454_NUM) as TRADE_MONTH_454_NUM,
+    MAX(TRADE_MONTH_544_NUM) as TRADE_MONTH_544_NUM,
+    MAX(TRADE_WEEK_OF_MONTH_445_NUM) as TRADE_WEEK_OF_MONTH_445_NUM,
+    MAX(TRADE_WEEK_OF_MONTH_454_NUM) as TRADE_WEEK_OF_MONTH_454_NUM,
+    MAX(TRADE_WEEK_OF_MONTH_544_NUM) as TRADE_WEEK_OF_MONTH_544_NUM,
+    MAX(TRADE_QUARTER_NUM) as TRADE_QUARTER_NUM,
+    COUNT(*) as DAYS_IN_WEEK_NUM,
+    MAX(WEEKS_IN_TRADE_YEAR_NUM) as WEEKS_IN_TRADE_YEAR_NUM,
+    MAX(IS_TRADE_LEAP_WEEK_FLG) as IS_TRADE_LEAP_WEEK_FLG,
+    CURRENT_TIMESTAMP as CREATE_TIMESTAMP
+FROM DIM_TRADE_DATE
+WHERE DATE_KEY > 0
+GROUP BY TRADE_YEAR_NUM, TRADE_WEEK_NUM;
+```
+
+### DIM_TRADE_MONTH (from DIM_TRADE_WEEK)
+```sql
+CREATE TABLE DIM_TRADE_MONTH AS
+SELECT
+    TRADE_YEAR_NUM * 100 + MIN(TRADE_MONTH_445_NUM) as TRADE_MONTH_KEY,
+    TRADE_YEAR_NUM,
+    MIN(TRADE_MONTH_445_NUM) as TRADE_MONTH_NUM,
+    MAX(TRADE_QUARTER_NUM) as TRADE_QUARTER_NUM,
+    MIN(TRADE_WEEK_START_DT) as TRADE_MONTH_START_DT,
+    MAX(TRADE_WEEK_END_DT) as TRADE_MONTH_END_DT,
+    MIN(TRADE_WEEK_START_KEY) as TRADE_MONTH_START_KEY,
+    MAX(TRADE_WEEK_END_KEY) as TRADE_MONTH_END_KEY,
+    COUNT(DISTINCT TRADE_WEEK_NUM) as WEEKS_IN_MONTH_NUM,
+    SUM(DAYS_IN_WEEK_NUM) as DAYS_IN_MONTH_NUM,
+    MAX(CASE WHEN TRADE_WEEK_OF_MONTH_445_NUM = 5 THEN 1 ELSE 0 END) as IS_5_WEEK_MONTH_445_FLG,
+    MAX(CASE WHEN TRADE_WEEK_OF_MONTH_454_NUM = 5 THEN 1 ELSE 0 END) as IS_5_WEEK_MONTH_454_FLG,
+    MAX(CASE WHEN TRADE_WEEK_OF_MONTH_544_NUM = 5 THEN 1 ELSE 0 END) as IS_5_WEEK_MONTH_544_FLG,
+    MAX(IS_TRADE_LEAP_WEEK_FLG) as CONTAINS_LEAP_WEEK_FLG,
+    CURRENT_TIMESTAMP as CREATE_TIMESTAMP
+FROM DIM_TRADE_WEEK
+GROUP BY TRADE_YEAR_NUM, TRADE_QUARTER_NUM;
+```
+
+### DIM_TRADE_QUARTER (from DIM_TRADE_MONTH)
+```sql
+CREATE TABLE DIM_TRADE_QUARTER AS
+SELECT
+    TRADE_YEAR_NUM * 10 + TRADE_QUARTER_NUM as TRADE_QUARTER_KEY,
+    TRADE_YEAR_NUM,
+    TRADE_QUARTER_NUM,
+    MIN(TRADE_MONTH_START_DT) as TRADE_QUARTER_START_DT,
+    MAX(TRADE_MONTH_END_DT) as TRADE_QUARTER_END_DT,
+    MIN(TRADE_MONTH_START_KEY) as TRADE_QUARTER_START_KEY,
+    MAX(TRADE_MONTH_END_KEY) as TRADE_QUARTER_END_KEY,
+    SUM(WEEKS_IN_MONTH_NUM) as WEEKS_IN_QUARTER_NUM,
+    SUM(DAYS_IN_MONTH_NUM) as DAYS_IN_QUARTER_NUM,
+    MAX(CONTAINS_LEAP_WEEK_FLG) as CONTAINS_LEAP_WEEK_FLG,
+    CURRENT_TIMESTAMP as CREATE_TIMESTAMP
+FROM DIM_TRADE_MONTH
+GROUP BY TRADE_YEAR_NUM, TRADE_QUARTER_NUM;
+```
+
+### DIM_TRADE_YEAR (from DIM_TRADE_QUARTER)
+```sql
+CREATE TABLE DIM_TRADE_YEAR AS
+SELECT
+    TRADE_YEAR_NUM as TRADE_YEAR_KEY,
+    TRADE_YEAR_NUM,
+    MIN(TRADE_QUARTER_START_DT) as TRADE_YEAR_START_DT,
+    MAX(TRADE_QUARTER_END_DT) as TRADE_YEAR_END_DT,
+    MIN(TRADE_QUARTER_START_KEY) as TRADE_YEAR_START_KEY,
+    MAX(TRADE_QUARTER_END_KEY) as TRADE_YEAR_END_KEY,
+    SUM(WEEKS_IN_QUARTER_NUM) as WEEKS_IN_YEAR_NUM,
+    SUM(DAYS_IN_QUARTER_NUM) as DAYS_IN_YEAR_NUM,
+    MAX(CONTAINS_LEAP_WEEK_FLG) as IS_LEAP_WEEK_YEAR_FLG,
+    CURRENT_TIMESTAMP as CREATE_TIMESTAMP
+FROM DIM_TRADE_QUARTER
+GROUP BY TRADE_YEAR_NUM;
 ```
 
 ---
@@ -815,24 +1007,37 @@ SELECT * FROM final_trade_dates;
 - [ ] Day of week numbers: 1=Sunday through 7=Saturday
 - [ ] Months have correct number of days
 - [ ] Quarters are assigned correctly (Jan-Mar = Q1, etc.)
+- [ ] Special records (-1, -2, -3, -4) exist
 
 ### DIM_TRADE_DATE Checklist
 - [ ] All weeks have exactly 7 days
 - [ ] All weeks run Sunday through Saturday
-- [ ] **4-4-5 pattern** is maintained (4,4,5,4,4,5,4,4,5,4,4,5 weeks per month)
-- [ ] **4-5-4 pattern** is maintained (4,5,4,4,5,4,4,5,4,4,5,4 weeks per month)
-- [ ] **5-4-4 pattern** is maintained (5,4,4,5,4,4,5,4,4,5,4,4 weeks per month)
+- [ ] 4-4-5 pattern is maintained (4,4,5,4,4,5,4,4,5,4,4,5 weeks per month)
+- [ ] 4-5-4 pattern is maintained (4,5,4,4,5,4,4,5,4,4,5,4 weeks per month)
+- [ ] 5-4-4 pattern is maintained (5,4,4,5,4,4,5,4,4,5,4,4 weeks per month)
 - [ ] Each quarter has 13 weeks (14 in leap quarters) across all patterns
 - [ ] Trade year starts on correct Sunday (4 weeks before Sunday on/before Feb 1)
 - [ ] No partial weeks at year boundaries
 - [ ] Week 53 only exists in designated leap years
 - [ ] Trade months align with week boundaries for each pattern
 - [ ] Pattern-specific columns have consistent values within each week
+- [ ] Special records (-1, -2, -3, -4) exist
 
 ### Cross-Calendar Checklist
-- [ ] Same DATE_KEY values exist in both tables
-- [ ] Same date range covered
+- [ ] Same DATE_KEY values exist in both tables (excluding special records)
+- [ ] Same date range covered (2000-01-01 to 2030-12-31)
 - [ ] Consistent metadata columns (create timestamps, etc.)
+
+### Aggregate Tables Checklist
+- [ ] DIM_WEEK has one row per calendar week
+- [ ] DIM_MONTH has one row per calendar month
+- [ ] DIM_QUARTER has one row per calendar quarter
+- [ ] DIM_YEAR has one row per calendar year
+- [ ] DIM_TRADE_WEEK has one row per trade week
+- [ ] DIM_TRADE_MONTH has one row per trade month
+- [ ] DIM_TRADE_QUARTER has one row per trade quarter
+- [ ] DIM_TRADE_YEAR has one row per trade year
+- [ ] Row counts reconcile between base and aggregate tables
 
 ---
 
@@ -844,8 +1049,8 @@ SELECT * FROM final_trade_dates;
 ### Issue 2: Missing days at year boundaries
 **Solution**: Ensure your date generation includes partial weeks. Week 1 may start in previous year, Week 52/53 may end in next year.
 
-### Issue 3: Trade calendar months don't follow 4-5-4
-**Solution**: Check your week-to-month assignment logic. Weeks 1-4 = Month 1, Weeks 5-9 = Month 2, etc.
+### Issue 3: Trade calendar months don't follow patterns
+**Solution**: Check your week-to-month assignment logic. Each pattern has specific week ranges for each month.
 
 ### Issue 4: Gaps in week numbers
 **Solution**: Check for missing dates or incorrect week calculation logic. Every week between first and last should be present.
@@ -855,9 +1060,10 @@ SELECT * FROM final_trade_dates;
 
 ---
 
-## Contact and Version Information
+## Version Information
 
-- **Version**: 1.3
-- **Last Updated**: Current as of pattern discussion
-- **Purpose**: Standard specification for calendar and trade date dimensions
-- **Usage**: Reference for implementation and validation of date dimension tables
+- **Version**: 2.0
+- **Last Updated**: Current
+- **Date Range**: 2000-01-01 to 2030-12-31
+- **Purpose**: Complete specification for calendar and trade date dimensions
+- **Key Features**: Separate tables, multi-pattern trade calendar support, comprehensive validation
