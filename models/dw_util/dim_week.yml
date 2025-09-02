@@ -81,7 +81,7 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              values: [-4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
       
       - name: month_nm
         description: "Month name - most common month in the week"
@@ -104,7 +104,7 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4]
+              values: [-4, -3, -2, -1, 1, 2, 3, 4]
       
       - name: quarter_nm
         description: "Quarter name (First, Second, Third, Fourth)"
@@ -209,21 +209,25 @@ models:
       - dbt_utils.expression_is_true:
           expression: "week_key = week_start_key"
           config:
+            where: "week_key > 0"  # Exclude special records
             error_if: ">0"
       
       # Test that week boundaries are correct (Sunday to Saturday)
       - dbt_utils.expression_is_true:
           expression: "dayofweek(week_start_dt) = 0"  # Sunday
           config:
+            where: "week_key > 0"  # Exclude special records
             error_if: ">0"
       
       - dbt_utils.expression_is_true:
           expression: "dayofweek(week_end_dt) = 6 or days_in_week_num < 7"  # Saturday or partial week
           config:
+            where: "week_key > 0"  # Exclude special records
             error_if: ">0"
       
       # Test that week end date is 6 days after start date for complete weeks
       - dbt_utils.expression_is_true:
           expression: "datediff(day, week_start_dt, week_end_dt) = days_in_week_num - 1"
           config:
+            where: "week_key > 0"  # Exclude special records
             error_if: ">0"
