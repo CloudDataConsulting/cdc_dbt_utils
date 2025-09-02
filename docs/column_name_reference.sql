@@ -1,7 +1,7 @@
 select
     d.date_key
     , d.calendar_full_dt
-    , d.trade_full_dt
+    , d.full_dt
     , d.calendar_date_last_year_key
     , d.trade_date_last_year_key
     , d.calendar_day_of_week_num
@@ -94,8 +94,8 @@ select
     , d.trade_year_end_dt
     , d.calendar_year_end_key
     , d.trade_year_end_key
-    , d.calendar_is_leap_year_flg
-    , d.is_trade_leap_week_flg
+    , d.calendar_leap_year_flg
+    , d.trade_leap_week_flg
     , d.weeks_in_trade_year_num
     , d.iso_year_num
     , d.iso_week_of_year_txt

@@ -6,8 +6,8 @@ where date_key > 0)  -- exclude special records
         -- Use the Sunday of each week as the natural key
         min(date_key) as trade_week_key
         -- Core week identifiers
-        , min(trade_full_dt) as trade_week_start_dt
-        , max(trade_full_dt) as trade_week_end_dt
+        , min(full_dt) as trade_week_start_dt
+        , max(full_dt) as trade_week_end_dt
         , min(date_key) as trade_week_start_key
         , max(date_key) as trade_week_end_key
         -- Week attributes (constant within week, so just use MAX)
@@ -32,7 +32,7 @@ where date_key > 0)  -- exclude special records
         -- Week metrics
         , count(*) as days_in_week_num
         , max(weeks_in_trade_year_num) as weeks_in_trade_year_num
-        , max(is_trade_leap_week_flg) as is_trade_leap_week_flg
+        , max(trade_leap_week_flg) as trade_leap_week_flg
     from dim_trade_date
     group by trade_week_start_dt, trade_week_end_dt)
 , final as (

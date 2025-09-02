@@ -30,7 +30,7 @@ with trade_weeks as (select * from {{ ref('dim_trade_week') }})
         , max(trade_week_of_month_544_num) as trade_weeks_in_month_544_num
         , max(case when trade_week_of_month_544_num = 5 then 1 else 0 end) as is_5_week_month_544_flg
         -- Leap week flag
-        , max(is_trade_leap_week_flg) as contains_leap_week_flg
+        , max(trade_leap_week_flg) as contains_leap_week_flg
     from trade_weeks
     group by trade_year_num, trade_quarter_num, trade_quarter_nm)
     -- Group by year and quarter since month num should be derivable,

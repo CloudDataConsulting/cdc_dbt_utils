@@ -143,7 +143,7 @@ with date_spine as (
             order by twp.trade_week_num
         ) as trade_week_of_quarter_num
         -- Leap week flag
-        , case when twp.trade_week_num = 53 then 1 else 0 end as is_trade_leap_week_flg
+        , case when twp.trade_week_num = 53 then 1 else 0 end as trade_leap_week_flg
     from date_spine as ds
     inner join trade_weeks_with_patterns as twp
         on ds.calendar_date between twp.trade_week_start_dt and twp.trade_week_end_dt)
@@ -183,7 +183,7 @@ with date_spine as (
 , enriched_trade_dates as (
     select
         tdb.date_key
-        , tdb.calendar_date as trade_full_dt
+        , tdb.calendar_date as full_dt
         , tyc.trade_date_last_year_key
         , tdb.trade_day_of_year_num
         -- Week attributes
@@ -258,7 +258,7 @@ with date_spine as (
         , to_char(tdb.trade_year_start_dt, 'YYYYMMDD')::int as trade_year_start_key
         , tdb.trade_year_end_dt
         , to_char(tdb.trade_year_end_dt, 'YYYYMMDD')::int as trade_year_end_key
-        , tdb.is_trade_leap_week_flg
+        , tdb.trade_leap_week_flg
         , tdb.weeks_in_trade_year_num
     from trade_dates_with_boundaries as tdb
     left join trade_year_comparison as tyc
@@ -266,7 +266,7 @@ with date_spine as (
 , regular_dates as (
     select
         date_key
-        , trade_full_dt
+        , full_dt
         , trade_date_last_year_key
         , trade_day_of_year_num
         , trade_week_num
@@ -312,7 +312,7 @@ with date_spine as (
         , trade_year_start_key
         , trade_year_end_dt
         , trade_year_end_key
-        , is_trade_leap_week_flg
+        , trade_leap_week_flg
         , weeks_in_trade_year_num
         , current_timestamp() as dw_synced_ts
         , 'TRADE_CALENDAR' as dw_source_nm
@@ -544,7 +544,7 @@ with date_spine as (
     )
         as t (
             date_key
-            , trade_full_dt
+            , full_dt
             , trade_date_last_year_key
             , trade_day_of_year_num
             , trade_week_num
@@ -590,7 +590,7 @@ with date_spine as (
             , trade_year_start_key
             , trade_year_end_dt
             , trade_year_end_key
-            , is_trade_leap_week_flg
+            , trade_leap_week_flg
             , weeks_in_trade_year_num
             , dw_synced_ts
             , dw_source_nm

@@ -137,7 +137,7 @@ with date_spine as (
             when mod(year_num, 100) = 0 then 0
             when mod(year_num, 4) = 0 then 1
             else 0
-        end as is_leap_year_flg
+        end as leap_year_flg
         -- ISO week attributes
         , dayofweekiso(full_dt) as iso_day_of_week_num
         , yearofweekiso(full_dt) as iso_year_num
@@ -199,7 +199,7 @@ with date_spine as (
         , year_start_key
         , year_end_dt
         , year_end_key
-        , is_leap_year_flg
+        , leap_year_flg
         , iso_day_of_week_num
         , iso_year_num
         , iso_week_of_year_txt
@@ -522,7 +522,7 @@ with date_spine as (
             , year_start_key
             , year_end_dt
             , year_end_key
-            , is_leap_year_flg
+            , leap_year_flg
             , iso_day_of_week_num
             , iso_year_num
             , iso_week_of_year_txt

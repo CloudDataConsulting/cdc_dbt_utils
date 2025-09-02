@@ -1,0 +1,90 @@
+[project]
+name = "cdc_dbt_utils"
+version = "0.1.0"
+description = "Cloud Data Consulting dbt utils package"
+requires-python = ">=3.11"
+
+dependencies = [
+    "dbt-core==1.9.1",
+    "dbt-snowflake==1.9.1",
+    "pandas>=2.3.2",
+    "sqlfluff==3.4.2",
+    "sqlfluff-templater-dbt==3.4.2",
+]
+
+[tool.sqlfluff.core]
+verbose = 1
+dialect = "snowflake"
+templater = "dbt"
+sql_file_exts = ".sql,.sql.j2,.dml,.ddl"
+max_line_length = 120
+# L034 was re-ordering columns in a way that broke downstream code
+# LT07 enforces CTE brackets on new lines, which we don't want
+# LT02 enforces closing parenthesis on new line, which we don't want
+# LT08 enforces blank line after CTE closing bracket, which we don't want
+# AL09 removes self-aliasing which we want to keep (datecode as datecode)
+exclude_rules = "LT08,L034,LT07,LT02,AL09"
+
+# Configure LT15 rule for consecutive blank lines
+[tool.sqlfluff.rules.layout.newlines]
+maximum_empty_lines_between_statements = 0  # No extra blank lines between statements
+maximum_empty_lines_inside_statements = 0   # No extra blank lines inside statements
+
+[tool.sqlfluff.templater.dbt]
+project_dir = "."
+profiles_dir = "."
+
+[tool.sqlfluff.rules.aliasing.table]
+aliasing = "explicit"
+
+[tool.sqlfluff.rules.aliasing.column]
+aliasing = "explicit"
+
+[tool.sqlfluff.rules.aliasing.length]
+min_alias_length = 3
+
+[tool.sqlfluff.rules.capitalisation.keywords]
+capitalisation_policy = "lower"
+
+[tool.sqlfluff.rules.capitalisation.identifiers]
+capitalisation_policy = "lower"
+
+[tool.sqlfluff.rules.capitalisation.functions]
+extended_capitalisation_policy = "lower"
+
+[tool.sqlfluff.rules.capitalisation.literals]
+capitalisation_policy = "lower"
+
+[tool.sqlfluff.rules.capitalisation.types]
+extended_capitalisation_policy = "lower"
+
+[tool.sqlfluff.rules.convention.select_trailing_comma]
+select_clause_trailing_comma = "forbid"
+
+# THIS IS THE CRITICAL SECTION FOR LEADING COMMAS:
+[tool.sqlfluff.layout.type.comma]
+spacing_before = "touch"
+line_position = "leading"  # THIS makes commas go at the beginning!
+
+[tool.sqlfluff.layout.type.end_of_file]
+spacing_before = "touch"
+
+[tool.sqlfluff.rules.layout.select_modifiers]
+closing_bracket_line_position = "same"
+
+[tool.sqlfluff.rules.layout.indent]
+closing_bracket_line_position = "trailing"
+
+[tool.sqlfluff.indentation]
+indented_joins = false
+indented_using_on = true
+template_blocks_indent = false
+
+[tool.sqlfluff.templater]
+unwrap_wrapped_queries = true
+
+[tool.sqlfluff.templater.jinja]
+apply_dbt_builtins = true
+
+[project.scripts]
+format-dbt = "format_dbt:main"
