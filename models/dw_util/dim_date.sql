@@ -223,197 +223,199 @@ with date_spine as (
 , special_records as (
     select * from (values
         (
-            -1
-            , '1900-01-01'::date
-            , '1900-01-01'::date
-            , -1
-            , -1
-            , -1
-            , -1
-            , -1
-            , -1
-            , 'Unknown'
-            , 'UNK'
-            , 'UNK'
-            , -1
-            , 0
-            , 0
-            , 0
-            , 0
-            , 0
-            , 0
-            , -1
-            , -1
-            , -1
-            , -1
-            , -1
-            , '1900-01-01'::date
-            , -1
-            , '1900-01-01'::date
-            , -1
-            , -1
-            , 'Unknown'
-            , 'UNK'
-            , -1
-            , -1
-            , -1
-            , '1900-01-01'::date
-            , -1
-            , '1900-01-01'::date
-            , -1
-            , -1
-            , 'UNK'
-            , '1900-01-01'::date
-            , -1
-            , '1900-01-01'::date
-            , -1
-            , -1
-            , '1900-01-01'::date
-            , -1
-            , '1900-01-01'::date
-            , -1
-            , 0
-            , -1
-            , -1
-            , 'UNK'
-            , -1
-            , '1900-01-01'::date
-            , -1
-            , '1900-01-01'::date
-            , -1
-            , current_timestamp()
-            , 'SPECIAL'
-            , 'SYSTEM'
-            , current_timestamp()
+            -1                      -- date_key
+            , '1900-01-01'::date    -- full_dt
+            , '1900-01-01'::date    -- date_last_year_dt
+            , -1                    -- date_last_year_key
+            , -1                    -- day_of_week_num
+            , -1                    -- day_of_month_num
+            , -1                    -- day_of_quarter_num
+            , -1                    -- day_of_year_num
+            , -1                    -- day_overall_num
+            , 'Unknown'             -- day_nm
+            , 'UNK'                 -- day_abbr
+            , 'UNK'                 -- day_suffix_txt
+            , -1                    -- epoch_num
+            , 'UNK'                 -- weekday_flg
+            , 0                     -- last_day_of_week_flg
+            , 0                     -- first_day_of_month_flg
+            , 0                     -- last_day_of_month_flg
+            , 0                     -- last_day_of_quarter_flg
+            , 0                     -- last_day_of_year_flg
+            , -1                    -- week_num
+            , -1                    -- week_of_year_num
+            , -1                    -- week_of_month_num
+            , -1                    -- week_of_quarter_num
+            , -1                    -- week_overall_num
+            , '1900-01-01'::date    -- week_start_dt
+            , -1                    -- week_start_key
+            , '1900-01-01'::date    -- week_end_dt
+            , -1                    -- week_end_key
+            , -1                    -- month_num
+            , 'Unknown'             -- month_nm
+            , 'UNK'                 -- month_abbr
+            , -1                    -- month_in_quarter_num
+            , -1                    -- month_overall_num
+            , -1                    -- yearmonth_num
+            , '1900-01-01'::date    -- month_start_dt
+            , -1                    -- month_start_key
+            , '1900-01-01'::date    -- month_end_dt
+            , -1                    -- month_end_key
+            , -1                    -- quarter_num
+            , 'UNK'                 -- quarter_nm
+            , 'Unknown'             -- quarter_full_nm
+            , '1900-01-01'::date    -- quarter_start_dt
+            , -1                    -- quarter_start_key
+            , '1900-01-01'::date    -- quarter_end_dt
+            , -1                    -- quarter_end_key
+            , -1                    -- year_num
+            , '1900-01-01'::date    -- year_start_dt
+            , -1                    -- year_start_key
+            , '1900-01-01'::date    -- year_end_dt
+            , -1                    -- year_end_key
+            , 0                     -- leap_year_flg
+            , -1                    -- iso_day_of_week_num
+            , -1                    -- iso_year_num
+            , 'UNK'                 -- iso_week_of_year_txt
+            , -1                    -- iso_week_overall_num
+            , '1900-01-01'::date    -- iso_week_start_dt
+            , -1                    -- iso_week_start_key
+            , '1900-01-01'::date    -- iso_week_end_dt
+            , -1                    -- iso_week_end_key
+            , current_timestamp()   -- dw_synced_ts
+            , 'SPECIAL'             -- dw_source_nm
+            , 'SYSTEM'              -- create_user_id
+            , current_timestamp()   -- create_timestamp
         )
         , (
-            -2
-            , '1900-01-02'::date
-            , '1900-01-02'::date
-            , -2
-            , -2
-            , -2
-            , -2
-            , -2
-            , -2
-            , 'Invalid'
-            , 'INV'
-            , 'INV'
-            , -2
-            , 0
-            , 0
-            , 0
-            , 0
-            , 0
-            , 0
-            , -2
-            , -2
-            , -2
-            , -2
-            , -2
-            , '1900-01-02'::date
-            , -2
-            , '1900-01-02'::date
-            , -2
-            , -2
-            , 'Invalid'
-            , 'INV'
-            , -2
-            , -2
-            , -2
-            , '1900-01-02'::date
-            , -2
-            , '1900-01-02'::date
-            , -2
-            , -2
-            , 'Invalid'
-            , 'Invalid'
-            , '1900-01-02'::date
-            , -2
-            , '1900-01-02'::date
-            , -2
-            , -2
-            , '1900-01-02'::date
-            , -2
-            , '1900-01-02'::date
-            , -2
-            , 0
-            , -2
-            , -2
-            , 'INV'
-            , -2
-            , '1900-01-02'::date
-            , -2
-            , '1900-01-02'::date
-            , -2
-            , current_timestamp()
-            , 'SPECIAL'
-            , 'SYSTEM'
-            , current_timestamp()
+            -2                      -- date_key
+            , '1900-01-02'::date    -- full_dt
+            , '1900-01-02'::date    -- date_last_year_dt
+            , -2                    -- date_last_year_key
+            , -2                    -- day_of_week_num
+            , -2                    -- day_of_month_num
+            , -2                    -- day_of_quarter_num
+            , -2                    -- day_of_year_num
+            , -2                    -- day_overall_num
+            , 'Invalid'             -- day_nm
+            , 'INV'                 -- day_abbr
+            , 'INV'                 -- day_suffix_txt
+            , -2                    -- epoch_num
+            , 'INV'                 -- weekday_flg
+            , 0                     -- last_day_of_week_flg
+            , 0                     -- first_day_of_month_flg
+            , 0                     -- last_day_of_month_flg
+            , 0                     -- last_day_of_quarter_flg
+            , 0                     -- last_day_of_year_flg
+            , -2                    -- week_num
+            , -2                    -- week_of_year_num
+            , -2                    -- week_of_month_num
+            , -2                    -- week_of_quarter_num
+            , -2                    -- week_overall_num
+            , '1900-01-02'::date    -- week_start_dt
+            , -2                    -- week_start_key
+            , '1900-01-02'::date    -- week_end_dt
+            , -2                    -- week_end_key
+            , -2                    -- month_num
+            , 'Invalid'             -- month_nm
+            , 'INV'                 -- month_abbr
+            , -2                    -- month_in_quarter_num
+            , -2                    -- month_overall_num
+            , -2                    -- yearmonth_num
+            , '1900-01-02'::date    -- month_start_dt
+            , -2                    -- month_start_key
+            , '1900-01-02'::date    -- month_end_dt
+            , -2                    -- month_end_key
+            , -2                    -- quarter_num
+            , 'INV'                 -- quarter_nm
+            , 'Invalid'             -- quarter_full_nm
+            , '1900-01-02'::date    -- quarter_start_dt
+            , -2                    -- quarter_start_key
+            , '1900-01-02'::date    -- quarter_end_dt
+            , -2                    -- quarter_end_key
+            , -2                    -- year_num
+            , '1900-01-02'::date    -- year_start_dt
+            , -2                    -- year_start_key
+            , '1900-01-02'::date    -- year_end_dt
+            , -2                    -- year_end_key
+            , 0                     -- leap_year_flg
+            , -2                    -- iso_day_of_week_num
+            , -2                    -- iso_year_num
+            , 'INV'                 -- iso_week_of_year_txt
+            , -2                    -- iso_week_overall_num
+            , '1900-01-02'::date    -- iso_week_start_dt
+            , -2                    -- iso_week_start_key
+            , '1900-01-02'::date    -- iso_week_end_dt
+            , -2                    -- iso_week_end_key
+            , current_timestamp()   -- dw_synced_ts
+            , 'SPECIAL'             -- dw_source_nm
+            , 'SYSTEM'              -- create_user_id
+            , current_timestamp()   -- create_timestamp
         )
         , (
-            -3
-            , '1900-01-03'::date
-            , '1900-01-03'::date
-            , -3
-            , -3
-            , -3
-            , -3
-            , -3
-            , -3
-            , 'Not Applicable'
-            , 'N/A'
-            , 'N/A'
-            , -3
-            , 0
-            , 0
-            , 0
-            , 0
-            , 0
-            , 0
-            , -3
-            , -3
-            , -3
-            , -3
-            , -3
-            , '1900-01-03'::date
-            , -3
-            , '1900-01-03'::date
-            , -3
-            , -3
-            , 'Not Applicable'
-            , 'N/A'
-            , -3
-            , -3
-            , -3
-            , '1900-01-03'::date
-            , -3
-            , '1900-01-03'::date
-            , -3
-            , -3
-            , 'N/A'
-            , '1900-01-03'::date
-            , -3
-            , '1900-01-03'::date
-            , -3
-            , -3
-            , '1900-01-03'::date
-            , -3
-            , '1900-01-03'::date
-            , -3
-            , 0
-            , -3
-            , -3
-            , 'N/A'
-            , -3
-            , '1900-01-03'::date
-            , -3
-            , '1900-01-03'::date
-            , -3
-            , current_timestamp()
-            , 'SPECIAL'
-            , 'SYSTEM'
-            , current_timestamp()
+            -3                      -- date_key
+            , '1900-01-03'::date    -- full_dt
+            , '1900-01-03'::date    -- date_last_year_dt
+            , -3                    -- date_last_year_key
+            , -3                    -- day_of_week_num
+            , -3                    -- day_of_month_num
+            , -3                    -- day_of_quarter_num
+            , -3                    -- day_of_year_num
+            , -3                    -- day_overall_num
+            , 'Not Applicable'      -- day_nm
+            , 'N/A'                 -- day_abbr
+            , 'N/A'                 -- day_suffix_txt
+            , -3                    -- epoch_num
+            , 'N/A'                 -- weekday_flg
+            , 0                     -- last_day_of_week_flg
+            , 0                     -- first_day_of_month_flg
+            , 0                     -- last_day_of_month_flg
+            , 0                     -- last_day_of_quarter_flg
+            , 0                     -- last_day_of_year_flg
+            , -3                    -- week_num
+            , -3                    -- week_of_year_num
+            , -3                    -- week_of_month_num
+            , -3                    -- week_of_quarter_num
+            , -3                    -- week_overall_num
+            , '1900-01-03'::date    -- week_start_dt
+            , -3                    -- week_start_key
+            , '1900-01-03'::date    -- week_end_dt
+            , -3                    -- week_end_key
+            , -3                    -- month_num
+            , 'Not Applicable'      -- month_nm
+            , 'N/A'                 -- month_abbr
+            , -3                    -- month_in_quarter_num
+            , -3                    -- month_overall_num
+            , -3                    -- yearmonth_num
+            , '1900-01-03'::date    -- month_start_dt
+            , -3                    -- month_start_key
+            , '1900-01-03'::date    -- month_end_dt
+            , -3                    -- month_end_key
+            , -3                    -- quarter_num
+            , 'N/A'                 -- quarter_nm
+            , 'Not Applicable'      -- quarter_full_nm
+            , '1900-01-03'::date    -- quarter_start_dt
+            , -3                    -- quarter_start_key
+            , '1900-01-03'::date    -- quarter_end_dt
+            , -3                    -- quarter_end_key
+            , -3                    -- year_num
+            , '1900-01-03'::date    -- year_start_dt
+            , -3                    -- year_start_key
+            , '1900-01-03'::date    -- year_end_dt
+            , -3                    -- year_end_key
+            , 0                     -- leap_year_flg
+            , -3                    -- iso_day_of_week_num
+            , -3                    -- iso_year_num
+            , 'N/A'                 -- iso_week_of_year_txt
+            , -3                    -- iso_week_overall_num
+            , '1900-01-03'::date    -- iso_week_start_dt
+            , -3                    -- iso_week_start_key
+            , '1900-01-03'::date    -- iso_week_end_dt
+            , -3                    -- iso_week_end_key
+            , current_timestamp()   -- dw_synced_ts
+            , 'SPECIAL'             -- dw_source_nm
+            , 'SYSTEM'              -- create_user_id
+            , current_timestamp()   -- create_timestamp
         )
 
     )

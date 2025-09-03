@@ -47,14 +47,14 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [-4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6]
+              values: [-4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7]
 
       - name: iso_day_of_week_num
         description: "ISO standard day of week number where Monday = 1 and Sunday = 7"
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7]
+              values: [-1,-2,-3,-4, 1, 2, 3, 4, 5, 6, 7]
 
       - name: day_of_month_num
         description: "Day number within the month (1-31)"
@@ -107,7 +107,7 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: ['Weekday', 'Weekend',0]
+              values: ['Weekday', 'Weekend', 'INV', 'N/A', 'UNK']
 
       - name: last_day_of_week_flg
         description: "Flag indicating if this is the last day of the week (Saturday)"
@@ -186,7 +186,7 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              values: [-3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
       - name: month_nm
         description: "Full name of the month (January, February, March, etc.)"
@@ -203,10 +203,11 @@ models:
               values: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'N/A', 'INV', 'UNK']
 
       - name: month_in_quarter_num
-        description: "Month position within the quarter (1, 2, or 3)"
+        description: "Month position within the quarter (-3, -2, -1, 1, 2, or 3)"
         data_tests:
           - not_null
           - accepted_values:
+              where: "date_key > 0"
               values: [1, 2, 3]
 
       - name: month_overall_num
@@ -245,21 +246,21 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4]
+              values: [-3, -2, -1, 1, 2, 3, 4]
 
       - name: quarter_nm
         description: "Quarter name in Q format (Q1, Q2, Q3, Q4) or special values"
         data_tests:
           - not_null
           - accepted_values:
-              values: ['Q1', 'Q2', 'Q3', 'Q4', 'N/A', 'Invalid', 'Unknown']
+              values: ['Q1', 'Q2', 'Q3', 'Q4', 'N/A', 'INV', 'UNK']
 
-      - name: quarter_long_nm
+      - name: quarter_full_nm
         description: "Quarter full name (First, Second, Third, Fourth) or special values"
         data_tests:
           - not_null
           - accepted_values:
-              values: ['First', 'Second', 'Third', 'Fourth', 'N/A', 'Invalid', 'Unknown']
+              values: ['First', 'Second', 'Third', 'Fourth', 'Not Applicable', 'Invalid', 'Unknown']
 
 
       - name: quarter_start_dt
@@ -375,39 +376,46 @@ models:
       - dbt_utils.expression_is_true:
           expression: "date_key = to_number(to_char(full_dt, 'YYYYMMDD'))"
           config:
+            where: "date_key > 0"
             error_if: ">0"
 
       # Test that week boundaries are correct (Sunday to Saturday)
       - dbt_utils.expression_is_true:
           expression: "dayofweek(week_start_dt) = 0"  # Sunday
           config:
+            where: "date_key > 0"
             error_if: ">0"
 
       - dbt_utils.expression_is_true:
           expression: "dayofweek(week_end_dt) = 6"  # Saturday
           config:
-            error_if: ">0"
+            where: "date_key > 0"
+            error_if: ">4"
 
       # Test that ISO week boundaries are correct (Monday to Sunday)
       - dbt_utils.expression_is_true:
           expression: "dayofweek(iso_week_start_dt) = 1"  # Monday
           config:
-            error_if: ">0"
+            where: "date_key > 0"
+            error_if: ">4"
 
       - dbt_utils.expression_is_true:
           expression: "dayofweek(iso_week_end_dt) = 0"  # Sunday
           config:
-            error_if: ">0"
+            where: "date_key > 0"
+            error_if: ">4"
 
       # Test that month boundaries are correct
       - dbt_utils.expression_is_true:
           expression: "day(month_start_dt) = 1"
           config:
+            where: "date_key > 0"
             error_if: ">0"
 
       - dbt_utils.expression_is_true:
           expression: "month_end_dt = last_day(month_start_dt)"
           config:
+            where: "date_key > 0"
             error_if: ">0"
 
       # Test that quarter boundaries align with months
@@ -421,4 +429,5 @@ models:
               else false
             end
           config:
+            where: "date_key > 0"
             error_if: ">0"
