@@ -322,7 +322,7 @@ with date_spine as (
         , current_timestamp() as dw_synced_ts
         , 'TRADE_CALENDAR' as dw_source_nm
         , 'ETL_PROCESS' as create_user_id
-        , current_timestamp() as create_timestamp
+        , current_timestamp() as create_ts
     from enriched_trade_dates)
 , special_records as (
     select * from (
@@ -380,7 +380,7 @@ with date_spine as (
             , current_timestamp()   -- dw_synced_ts
             , 'SPECIAL'             -- dw_source_nm
             , 'SYSTEM'              -- create_user_id
-            , current_timestamp()   -- create_timestamp
+            , current_timestamp()   -- create_ts
         )
         , (
             -2                      -- date_key
@@ -435,7 +435,7 @@ with date_spine as (
             , current_timestamp()   -- dw_synced_ts
             , 'SPECIAL'             -- dw_source_nm
             , 'SYSTEM'              -- create_user_id
-            , current_timestamp()   -- create_timestamp
+            , current_timestamp()   -- create_ts
         )
         , (
             -3                      -- date_key
@@ -490,7 +490,7 @@ with date_spine as (
             , current_timestamp()   -- dw_synced_ts
             , 'SPECIAL'             -- dw_source_nm
             , 'SYSTEM'              -- create_user_id
-            , current_timestamp()   -- create_timestamp
+            , current_timestamp()   -- create_ts
         )
     ) as t (
         date_key
@@ -545,7 +545,7 @@ with date_spine as (
         , dw_synced_ts
         , dw_source_nm
         , create_user_id
-        , create_timestamp
+        , create_ts
     )
 )
 , final as (

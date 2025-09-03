@@ -1,10 +1,10 @@
 select
     date.date_key
     , date.full_dt
-    , date.full_dt
     , date.trade_date_last_year_key
     , date.trade_day_of_year_num
     , date.trade_week_num
+    , date.weeks_in_trade_year_num
     , date.trade_week_of_year_num
     , date.trade_week_of_month_445_num
     , date.trade_week_of_month_454_num
@@ -48,5 +48,8 @@ select
     , date.trade_year_end_dt
     , date.trade_year_end_key
     , date.trade_leap_week_flg
-from
-    bpruss_dw_util.dim_trade_date d;
+    , date.DW_SYNCED_TS
+    , date.DW_SOURCE_NM
+    , date.CREATE_USER_ID
+    , date.CREATE_TS
+from bpruss_dw_util.dim_trade_date date;

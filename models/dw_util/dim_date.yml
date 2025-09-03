@@ -7,7 +7,8 @@ models:
       Provides comprehensive date attributes for standard calendar analysis without trade/retail calendar complexity.
 
       Column naming follows CDC standards:
-      - _dt for dates/timestamps
+      - _dt for dates
+      - _ts for timestamps
       - _num for numbers
       - _flg for boolean flags
       - _nm for names
@@ -366,7 +367,7 @@ models:
         data_tests:
           - not_null
 
-      - name: create_timestamp
+      - name: create_ts
         description: "Timestamp when record was created"
         data_tests:
           - not_null

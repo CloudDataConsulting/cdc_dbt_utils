@@ -2,6 +2,7 @@ select
     date.date_key
     , date.full_dt
     , date.date_last_year_key
+    , date.date_last_year_dt
     , date.day_of_week_num
     , date.iso_day_of_week_num
     , date.day_of_month_num
@@ -39,6 +40,7 @@ select
     , date.month_end_key
     , date.quarter_num
     , date.quarter_nm
+    , date.quarter_full_nm
     , date.quarter_start_dt
     , date.quarter_start_key
     , date.quarter_end_dt
@@ -49,7 +51,6 @@ select
     , date.year_end_dt
     , date.year_end_key
     , date.leap_year_flg
-    , date.weeks_in_trade_year_num
     , date.iso_year_num
     , date.iso_week_of_year_txt
     , date.iso_week_overall_num
@@ -60,6 +61,6 @@ select
     , date.dw_synced_ts
     , date.dw_source_nm
     , date.create_user_id
-    , date.create_timestamp
+    , date.create_ts
 from
-    bpruss_dw_util.dim_date d;
+    bpruss_dw_util.dim_date date;
