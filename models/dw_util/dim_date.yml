@@ -47,7 +47,7 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [0, 1, 2, 3, 4, 5, 6]
+              values: [-4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6]
 
       - name: iso_day_of_week_num
         description: "ISO standard day of week number where Monday = 1 and Sunday = 7"
@@ -82,14 +82,14 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+              values: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Not Available', 'Invalid', 'Not Applicable', 'Unknown']
 
       - name: day_abbr
         description: "Three-letter abbreviation of the day of week (Sun, Mon, Tue, etc.)"
         data_tests:
           - not_null
           - accepted_values:
-              values: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+              values: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'N/A', 'INV', 'UNK']
 
       - name: day_suffix_txt
         description: "Day number with suffix (1st, 2nd, 3rd, 4th, etc.)"
@@ -107,7 +107,7 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: ['Weekday', 'Weekend']
+              values: ['Weekday', 'Weekend',0]
 
       - name: last_day_of_week_flg
         description: "Flag indicating if this is the last day of the week (Saturday)"
@@ -193,14 +193,14 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+              values: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December', 'Not Available', 'Invalid', 'Not Applicable', 'Unknown']
 
       - name: month_abbr
         description: "Three-letter abbreviation of the month (Jan, Feb, Mar, etc.)"
         data_tests:
           - not_null
           - accepted_values:
-              values: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+              values: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'N/A', 'INV', 'UNK']
 
       - name: month_in_quarter_num
         description: "Month position within the quarter (1, 2, or 3)"
@@ -248,11 +248,19 @@ models:
               values: [1, 2, 3, 4]
 
       - name: quarter_nm
-        description: "Quarter name (First, Second, Third, Fourth)"
+        description: "Quarter name in Q format (Q1, Q2, Q3, Q4) or special values"
         data_tests:
           - not_null
           - accepted_values:
-              values: ['First', 'Second', 'Third', 'Fourth']
+              values: ['Q1', 'Q2', 'Q3', 'Q4', 'N/A', 'Invalid', 'Unknown']
+
+      - name: quarter_long_nm
+        description: "Quarter full name (First, Second, Third, Fourth) or special values"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['First', 'Second', 'Third', 'Fourth', 'N/A', 'Invalid', 'Unknown']
+
 
       - name: quarter_start_dt
         description: "First day of the quarter"

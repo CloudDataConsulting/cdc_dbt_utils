@@ -66,7 +66,7 @@ with date_spine as (
         -- Unix epoch
         , date_part(epoch_second, full_dt)::int as epoch_num
         -- Day flags
-        , case when day_of_week_num between 2 and 6 then 1 else 0 end as weekday_flg
+        , case when day_of_week_num between 2 and 6 then 'Weekday' else 'Weekend' end as weekday_flg
         , case when day_of_week_num = 7 then 1 else 0 end as last_day_of_week_flg
         , case when day_of_month_num = 1 then 1 else 0 end as first_day_of_month_flg
         , case when full_dt = last_day(full_dt, 'month') then 1 else 0 end as last_day_of_month_flg
@@ -122,6 +122,12 @@ with date_spine as (
         -- Quarter attributes
         , quarter_num
         , 'Q' || quarter_num::varchar as quarter_nm
+        , case quarter_num
+            when 1 then 'First'
+            when 2 then 'Second'
+            when 3 then 'Third'
+            when 4 then 'Fourth'
+        end as quarter_full_nm
         , date_trunc('quarter', full_dt)::date as quarter_start_dt
         , to_char(date_trunc('quarter', full_dt), 'YYYYMMDD')::int as quarter_start_key
         , last_day(full_dt, 'quarter')::date as quarter_end_dt
@@ -190,6 +196,7 @@ with date_spine as (
         , month_end_key
         , quarter_num
         , quarter_nm
+        , quarter_full_nm
         , quarter_start_dt
         , quarter_start_key
         , quarter_end_dt
@@ -225,9 +232,9 @@ with date_spine as (
             , -1
             , -1
             , -1
-            , 'Not Available'
-            , 'N/A'
-            , 'N/A'
+            , 'Unknown'
+            , 'UNK'
+            , 'UNK'
             , -1
             , 0
             , 0
@@ -245,8 +252,8 @@ with date_spine as (
             , '1900-01-01'::date
             , -1
             , -1
-            , 'Not Available'
-            , 'N/A'
+            , 'Unknown'
+            , 'UNK'
             , -1
             , -1
             , -1
@@ -255,7 +262,7 @@ with date_spine as (
             , '1900-01-01'::date
             , -1
             , -1
-            , 'N/A'
+            , 'UNK'
             , '1900-01-01'::date
             , -1
             , '1900-01-01'::date
@@ -268,7 +275,7 @@ with date_spine as (
             , 0
             , -1
             , -1
-            , 'N/A'
+            , 'UNK'
             , -1
             , '1900-01-01'::date
             , -1
@@ -319,6 +326,7 @@ with date_spine as (
             , '1900-01-02'::date
             , -2
             , -2
+            , 'Invalid'
             , 'Invalid'
             , '1900-01-02'::date
             , -2
@@ -407,70 +415,7 @@ with date_spine as (
             , 'SYSTEM'
             , current_timestamp()
         )
-        , (
-            -4
-            , '1900-01-04'::date
-            , '1900-01-04'::date
-            , -4
-            , -4
-            , -4
-            , -4
-            , -4
-            , -4
-            , 'Unknown'
-            , 'UNK'
-            , 'UNK'
-            , -4
-            , 0
-            , 0
-            , 0
-            , 0
-            , 0
-            , 0
-            , -4
-            , -4
-            , -4
-            , -4
-            , -4
-            , '1900-01-04'::date
-            , -4
-            , '1900-01-04'::date
-            , -4
-            , -4
-            , 'Unknown'
-            , 'UNK'
-            , -4
-            , -4
-            , -4
-            , '1900-01-04'::date
-            , -4
-            , '1900-01-04'::date
-            , -4
-            , -4
-            , 'Unknown'
-            , '1900-01-04'::date
-            , -4
-            , '1900-01-04'::date
-            , -4
-            , -4
-            , '1900-01-04'::date
-            , -4
-            , '1900-01-04'::date
-            , -4
-            , 0
-            , -4
-            , -4
-            , 'UNK'
-            , -4
-            , '1900-01-04'::date
-            , -4
-            , '1900-01-04'::date
-            , -4
-            , current_timestamp()
-            , 'SPECIAL'
-            , 'SYSTEM'
-            , current_timestamp()
-        )
+
     )
         as t (
             date_key
@@ -513,6 +458,7 @@ with date_spine as (
             , month_end_key
             , quarter_num
             , quarter_nm
+            , quarter_full_nm
             , quarter_start_dt
             , quarter_start_key
             , quarter_end_dt
