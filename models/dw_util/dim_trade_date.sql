@@ -85,7 +85,12 @@ with date_spine as (
             else 12
         end as trade_month_544_num
         -- Quarter assignment (same for all patterns)
-        , ceil(tw.trade_week_num / 13.0)::int as trade_quarter_num
+        , case
+              when tw.trade_week_num <= 13 then 1
+              when tw.trade_week_num <= 26 then 2
+              when tw.trade_week_num <= 39 then 3
+             else 4  -- This captures weeks 40-53, including leap week
+          end as trade_quarter_num
     from trade_weeks as tw)
 , trade_month_boundaries as (
     select distinct
@@ -320,286 +325,232 @@ with date_spine as (
         , current_timestamp() as create_timestamp
     from enriched_trade_dates)
 , special_records as (
-    select * from (values
+    select * from (
+        values
         (
-            -1
-            , '1900-01-01'::date
-            , -1
-            , -1
-            , -1
-            , -1
-            , -1
-            , -1
-            , -1
-            , -1
-            , -1
-            , '1900-01-01'::date
-            , -1
-            , '1900-01-01'::date
-            , -1
-            , -1
-            , -1
-            , -1
-            , 'Not Available'
-            , 'Not Available'
-            , 'Not Available'
-            , 'N/A'
-            , -1
-            , -1
-            , '1900-01-01'::date
-            , -1
-            , '1900-01-01'::date
-            , -1
-            , '1900-01-01'::date
-            , -1
-            , '1900-01-01'::date
-            , -1
-            , '1900-01-01'::date
-            , -1
-            , '1900-01-01'::date
-            , -1
-            , -1
-            , 'N/A'
-            , '1900-01-01'::date
-            , -1
-            , '1900-01-01'::date
-            , -1
-            , -1
-            , '1900-01-01'::date
-            , -1
-            , '1900-01-01'::date
-            , -1
-            , 0
-            , -1
-            , current_timestamp()
-            , 'SPECIAL'
-            , 'SYSTEM'
-            , current_timestamp()
+            -1                      -- date_key
+            , '1900-01-01'::date    -- full_dt
+            , -1                    -- trade_date_last_year_key
+            , -1                    -- trade_day_of_year_num
+            , -1                    -- trade_week_num
+            , -1                    -- trade_week_of_year_num
+            , -1                    -- trade_week_of_month_445_num
+            , -1                    -- trade_week_of_month_454_num
+            , -1                    -- trade_week_of_month_544_num
+            , -1                    -- trade_week_of_quarter_num
+            , -1                    -- trade_week_overall_num
+            , '1900-01-01'::date    -- trade_week_start_dt
+            , -1                    -- trade_week_start_key
+            , '1900-01-01'::date    -- trade_week_end_dt
+            , -1                    -- trade_week_end_key
+            , -1                    -- trade_month_445_num
+            , -1                    -- trade_month_454_num
+            , -1                    -- trade_month_544_num
+            , 'Unknown'             -- trade_month_445_nm
+            , 'Unknown'             -- trade_month_454_nm
+            , 'Unknown'             -- trade_month_544_nm
+            , 'UNK'                 -- trade_month_abbr
+            , -1                    -- trade_month_overall_num
+            , -1                    -- trade_yearmonth_num
+            , '1900-01-01'::date    -- trade_month_445_start_dt
+            , -1                    -- trade_month_445_start_key
+            , '1900-01-01'::date    -- trade_month_445_end_dt
+            , -1                    -- trade_month_445_end_key
+            , '1900-01-01'::date    -- trade_month_454_start_dt
+            , -1                    -- trade_month_454_start_key
+            , '1900-01-01'::date    -- trade_month_454_end_dt
+            , -1                    -- trade_month_454_end_key
+            , '1900-01-01'::date    -- trade_month_544_start_dt
+            , -1                    -- trade_month_544_start_key
+            , '1900-01-01'::date    -- trade_month_544_end_dt
+            , -1                    -- trade_month_544_end_key
+            , -1                    -- trade_quarter_num
+            , 'UNK'             -- trade_quarter_nm
+            , '1900-01-01'::date    -- trade_quarter_start_dt
+            , -1                    -- trade_quarter_start_key
+            , '1900-01-01'::date    -- trade_quarter_end_dt
+            , -1                    -- trade_quarter_end_key
+            , -1                    -- trade_year_num
+            , '1900-01-01'::date    -- trade_year_start_dt
+            , -1                    -- trade_year_start_key
+            , '1900-01-01'::date    -- trade_year_end_dt
+            , -1                    -- trade_year_end_key
+            , 0                     -- trade_leap_week_flg
+            , -1                    -- weeks_in_trade_year_num
+            , current_timestamp()   -- dw_synced_ts
+            , 'SPECIAL'             -- dw_source_nm
+            , 'SYSTEM'              -- create_user_id
+            , current_timestamp()   -- create_timestamp
         )
         , (
-            -2
-            , '1900-01-02'::date
-            , -2
-            , -2
-            , -2
-            , -2
-            , -2
-            , -2
-            , -2
-            , -2
-            , -2
-            , '1900-01-02'::date
-            , -2
-            , '1900-01-02'::date
-            , -2
-            , -2
-            , -2
-            , -2
-            , 'Invalid'
-            , 'Invalid'
-            , 'Invalid'
-            , 'INV'
-            , -2
-            , -2
-            , '1900-01-02'::date
-            , -2
-            , '1900-01-02'::date
-            , -2
-            , '1900-01-02'::date
-            , -2
-            , '1900-01-02'::date
-            , -2
-            , '1900-01-02'::date
-            , -2
-            , '1900-01-02'::date
-            , -2
-            , -2
-            , 'Invalid'
-            , '1900-01-02'::date
-            , -2
-            , '1900-01-02'::date
-            , -2
-            , -2
-            , '1900-01-02'::date
-            , -2
-            , '1900-01-02'::date
-            , -2
-            , 0
-            , -2
-            , current_timestamp()
-            , 'SPECIAL'
-            , 'SYSTEM'
-            , current_timestamp()
+            -2                      -- date_key
+            , '1900-01-02'::date    -- full_dt
+            , -2                    -- trade_date_last_year_key
+            , -2                    -- trade_day_of_year_num
+            , -2                    -- trade_week_num
+            , -2                    -- trade_week_of_year_num
+            , -2                    -- trade_week_of_month_445_num
+            , -2                    -- trade_week_of_month_454_num
+            , -2                    -- trade_week_of_month_544_num
+            , -2                    -- trade_week_of_quarter_num
+            , -2                    -- trade_week_overall_num
+            , '1900-01-02'::date    -- trade_week_start_dt
+            , -2                    -- trade_week_start_key
+            , '1900-01-02'::date    -- trade_week_end_dt
+            , -2                    -- trade_week_end_key
+            , -2                    -- trade_month_445_num
+            , -2                    -- trade_month_454_num
+            , -2                    -- trade_month_544_num
+            , 'Invalid'             -- trade_month_445_nm
+            , 'Invalid'             -- trade_month_454_nm
+            , 'Invalid'             -- trade_month_544_nm
+            , 'INV'                 -- trade_month_abbr
+            , -2                    -- trade_month_overall_num
+            , -2                    -- trade_yearmonth_num
+            , '1900-01-02'::date    -- trade_month_445_start_dt
+            , -2                    -- trade_month_445_start_key
+            , '1900-01-02'::date    -- trade_month_445_end_dt
+            , -2                    -- trade_month_445_end_key
+            , '1900-01-02'::date    -- trade_month_454_start_dt
+            , -2                    -- trade_month_454_start_key
+            , '1900-01-02'::date    -- trade_month_454_end_dt
+            , -2                    -- trade_month_454_end_key
+            , '1900-01-02'::date    -- trade_month_544_start_dt
+            , -2                    -- trade_month_544_start_key
+            , '1900-01-02'::date    -- trade_month_544_end_dt
+            , -2                    -- trade_month_544_end_key
+            , -2                    -- trade_quarter_num
+            , 'INV'             -- trade_quarter_nm
+            , '1900-01-02'::date    -- trade_quarter_start_dt
+            , -2                    -- trade_quarter_start_key
+            , '1900-01-02'::date    -- trade_quarter_end_dt
+            , -2                    -- trade_quarter_end_key
+            , -2                    -- trade_year_num
+            , '1900-01-02'::date    -- trade_year_start_dt
+            , -2                    -- trade_year_start_key
+            , '1900-01-02'::date    -- trade_year_end_dt
+            , -2                    -- trade_year_end_key
+            , 0                     -- trade_leap_week_flg
+            , -2                    -- weeks_in_trade_year_num
+            , current_timestamp()   -- dw_synced_ts
+            , 'SPECIAL'             -- dw_source_nm
+            , 'SYSTEM'              -- create_user_id
+            , current_timestamp()   -- create_timestamp
         )
         , (
-            -3
-            , '1900-01-03'::date
-            , -3
-            , -3
-            , -3
-            , -3
-            , -3
-            , -3
-            , -3
-            , -3
-            , -3
-            , '1900-01-03'::date
-            , -3
-            , '1900-01-03'::date
-            , -3
-            , -3
-            , -3
-            , -3
-            , 'Not Applicable'
-            , 'Not Applicable'
-            , 'Not Applicable'
-            , 'N/A'
-            , -3
-            , -3
-            , '1900-01-03'::date
-            , -3
-            , '1900-01-03'::date
-            , -3
-            , '1900-01-03'::date
-            , -3
-            , '1900-01-03'::date
-            , -3
-            , '1900-01-03'::date
-            , -3
-            , '1900-01-03'::date
-            , -3
-            , -3
-            , 'N/A'
-            , '1900-01-03'::date
-            , -3
-            , '1900-01-03'::date
-            , -3
-            , -3
-            , '1900-01-03'::date
-            , -3
-            , '1900-01-03'::date
-            , -3
-            , 0
-            , -3
-            , current_timestamp()
-            , 'SPECIAL'
-            , 'SYSTEM'
-            , current_timestamp()
+            -3                      -- date_key
+            , '1900-01-03'::date    -- full_dt
+            , -3                    -- trade_date_last_year_key
+            , -3                    -- trade_day_of_year_num
+            , -3                    -- trade_week_num
+            , -3                    -- trade_week_of_year_num
+            , -3                    -- trade_week_of_month_445_num
+            , -3                    -- trade_week_of_month_454_num
+            , -3                    -- trade_week_of_month_544_num
+            , -3                    -- trade_week_of_quarter_num
+            , -3                    -- trade_week_overall_num
+            , '1900-01-03'::date    -- trade_week_start_dt
+            , -3                    -- trade_week_start_key
+            , '1900-01-03'::date    -- trade_week_end_dt
+            , -3                    -- trade_week_end_key
+            , -3                    -- trade_month_445_num
+            , -3                    -- trade_month_454_num
+            , -3                    -- trade_month_544_num
+            , 'Not Applicable'      -- trade_month_445_nm
+            , 'Not Applicable'      -- trade_month_454_nm
+            , 'Not Applicable'      -- trade_month_544_nm
+            , 'N/A'                 -- trade_month_abbr
+            , -3                    -- trade_month_overall_num
+            , -3                    -- trade_yearmonth_num
+            , '1900-01-03'::date    -- trade_month_445_start_dt
+            , -3                    -- trade_month_445_start_key
+            , '1900-01-03'::date    -- trade_month_445_end_dt
+            , -3                    -- trade_month_445_end_key
+            , '1900-01-03'::date    -- trade_month_454_start_dt
+            , -3                    -- trade_month_454_start_key
+            , '1900-01-03'::date    -- trade_month_454_end_dt
+            , -3                    -- trade_month_454_end_key
+            , '1900-01-03'::date    -- trade_month_544_start_dt
+            , -3                    -- trade_month_544_start_key
+            , '1900-01-03'::date    -- trade_month_544_end_dt
+            , -3                    -- trade_month_544_end_key
+            , -3                    -- trade_quarter_num
+            , 'N/A'                 -- trade_quarter_nm
+            , '1900-01-03'::date    -- trade_quarter_start_dt
+            , -3                    -- trade_quarter_start_key
+            , '1900-01-03'::date    -- trade_quarter_end_dt
+            , -3                    -- trade_quarter_end_key
+            , -3                    -- trade_year_num
+            , '1900-01-03'::date    -- trade_year_start_dt
+            , -3                    -- trade_year_start_key
+            , '1900-01-03'::date    -- trade_year_end_dt
+            , -3                    -- trade_year_end_key
+            , 0                     -- trade_leap_week_flg
+            , -3                    -- weeks_in_trade_year_num
+            , current_timestamp()   -- dw_synced_ts
+            , 'SPECIAL'             -- dw_source_nm
+            , 'SYSTEM'              -- create_user_id
+            , current_timestamp()   -- create_timestamp
         )
-        , (
-            -4
-            , '1900-01-04'::date
-            , -4
-            , -4
-            , -4
-            , -4
-            , -4
-            , -4
-            , -4
-            , -4
-            , -4
-            , '1900-01-04'::date
-            , -4
-            , '1900-01-04'::date
-            , -4
-            , -4
-            , -4
-            , -4
-            , 'Unknown'
-            , 'Unknown'
-            , 'Unknown'
-            , 'UNK'
-            , -4
-            , -4
-            , '1900-01-04'::date
-            , -4
-            , '1900-01-04'::date
-            , -4
-            , '1900-01-04'::date
-            , -4
-            , '1900-01-04'::date
-            , -4
-            , '1900-01-04'::date
-            , -4
-            , '1900-01-04'::date
-            , -4
-            , -4
-            , 'Unknown'
-            , '1900-01-04'::date
-            , -4
-            , '1900-01-04'::date
-            , -4
-            , -4
-            , '1900-01-04'::date
-            , -4
-            , '1900-01-04'::date
-            , -4
-            , 0
-            , -4
-            , current_timestamp()
-            , 'SPECIAL'
-            , 'SYSTEM'
-            , current_timestamp()
-        )
+    ) as t (
+        date_key
+        , full_dt
+        , trade_date_last_year_key
+        , trade_day_of_year_num
+        , trade_week_num
+        , trade_week_of_year_num
+        , trade_week_of_month_445_num
+        , trade_week_of_month_454_num
+        , trade_week_of_month_544_num
+        , trade_week_of_quarter_num
+        , trade_week_overall_num
+        , trade_week_start_dt
+        , trade_week_start_key
+        , trade_week_end_dt
+        , trade_week_end_key
+        , trade_month_445_num
+        , trade_month_454_num
+        , trade_month_544_num
+        , trade_month_445_nm
+        , trade_month_454_nm
+        , trade_month_544_nm
+        , trade_month_abbr
+        , trade_month_overall_num
+        , trade_yearmonth_num
+        , trade_month_445_start_dt
+        , trade_month_445_start_key
+        , trade_month_445_end_dt
+        , trade_month_445_end_key
+        , trade_month_454_start_dt
+        , trade_month_454_start_key
+        , trade_month_454_end_dt
+        , trade_month_454_end_key
+        , trade_month_544_start_dt
+        , trade_month_544_start_key
+        , trade_month_544_end_dt
+        , trade_month_544_end_key
+        , trade_quarter_num
+        , trade_quarter_nm
+        , trade_quarter_start_dt
+        , trade_quarter_start_key
+        , trade_quarter_end_dt
+        , trade_quarter_end_key
+        , trade_year_num
+        , trade_year_start_dt
+        , trade_year_start_key
+        , trade_year_end_dt
+        , trade_year_end_key
+        , trade_leap_week_flg
+        , weeks_in_trade_year_num
+        , dw_synced_ts
+        , dw_source_nm
+        , create_user_id
+        , create_timestamp
     )
-        as t (
-            date_key
-            , full_dt
-            , trade_date_last_year_key
-            , trade_day_of_year_num
-            , trade_week_num
-            , trade_week_of_year_num
-            , trade_week_of_month_445_num
-            , trade_week_of_month_454_num
-            , trade_week_of_month_544_num
-            , trade_week_of_quarter_num
-            , trade_week_overall_num
-            , trade_week_start_dt
-            , trade_week_start_key
-            , trade_week_end_dt
-            , trade_week_end_key
-            , trade_month_445_num
-            , trade_month_454_num
-            , trade_month_544_num
-            , trade_month_445_nm
-            , trade_month_454_nm
-            , trade_month_544_nm
-            , trade_month_abbr
-            , trade_month_overall_num
-            , trade_yearmonth_num
-            , trade_month_445_start_dt
-            , trade_month_445_start_key
-            , trade_month_445_end_dt
-            , trade_month_445_end_key
-            , trade_month_454_start_dt
-            , trade_month_454_start_key
-            , trade_month_454_end_dt
-            , trade_month_454_end_key
-            , trade_month_544_start_dt
-            , trade_month_544_start_key
-            , trade_month_544_end_dt
-            , trade_month_544_end_key
-            , trade_quarter_num
-            , trade_quarter_nm
-            , trade_quarter_start_dt
-            , trade_quarter_start_key
-            , trade_quarter_end_dt
-            , trade_quarter_end_key
-            , trade_year_num
-            , trade_year_start_dt
-            , trade_year_start_key
-            , trade_year_end_dt
-            , trade_year_end_key
-            , trade_leap_week_flg
-            , weeks_in_trade_year_num
-            , dw_synced_ts
-            , dw_source_nm
-            , create_user_id
-            , create_timestamp
-        )
-    )
+)
 , final as (
     select * from regular_dates
     union all
-    select * from special_records)
+    select * from special_records
+    )
 select * from final

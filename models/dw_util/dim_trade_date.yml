@@ -37,18 +37,8 @@ models:
 
       # DAY Level (Most Granular)
       # Core day identifiers
-      - name: calendar_full_dt
-        description: Full calendar date value
-        data_tests:
-          - not_null
-
       - name: full_dt
         description: Full trade date value (same as calendar_full_dt for reference)
-        data_tests:
-          - not_null
-
-      - name: calendar_date_last_year_key
-        description: Same calendar date from the previous year (YYYYMMDD) for YoY comparisons
         data_tests:
           - not_null
 
@@ -56,123 +46,22 @@ models:
         description: Same trade date from the previous year (same day of week, 52 weeks ago) for YoY comparisons
 
       # Day position metrics
-      - name: calendar_day_of_week_num
-        description: Day of week (0=Sunday through 6=Saturday)
-        data_tests:
-          - not_null
-          - accepted_values:
-              values: [0, 1, 2, 3, 4, 5, 6]
-
-      - name: iso_day_of_week_num
-        description: ISO day of week (1=Monday through 7=Sunday)
-        data_tests:
-          - not_null
-          - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7]
-
-      - name: calendar_day_of_month_num
-        description: Day of the month (1-31)
-        data_tests:
-          - not_null
-
-      - name: calendar_day_of_quarter_num
-        description: Day number within the quarter (1-92)
-        data_tests:
-          - not_null
-
-      - name: calendar_day_of_year_num
-        description: Day of the calendar year (1-365/366)
-        data_tests:
-          - not_null
-
       - name: trade_day_of_year_num
         description: Day number within the trade year
         data_tests:
           - not_null
-
-      - name: calendar_day_overall_num
-        description: Sequential day number since 1970-01-01
-        data_tests:
-          - not_null
-
       # Day descriptors
-      - name: calendar_day_nm
-        description: Full day name (Sunday, Monday, etc.)
-        data_tests:
-          - not_null
-
-      - name: calendar_day_abbr
-        description: Three-letter day abbreviation (Sun, Mon, etc.)
-        data_tests:
-          - not_null
-
-      - name: calendar_day_suffix_txt
-        description: Day with ordinal suffix (1st, 2nd, 3rd, etc.)
-        data_tests:
-          - not_null
-
-      - name: calendar_epoch_num
-        description: Unix timestamp (seconds since 1970-01-01)
-        data_tests:
-          - not_null
-
-      # Day flags
-      - name: calendar_weekday_flg
-        description: Flag indicating Weekday or Weekend
-        data_tests:
-          - not_null
-          - accepted_values:
-              values: ['Weekday', 'Weekend']
-
-      - name: calendar_last_day_of_week_flg
-        description: Binary flag for last day of week (Saturday)
-        data_tests:
-          - not_null
-
-      - name: calendar_first_day_of_month_flg
-        description: Binary flag for first day of month
-        data_tests:
-          - not_null
-
-      - name: calendar_last_day_of_month_flg
-        description: Binary flag for last day of month
-        data_tests:
-          - not_null
-
-      - name: calendar_last_day_of_quarter_flg
-        description: Binary flag for last day of quarter
-        data_tests:
-          - not_null
-
-      - name: calendar_last_day_of_year_flg
-        description: Binary flag for last day of year (December 31)
-        data_tests:
-          - not_null
 
       # WEEK Level
       # Week numbers
-      - name: calendar_week_num
-        description: Standard ISO week number
-        data_tests:
-          - not_null
-
       - name: trade_week_num
         description: Trade week number within the year (1-52 or 1-53)
         data_tests:
           - not_null
 
-      - name: calendar_week_of_year_num
-        description: Week of the calendar year (1-53)
-        data_tests:
-          - not_null
 
       - name: trade_week_of_year_num
         description: Trade week number within the year (1-52 or 1-53), same as trade_week_num
-        data_tests:
-          - not_null
-
-      - name: calendar_week_of_month_num
-        description: Week of the calendar month (1-5)
         data_tests:
           - not_null
 
@@ -191,18 +80,8 @@ models:
         data_tests:
           - not_null
 
-      - name: calendar_week_of_quarter_num
-        description: Week number within the calendar quarter (1-14)
-        data_tests:
-          - not_null
-
       - name: trade_week_of_quarter_num
         description: Week number within the trade quarter (1-13, or 14 for leap weeks)
-        data_tests:
-          - not_null
-
-      - name: calendar_week_overall_num
-        description: Sequential week number since 1970-01-01 (Sunday-based)
         data_tests:
           - not_null
 
@@ -212,18 +91,9 @@ models:
           - not_null
 
       # Week boundaries
-      - name: calendar_week_start_dt
-        description: First day (Sunday) of the calendar week
-        data_tests:
-          - not_null
 
       - name: trade_week_start_dt
         description: Start date of the trade week (Sunday)
-        data_tests:
-          - not_null
-
-      - name: calendar_week_start_key
-        description: Date key of calendar week start (YYYYMMDD)
         data_tests:
           - not_null
 
@@ -232,18 +102,9 @@ models:
         data_tests:
           - not_null
 
-      - name: calendar_week_end_dt
-        description: Last day (Saturday) of the calendar week
-        data_tests:
-          - not_null
 
       - name: trade_week_end_dt
         description: End date of the trade week (Saturday)
-        data_tests:
-          - not_null
-
-      - name: calendar_week_end_key
-        description: Date key of calendar week end (YYYYMMDD)
         data_tests:
           - not_null
 
@@ -254,38 +115,27 @@ models:
 
       # MONTH Level
       # Month identifiers
-      - name: calendar_month_num
-        description: Standard calendar month (1-12)
-        data_tests:
-          - not_null
-          - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-
       - name: trade_month_445_num
         description: Trade month for 4-4-5 pattern
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              values: [-3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
       - name: trade_month_454_num
         description: Trade month for 4-5-4 pattern
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              values: [-3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
       - name: trade_month_544_num
         description: Trade month for 5-4-4 pattern
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              values: [-3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
-      - name: calendar_month_nm
-        description: Full month name (January, February, etc.)
-        data_tests:
-          - not_null
 
       - name: trade_month_445_nm
         description: Trade month name for 4-4-5 pattern
@@ -302,36 +152,14 @@ models:
         data_tests:
           - not_null
 
-      - name: calendar_month_abbr
-        description: Three-letter month abbreviation (Jan, Feb, etc.)
-        data_tests:
-          - not_null
-
       - name: trade_month_abbr
         description: Three-letter trade month abbreviation
         data_tests:
           - not_null
 
       # Month metrics
-      - name: calendar_month_in_quarter_num
-        description: Month position within quarter (1, 2, or 3)
-        data_tests:
-          - not_null
-          - accepted_values:
-              values: [1, 2, 3]
-
-      - name: calendar_month_overall_num
-        description: Sequential month number since 1970-01-01
-        data_tests:
-          - not_null
-
       - name: trade_month_overall_num
         description: Sequential trade month number since 1990-01-01
-        data_tests:
-          - not_null
-
-      - name: calendar_yearmonth_num
-        description: Year-month as YYYYMM integer
         data_tests:
           - not_null
 
@@ -341,10 +169,6 @@ models:
           - not_null
 
       # Month boundaries
-      - name: calendar_month_start_dt
-        description: First date of the calendar month
-        data_tests:
-          - not_null
 
       - name: trade_month_445_start_dt
         description: Start date of the trade month for 4-4-5 pattern
@@ -358,11 +182,6 @@ models:
 
       - name: trade_month_544_start_dt
         description: Start date of the trade month for 5-4-4 pattern
-        data_tests:
-          - not_null
-
-      - name: calendar_month_start_key
-        description: Date key of calendar month start (YYYYMMDD)
         data_tests:
           - not_null
 
@@ -381,11 +200,6 @@ models:
         data_tests:
           - not_null
 
-      - name: calendar_month_end_dt
-        description: Last date of the calendar month
-        data_tests:
-          - not_null
-
       - name: trade_month_445_end_dt
         description: End date of the trade month for 4-4-5 pattern
         data_tests:
@@ -398,11 +212,6 @@ models:
 
       - name: trade_month_544_end_dt
         description: End date of the trade month for 5-4-4 pattern
-        data_tests:
-          - not_null
-
-      - name: calendar_month_end_key
-        description: Date key of calendar month end (YYYYMMDD)
         data_tests:
           - not_null
 
@@ -423,47 +232,32 @@ models:
 
       # QUARTER Level
       # Quarter identifiers
-      - name: calendar_quarter_num
-        description: Standard calendar quarter (1-4)
-        data_tests:
-          - not_null
-          - accepted_values:
-              values: [1, 2, 3, 4]
 
       - name: trade_quarter_num
         description: Trade quarter (1-4) - same for all patterns
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4]
-
-      - name: calendar_quarter_nm
-        description: Calendar quarter name (First, Second, Third, Fourth)
-        data_tests:
-          - not_null
-          - accepted_values:
-              values: ['First', 'Second', 'Third', 'Fourth']
+              values: [-3, -2, -1, 1, 2, 3, 4]
 
       - name: trade_quarter_nm
         description: Trade quarter name (First, Second, Third, Fourth)
         data_tests:
           - not_null
           - accepted_values:
-              values: ['First', 'Second', 'Third', 'Fourth']
+              values: ['Q1', 'Q2', 'Q3', 'Q4', 'N/A', 'INV', 'UNK']
+
+      # - name: trade_quarter_full_nm
+      #   description: Trade quarter name (First, Second, Third, Fourth)
+      #   data_tests:
+      #     - not_null
+      #     - accepted_values:
+      #         values: ['First', 'Second', 'Third', 'Fourth', 'Not Applicable', 'Invalid', 'Unknown']
 
       # Quarter boundaries
-      - name: calendar_quarter_start_dt
-        description: First date of the calendar quarter
-        data_tests:
-          - not_null
 
       - name: trade_quarter_start_dt
         description: Start date of the trade quarter (same for all patterns)
-        data_tests:
-          - not_null
-
-      - name: calendar_quarter_start_key
-        description: Date key of calendar quarter start (YYYYMMDD)
         data_tests:
           - not_null
 
@@ -472,18 +266,8 @@ models:
         data_tests:
           - not_null
 
-      - name: calendar_quarter_end_dt
-        description: Last date of the calendar quarter
-        data_tests:
-          - not_null
-
       - name: trade_quarter_end_dt
         description: End date of the trade quarter (same for all patterns)
-        data_tests:
-          - not_null
-
-      - name: calendar_quarter_end_key
-        description: Date key of calendar quarter end (YYYYMMDD)
         data_tests:
           - not_null
 
@@ -494,29 +278,14 @@ models:
 
       # YEAR Level
       # Year identifiers
-      - name: calendar_year_num
-        description: Standard calendar year
-        data_tests:
-          - not_null
-
       - name: trade_year_num
         description: Trade year (same for all patterns)
         data_tests:
           - not_null
 
       # Year boundaries
-      - name: calendar_year_start_dt
-        description: First date of the calendar year (January 1)
-        data_tests:
-          - not_null
-
       - name: trade_year_start_dt
         description: Start date of the trade year
-        data_tests:
-          - not_null
-
-      - name: calendar_year_start_key
-        description: Date key of calendar year start (YYYYMMDD)
         data_tests:
           - not_null
 
@@ -525,18 +294,8 @@ models:
         data_tests:
           - not_null
 
-      - name: calendar_year_end_dt
-        description: Last date of the calendar year (December 31)
-        data_tests:
-          - not_null
-
       - name: trade_year_end_dt
         description: End date of the trade year
-        data_tests:
-          - not_null
-
-      - name: calendar_year_end_key
-        description: Date key of calendar year end (YYYYMMDD)
         data_tests:
           - not_null
 
@@ -546,10 +305,6 @@ models:
           - not_null
 
       # Year flags and metrics
-      - name: calendar_leap_year_flg
-        description: Binary flag indicating if the calendar year is a leap year
-        data_tests:
-          - not_null
 
       - name: trade_leap_week_flg
         description: Flag indicating if this date falls in the 53rd trade week
@@ -561,43 +316,7 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [52, 53]
-
-      # ISO Columns (Special Group)
-      - name: iso_year_num
-        description: ISO week year
-        data_tests:
-          - not_null
-
-      - name: iso_week_of_year_txt
-        description: ISO week format (YYYY-Www-d)
-        data_tests:
-          - not_null
-
-      - name: iso_week_overall_num
-        description: Sequential ISO week number since 1970-01-01 (Monday-based)
-        data_tests:
-          - not_null
-
-      - name: iso_week_start_dt
-        description: First day (Monday) of the ISO week
-        data_tests:
-          - not_null
-
-      - name: iso_week_start_key
-        description: Date key of ISO week start (YYYYMMDD)
-        data_tests:
-          - not_null
-
-      - name: iso_week_end_dt
-        description: Last day (Sunday) of the ISO week
-        data_tests:
-          - not_null
-
-      - name: iso_week_end_key
-        description: Date key of ISO week end (YYYYMMDD)
-        data_tests:
-          - not_null
+              values: [-3, -2, -1, 52, 53]
 
       # Metadata Columns
       - name: dw_synced_ts
@@ -631,7 +350,7 @@ models:
               else false
             end
           config:
-            where: "trade_leap_week_flg = false"  # Exclude leap weeks
+            where: "trade_leap_week_flg = false and date_key >0" # Exclude leap weeks
             error_if: ">0"
 
       # Test 454 pattern: months 1,4,7,10 have max 4 weeks; 2,5,8,11 have max 5 weeks; 3,6,9,12 have max 4 weeks
@@ -644,7 +363,7 @@ models:
               else false
             end
           config:
-            where: "trade_leap_week_flg = false"  # Exclude leap weeks
+            where: "trade_leap_week_flg = false  and date_key >0" # Exclude leap weeks
             error_if: ">0"
 
       # Test 544 pattern: months 1,4,7,10 have max 5 weeks; 2,5,8,11 have max 4 weeks; 3,6,9,12 have max 4 weeks
@@ -657,7 +376,7 @@ models:
               else false
             end
           config:
-            where: "trade_leap_week_flg = false"  # Exclude leap weeks
+            where: "trade_leap_week_flg = false  and date_key >0" # Exclude leap weeks
             error_if: ">0"
 
       # Test that all patterns have values between 1 and 6 (6 for leap week months)
@@ -667,6 +386,7 @@ models:
             and trade_week_of_month_454_num between 1 and 6
             and trade_week_of_month_544_num between 1 and 6
           config:
+            where: "date_key >0"  # Exclude special rows
             error_if: ">0"
 
       # Test that trade_date_last_year_key points to valid dates when not null
@@ -676,5 +396,5 @@ models:
             trade_date_last_year_key is null
             or trade_date_last_year_key between 19940101 and 20401231
           config:
-            where: "trade_year_num > 1995"  # First year won't have valid last year references
+            where: "trade_year_num > 1995 and date_key >0"   # First year won't have valid last year references
             error_if: ">0"
