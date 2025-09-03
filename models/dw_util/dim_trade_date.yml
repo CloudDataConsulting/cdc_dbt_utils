@@ -247,12 +247,12 @@ models:
           - accepted_values:
               values: ['Q1', 'Q2', 'Q3', 'Q4', 'N/A', 'INV', 'UNK']
 
-      # - name: trade_quarter_full_nm
-      #   description: Trade quarter name (First, Second, Third, Fourth)
-      #   data_tests:
-      #     - not_null
-      #     - accepted_values:
-      #         values: ['First', 'Second', 'Third', 'Fourth', 'Not Applicable', 'Invalid', 'Unknown']
+      - name: trade_quarter_full_nm
+        description: Trade quarter name (First, Second, Third, Fourth)
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['First', 'Second', 'Third', 'Fourth', 'Not Applicable', 'Invalid', 'Unknown']
 
       # Quarter boundaries
 

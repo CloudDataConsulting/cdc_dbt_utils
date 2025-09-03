@@ -38,6 +38,7 @@ select
     , date.trade_month_544_end_key
     , date.trade_quarter_num
     , date.trade_quarter_nm
+    , date.trade_quarter_full_nm
     , date.trade_quarter_start_dt
     , date.trade_quarter_start_key
     , date.trade_quarter_end_dt

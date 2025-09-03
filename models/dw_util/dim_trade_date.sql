@@ -253,6 +253,12 @@ with date_spine as (
         -- Quarter attributes
         , tdb.trade_quarter_num
         , 'Q' || tdb.trade_quarter_num::varchar as trade_quarter_nm
+        , case trade_quarter_num
+            when 1 then 'First'
+            when 2 then 'Second'
+            when 3 then 'Third'
+            when 4 then 'Fourth'
+        end as trade_quarter_full_nm
         , tdb.trade_quarter_start_dt
         , to_char(tdb.trade_quarter_start_dt, 'YYYYMMDD')::int as trade_quarter_start_key
         , tdb.trade_quarter_end_dt
@@ -308,6 +314,7 @@ with date_spine as (
         , trade_month_544_end_key
         , trade_quarter_num
         , trade_quarter_nm
+        , trade_quarter_full_nm
         , trade_quarter_start_dt
         , trade_quarter_start_key
         , trade_quarter_end_dt
@@ -366,6 +373,7 @@ with date_spine as (
             , -1                    -- trade_month_544_end_key
             , -1                    -- trade_quarter_num
             , 'UNK'             -- trade_quarter_nm
+            , 'Unknown'             -- trade_quarter_full_nm
             , '1900-01-01'::date    -- trade_quarter_start_dt
             , -1                    -- trade_quarter_start_key
             , '1900-01-01'::date    -- trade_quarter_end_dt
@@ -421,6 +429,7 @@ with date_spine as (
             , -2                    -- trade_month_544_end_key
             , -2                    -- trade_quarter_num
             , 'INV'             -- trade_quarter_nm
+            , 'Invalid'        -- trade_quarter_full_nm
             , '1900-01-02'::date    -- trade_quarter_start_dt
             , -2                    -- trade_quarter_start_key
             , '1900-01-02'::date    -- trade_quarter_end_dt
@@ -476,6 +485,7 @@ with date_spine as (
             , -3                    -- trade_month_544_end_key
             , -3                    -- trade_quarter_num
             , 'N/A'                 -- trade_quarter_nm
+            , 'Not Applicable'      -- trade_quarter_full_nm
             , '1900-01-03'::date    -- trade_quarter_start_dt
             , -3                    -- trade_quarter_start_key
             , '1900-01-03'::date    -- trade_quarter_end_dt
@@ -531,6 +541,7 @@ with date_spine as (
         , trade_month_544_end_key
         , trade_quarter_num
         , trade_quarter_nm
+        , trade_quarter_full_nm
         , trade_quarter_start_dt
         , trade_quarter_start_key
         , trade_quarter_end_dt
