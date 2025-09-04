@@ -1,180 +1,252 @@
 {{ config(materialized='table') }}
-
-with date_dimension as (
-    -- Pull from dim_date to ensure consistency
-    select
-        date_key
-        , full_date
-        , year_num
-        , quarter_num
-        , quarter_nm
-        , month_num
-        , month_nm
-        , month_abbr
-        , first_day_of_quarter
-        , last_day_of_quarter
-        , day_of_quarter_num
-        , week_of_year_num
-    from {{ ref('dim_date') }}
-    where date_key > 0  -- Exclude the -1 "Not Set" record
+{{ config( post_hook="alter table {{ this }} add primary key (quarter_key)", ) }}
+with dim_month as (
+    select * from {{ ref('dim_month') }}
 )
-
-, quarter_level_aggregation as (
-    -- Aggregate to quarter level
+, regular_quarters as (
     select
+        -- Natural key: Year * 10 + Quarter
         year_num * 10 + quarter_num as quarter_key
-
-        -- Quarter boundaries
-        , min(full_date) as first_day_of_quarter_dt
-        , max(full_date) as last_day_of_quarter_dt
-        , min(date_key) as first_day_of_quarter_key
-        , max(date_key) as last_day_of_quarter_key
-
-        -- Calendar attributes
-        , max(year_num) as year_num
-        , max(quarter_num) as quarter_num
-        , max(quarter_nm) as quarter_nm
-
-        -- Months in quarter
-        , min(case when day_of_quarter_num <= 31 then month_num end) as first_month_num
-        , min(case when day_of_quarter_num <= 31 then month_nm end) as first_month_nm
-        , min(case when day_of_quarter_num <= 31 then month_abbr end) as first_month_abbr
-
-        , max(case when day_of_quarter_num > 31 and day_of_quarter_num <= 61 then month_num end) as second_month_num
-        , max(case when day_of_quarter_num > 31 and day_of_quarter_num <= 61 then month_nm end) as second_month_nm
-        , max(case when day_of_quarter_num > 31 and day_of_quarter_num <= 61 then month_abbr end) as second_month_abbr
-
-        , max(case when day_of_quarter_num > 61 then month_num end) as third_month_num
-        , max(case when day_of_quarter_num > 61 then month_nm end) as third_month_nm
-        , max(case when day_of_quarter_num > 61 then month_abbr end) as third_month_abbr
-
-        -- Quarter metrics
-        , count(*) as days_in_quarter_num
-        , count(distinct week_of_year_num) as weeks_in_quarter_num
-        , count(distinct month_num) as months_in_quarter_num
-
-    from date_dimension
-    group by year_num, quarter_num
-)
-
-, quarter_with_retail_calendar as (
-    -- Add retail calendar from dim_date_trade if it exists
-    select
-        q.*
-
-        -- For fiscal year, default to calendar year (organizations can customize)
-        , q.year_num as fiscal_year_num
-        , q.quarter_num as fiscal_quarter_num
-
-        -- Pull retail/trade calendar attributes from dim_date_trade
-        -- Using the middle of the quarter (day 46) as the determinant
-        , coalesce(
-            (select max(trade_year_num)
-             from {{ ref('dim_date_trade') }} as dr
-             where dr.full_dt = dateadd(day, 45, q.first_day_of_quarter_dt))
-            , q.year_num
-        ) as trade_year_num
-
-        -- Retail quarters often don't align with calendar quarters
-        -- This is simplified - actual implementation would need proper retail quarter logic
-        , case
-            when q.first_month_num in (2, 3, 4) then 1
-            when q.first_month_num in (5, 6, 7) then 2
-            when q.first_month_num in (8, 9, 10) then 3
-            else 4
-        end as trade_quarter_num
-
-    from quarter_level_aggregation as q
-)
-
-, final_quarter_dimension as (
-    select
-        -- Primary key
-        quarter_key
-
-        -- Quarter dates
-        , first_day_of_quarter_dt
-        , last_day_of_quarter_dt
-        , first_day_of_quarter_key
-        , last_day_of_quarter_key
-
-        -- Standard calendar
+        -- Core identifiers
         , year_num
         , quarter_num
-
-        -- Quarter naming
-        , 'Q' || quarter_num::varchar as quarter_txt
         , quarter_nm
-
-        , 'Q' || quarter_num::varchar || ' ' || year_num::varchar as quarter_year_txt
-        , year_num::varchar || '-Q' || quarter_num::varchar as year_quarter_txt
-
-        -- Months in quarter
-        , first_month_num
-        , second_month_num
-        , third_month_num
-
-        , first_month_nm
-        , second_month_nm
-        , third_month_nm
-
-        , coalesce(first_month_abbr, '') || '-'
-        || coalesce(second_month_abbr, '') || '-'
-        || coalesce(third_month_abbr, '') as quarter_months_abbr
-
+        , quarter_full_nm
+        -- Quarter boundaries
+        , min(month_start_dt) as quarter_start_dt
+        , max(month_end_dt) as quarter_end_dt
+        , min(month_start_key) as quarter_start_key
+        , max(month_end_key) as quarter_end_key
+        -- Previous year dates for same quarter
+        , min(month_start_last_year_dt) as quarter_start_last_year_dt
+        , max(month_end_last_year_dt) as quarter_end_last_year_dt
         -- Quarter metrics
-        , days_in_quarter_num
-        , weeks_in_quarter_num
-        , months_in_quarter_num
-
-        -- Fiscal calendar
-        , fiscal_year_num
-        , fiscal_quarter_num
-        , 'FY' || fiscal_year_num::varchar || '-Q' || fiscal_quarter_num::varchar as fiscal_quarter_txt
-
-        -- Retail calendar
-        , trade_year_num
-        , trade_quarter_num
-        , 'RY' || trade_year_num::varchar || '-Q' || trade_quarter_num::varchar as trade_quarter_txt
-
-        -- Flags
+        , count(distinct month_key) as months_in_quarter_num
+        , sum(weeks_in_month_num) as weeks_in_quarter_num
+        , sum(days_in_month_num) as days_in_quarter_num
+        , sum(weekdays_in_month_num) as weekdays_in_quarter_num
+        , sum(weekend_days_in_month_num) as weekend_days_in_quarter_num
+        -- Month boundaries within quarter
+        , min(month_num) as first_month_of_quarter_num
+        , max(month_num) as last_month_of_quarter_num
+        , min(first_week_of_month_num) as first_week_of_quarter_num
+        , max(last_week_of_month_num) as last_week_of_quarter_num
+    from dim_month
+    where month_key > 0  -- Exclude special records
+    group by year_num, quarter_num, quarter_nm, quarter_full_nm
+)
+, quarters_with_attributes as (
+    select
+        *
+        -- Overall numbering
+        , row_number() over (order by quarter_key) as quarter_overall_num
+        -- Display formats
+        , quarter_nm || ' ' || year_num::varchar as quarter_year_nm
+        , year_num::varchar || '-' || quarter_nm as year_quarter_txt
+        , quarter_full_nm || ' Quarter ' || year_num::varchar as quarter_full_nm_year
+        -- Current period flags
         , case
             when year_num = year(current_date())
                 and quarter_num = quarter(current_date())
             then 1 else 0
-        end as is_current_quarter_flg
-
+        end as current_quarter_flg
         , case
             when year_num = year(dateadd(quarter, -1, current_date()))
                 and quarter_num = quarter(dateadd(quarter, -1, current_date()))
             then 1 else 0
-        end as is_prior_quarter_flg
-
+        end as prior_quarter_flg
         , case
             when year_num = year(current_date())
             then 1 else 0
-        end as is_current_year_flg
-
+        end as current_year_flg
         , case
-            when last_day_of_quarter_dt < current_date()
+            when quarter_end_dt < current_date()
             then 1 else 0
-        end as is_past_quarter_flg
-
-        -- Relative quarter numbers
-        , datediff(quarter, first_day_of_quarter_dt, current_date()) as quarters_ago_num
-        , datediff(quarter, current_date(), first_day_of_quarter_dt) as quarters_from_now_num
-
-        -- Overall quarter number since 1970
-        , datediff(quarter, '1970-01-01'::date, first_day_of_quarter_dt) as quarter_overall_num
-
-        -- Sorting helpers
-        , year_num * 4 + quarter_num - 1 as quarter_sort_num
-
-        -- ETL metadata
-        , current_user as create_user_id
-        , current_timestamp as create_timestamp
-
-    from quarter_with_retail_calendar
+        end as past_quarter_flg
+        , case
+            when quarter_start_dt > current_date()
+            then 1 else 0
+        end as future_quarter_flg
+        -- Relative date calculations
+        , datediff(quarter, quarter_start_dt, current_date()) as quarters_ago_num
+        , datediff(quarter, current_date(), quarter_start_dt) as quarters_from_now_num
+        -- Navigation keys
+        , lag(quarter_key) over (order by quarter_key) as prior_quarter_key
+        , lead(quarter_key) over (order by quarter_key) as next_quarter_key
+        , lag(quarter_key, 4) over (order by quarter_key) as quarter_last_year_key
+        -- Metadata
+        , current_timestamp() as dw_synced_ts
+        , 'dim_quarter' as dw_source_nm
+        , 'ETL_PROCESS' as create_user_id
+        , current_timestamp() as create_ts
+    from regular_quarters
 )
-
-select * from final_quarter_dimension
+, special_records as (
+    select * from (values
+        (
+            -1                      -- quarter_key
+            , -1                    -- year_num
+            , -1                    -- quarter_num
+            , 'UNK'                 -- quarter_nm
+            , 'Unknown'             -- quarter_full_nm
+            , '1900-01-01'::date    -- quarter_start_dt
+            , '1900-03-31'::date    -- quarter_end_dt
+            , -1                    -- quarter_start_key
+            , -1                    -- quarter_end_key
+            , '1899-01-01'::date    -- quarter_start_last_year_dt
+            , '1899-03-31'::date    -- quarter_end_last_year_dt
+            , 0                     -- months_in_quarter_num
+            , 0                     -- weeks_in_quarter_num
+            , 0                     -- days_in_quarter_num
+            , 0                     -- weekdays_in_quarter_num
+            , 0                     -- weekend_days_in_quarter_num
+            , -1                    -- first_month_of_quarter_num
+            , -1                    -- last_month_of_quarter_num
+            , -1                    -- first_week_of_quarter_num
+            , -1                    -- last_week_of_quarter_num
+            , -1                    -- quarter_overall_num
+            , 'UNK'                 -- quarter_year_nm
+            , 'UNK'                 -- year_quarter_txt
+            , 'Unknown'             -- quarter_full_nm_year
+            , 0                     -- current_quarter_flg
+            , 0                     -- prior_quarter_flg
+            , 0                     -- current_year_flg
+            , 0                     -- past_quarter_flg
+            , 0                     -- future_quarter_flg
+            , -999                  -- quarters_ago_num
+            , -999                  -- quarters_from_now_num
+            , null                  -- prior_quarter_key
+            , null                  -- next_quarter_key
+            , null                  -- quarter_last_year_key
+            , current_timestamp()   -- dw_synced_ts
+            , 'dim_quarter'         -- dw_source_nm
+            , 'ETL_PROCESS'         -- create_user_id
+            , current_timestamp()   -- create_ts
+        )
+        , (
+            -2                      -- quarter_key
+            , -2                    -- year_num
+            , -2                    -- quarter_num
+            , 'INV'                 -- quarter_nm
+            , 'Invalid'             -- quarter_full_nm
+            , '1900-01-02'::date    -- quarter_start_dt
+            , '1900-03-31'::date    -- quarter_end_dt
+            , -2                    -- quarter_start_key
+            , -2                    -- quarter_end_key
+            , '1899-01-02'::date    -- quarter_start_last_year_dt
+            , '1899-03-31'::date    -- quarter_end_last_year_dt
+            , 0                     -- months_in_quarter_num
+            , 0                     -- weeks_in_quarter_num
+            , 0                     -- days_in_quarter_num
+            , 0                     -- weekdays_in_quarter_num
+            , 0                     -- weekend_days_in_quarter_num
+            , -2                    -- first_month_of_quarter_num
+            , -2                    -- last_month_of_quarter_num
+            , -2                    -- first_week_of_quarter_num
+            , -2                    -- last_week_of_quarter_num
+            , -2                    -- quarter_overall_num
+            , 'INV'                 -- quarter_year_nm
+            , 'INV'                 -- year_quarter_txt
+            , 'Invalid'             -- quarter_full_nm_year
+            , 0                     -- current_quarter_flg
+            , 0                     -- prior_quarter_flg
+            , 0                     -- current_year_flg
+            , 0                     -- past_quarter_flg
+            , 0                     -- future_quarter_flg
+            , -999                  -- quarters_ago_num
+            , -999                  -- quarters_from_now_num
+            , null                  -- prior_quarter_key
+            , null                  -- next_quarter_key
+            , null                  -- quarter_last_year_key
+            , current_timestamp()   -- dw_synced_ts
+            , 'dim_quarter'         -- dw_source_nm
+            , 'ETL_PROCESS'         -- create_user_id
+            , current_timestamp()   -- create_ts
+        )
+        , (
+            -3                      -- quarter_key
+            , -3                    -- year_num
+            , -3                    -- quarter_num
+            , 'N/A'                 -- quarter_nm
+            , 'Not Applicable'      -- quarter_full_nm
+            , '1900-01-03'::date    -- quarter_start_dt
+            , '1900-03-31'::date    -- quarter_end_dt
+            , -3                    -- quarter_start_key
+            , -3                    -- quarter_end_key
+            , '1899-01-03'::date    -- quarter_start_last_year_dt
+            , '1899-03-31'::date    -- quarter_end_last_year_dt
+            , 0                     -- months_in_quarter_num
+            , 0                     -- weeks_in_quarter_num
+            , 0                     -- days_in_quarter_num
+            , 0                     -- weekdays_in_quarter_num
+            , 0                     -- weekend_days_in_quarter_num
+            , -3                    -- first_month_of_quarter_num
+            , -3                    -- last_month_of_quarter_num
+            , -3                    -- first_week_of_quarter_num
+            , -3                    -- last_week_of_quarter_num
+            , -3                    -- quarter_overall_num
+            , 'N/A'                 -- quarter_year_nm
+            , 'N/A'                 -- year_quarter_txt
+            , 'Not Applicable'      -- quarter_full_nm_year
+            , 0                     -- current_quarter_flg
+            , 0                     -- prior_quarter_flg
+            , 0                     -- current_year_flg
+            , 0                     -- past_quarter_flg
+            , 0                     -- future_quarter_flg
+            , -999                  -- quarters_ago_num
+            , -999                  -- quarters_from_now_num
+            , null                  -- prior_quarter_key
+            , null                  -- next_quarter_key
+            , null                  -- quarter_last_year_key
+            , current_timestamp()   -- dw_synced_ts
+            , 'dim_quarter'         -- dw_source_nm
+            , 'ETL_PROCESS'         -- create_user_id
+            , current_timestamp()   -- create_ts
+        )
+    ) as t (
+        quarter_key
+        , year_num
+        , quarter_num
+        , quarter_nm
+        , quarter_full_nm
+        , quarter_start_dt
+        , quarter_end_dt
+        , quarter_start_key
+        , quarter_end_key
+        , quarter_start_last_year_dt
+        , quarter_end_last_year_dt
+        , months_in_quarter_num
+        , weeks_in_quarter_num
+        , days_in_quarter_num
+        , weekdays_in_quarter_num
+        , weekend_days_in_quarter_num
+        , first_month_of_quarter_num
+        , last_month_of_quarter_num
+        , first_week_of_quarter_num
+        , last_week_of_quarter_num
+        , quarter_overall_num
+        , quarter_year_nm
+        , year_quarter_txt
+        , quarter_full_nm_year
+        , current_quarter_flg
+        , prior_quarter_flg
+        , current_year_flg
+        , past_quarter_flg
+        , future_quarter_flg
+        , quarters_ago_num
+        , quarters_from_now_num
+        , prior_quarter_key
+        , next_quarter_key
+        , quarter_last_year_key
+        , dw_synced_ts
+        , dw_source_nm
+        , create_user_id
+        , create_ts
+    )
+)
+, final as (
+    select * from quarters_with_attributes
+    union all
+    select * from special_records
+)
+select * from final

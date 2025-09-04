@@ -1,192 +1,266 @@
 {{ config(materialized='table') }}
-
-with date_dimension as (
+{{ config( post_hook="alter table {{ this }} add primary key (month_key)", ) }}
+with dim_date as (
     select * from {{ ref('dim_date') }}
 )
-
-, trade_date_dimension as (
-    select * from {{ ref('dim_date_trade') }}
-)
-
-, filtered_date_data as (
+, regular_months as (
     select
-        date_key
-        , full_date
+        -- Natural key: Year * 100 + Month
+        year_num * 100 + month_num as month_key
+        -- Core identifiers
         , year_num
-        , quarter_num
         , month_num
-        , month_nm
-        , month_abbr
-        , month_in_quarter_num
-        , day_of_month_num
-        , first_day_of_month
-        , first_day_of_month_flg
-        , last_day_of_month
-        , end_of_month_flg
-        , week_of_year_num
-        , month_overall_num
-        , yearmonth_num
-    from date_dimension
-    where date_key > 0  -- Exclude the -1 "Not Set" record
-)
-
-, monthly_aggregated_data as (
-    -- Aggregate to month level
-    select
-        yearmonth_num as month_key
-
-        -- Month boundaries
-        , min(full_date) as first_day_of_month_dt
-        , max(full_date) as last_day_of_month_dt
-        , min(date_key) as first_day_of_month_key
-        , max(date_key) as last_day_of_month_key
-
-        -- Calendar attributes (same for all days in month)
-        , max(year_num) as year_num
-        , max(quarter_num) as quarter_num
-        , max(month_num) as month_num
         , max(month_nm) as month_nm
         , max(month_abbr) as month_abbr
+        , max(quarter_num) as quarter_num
+        , max(quarter_nm) as quarter_nm
+        , max(quarter_full_nm) as quarter_full_nm
+        -- Month boundaries (actual month dates, not week boundaries)
+        , date_trunc('month', min(full_dt))::date as month_start_dt
+        , last_day(min(full_dt))::date as month_end_dt
+        , to_char(date_trunc('month', min(full_dt)), 'YYYYMMDD')::int as month_start_key
+        , to_char(last_day(min(full_dt)), 'YYYYMMDD')::int as month_end_key
+        -- Previous year dates for same month
+        , dateadd('year', -1, date_trunc('month', min(full_dt)))::date as month_start_last_year_dt
+        , dateadd('year', -1, last_day(min(full_dt)))::date as month_end_last_year_dt
+        -- Month metrics
+        , count(distinct week_num) as weeks_in_month_num
+        , count(*) as days_in_month_num
+        , sum(case when weekday_flg = 'Weekday' then 1 else 0 end) as weekdays_in_month_num
+        , sum(case when weekday_flg = 'Weekend' then 1 else 0 end) as weekend_days_in_month_num
+        , min(week_num) as first_week_of_month_num
+        , max(week_num) as last_week_of_month_num
+        -- Position metrics
         , max(month_in_quarter_num) as month_in_quarter_num
         , max(month_overall_num) as month_overall_num
-
-        -- Month metrics
-        , count(*) as days_in_month_num
-        , count(distinct week_of_year_num) as weeks_in_month_num
-        , min(week_of_year_num) as first_week_of_month_num
-        , max(week_of_year_num) as last_week_of_month_num
-
-    from filtered_date_data
-    group by yearmonth_num
+    from dim_date
+    where date_key > 0  -- Exclude special records
+    group by year_num, month_num
 )
-
-, monthly_data_with_trade_calendar as (
-    -- Add retail calendar from dim_date_trade if it exists
+, months_with_attributes as (
     select
-        m.*
-
-        -- Pull retail/trade calendar attributes from dim_date_trade
-        -- Using the 15th of the month as the determinant
-        , coalesce(
-            (select max(trade_year_num)
-             from trade_date_dimension as dr
-             where dr.calendar_year_num = m.year_num
-               and dr.calendar_month_num = m.month_num
-               and dr.day_of_month_num = 15)
-            , m.year_num
-        ) as trade_year_num
-
-        , coalesce(
-            (select max(trade_month_445_num)
-             from trade_date_dimension as dr
-             where dr.calendar_year_num = m.year_num
-               and dr.calendar_month_num = m.month_num
-               and dr.day_of_month_num = 15)
-            , m.month_num
-        ) as trade_month_num
-
-        , coalesce(
-            (select max(calendar_quarter_num)
-             from trade_date_dimension as dr
-             where dr.calendar_year_num = m.year_num
-               and dr.calendar_month_num = m.month_num
-               and dr.day_of_month_num = 15)
-            , m.quarter_num
-        ) as trade_quarter_num
-
-    from monthly_aggregated_data as m
-)
-
-, final as (
-    select
-        -- Primary key
-        month_key
-
-        -- Month dates
-        , first_day_of_month_dt
-        , last_day_of_month_dt
-        , first_day_of_month_key
-        , last_day_of_month_key
-
-        -- Standard calendar
-        , year_num
-        , quarter_num
-        , month_num
-        , month_nm
-        , month_abbr
-        , month_in_quarter_num
-
-        -- Quarter information
-        , case
-            when quarter_num = 1 then 'Q1'
-            when quarter_num = 2 then 'Q2'
-            when quarter_num = 3 then 'Q3'
-            when quarter_num = 4 then 'Q4'
-        end as quarter_txt
-
-        , case
-            when quarter_num = 1 then 'First'
-            when quarter_num = 2 then 'Second'
-            when quarter_num = 3 then 'Third'
-            when quarter_num = 4 then 'Fourth'
-        end as quarter_nm
-
-        -- Month descriptions
+        *
+        , month_key as yearmonth_num  -- Add for compatibility
+        -- Display formats
         , month_nm || ' ' || year_num::varchar as month_year_nm
         , month_abbr || ' ' || year_num::varchar as month_year_abbr
         , year_num::varchar || '-' || lpad(month_num::varchar, 2, '0') as year_month_txt
-
-        -- Month metrics
-        , days_in_month_num
-        , weeks_in_month_num
-
-        -- Retail calendar
-        , trade_year_num
-        , trade_month_num
-        , trade_quarter_num
-
-        -- Position in year
-        , month_num as month_of_year_num
-        , month_num as month_of_year_fiscal_num  -- Can be overridden for fiscal calendars
-
-        -- Flags
+        , 'M' || lpad(month_num::varchar, 2, '0') || ' ' || year_num::varchar as month_year_code_txt
+        -- Current period flags
         , case
             when year_num = year(current_date())
                 and month_num = month(current_date())
             then 1 else 0
-        end as is_current_month_flg
-
+        end as current_month_flg
         , case
             when year_num = year(dateadd(month, -1, current_date()))
                 and month_num = month(dateadd(month, -1, current_date()))
             then 1 else 0
-        end as is_prior_month_flg
-
+        end as prior_month_flg
         , case
             when year_num = year(current_date())
             then 1 else 0
-        end as is_current_year_flg
-
+        end as current_year_flg
         , case
-            when last_day_of_month_dt < current_date()
+            when month_end_dt < current_date()
             then 1 else 0
-        end as is_past_month_flg
-
-        -- Relative month numbers
-        , datediff(month, first_day_of_month_dt, current_date()) as months_ago_num
-        , datediff(month, current_date(), first_day_of_month_dt) as months_from_now_num
-
-        -- Overall month number
-        , month_overall_num
-
-        -- Sorting helpers
-        , year_num * 12 + month_num - 1 as month_sort_num
-
-        -- ETL metadata
-        , current_user as create_user_id
-        , current_timestamp as create_timestamp
-
-    from monthly_data_with_trade_calendar
+        end as past_month_flg
+        , case
+            when month_start_dt > current_date()
+            then 1 else 0
+        end as future_month_flg
+        -- Relative date calculations
+        , datediff(month, month_start_dt, current_date()) as months_ago_num
+        , datediff(month, current_date(), month_start_dt) as months_from_now_num
+        -- Navigation keys
+        , lag(month_key) over (order by month_key) as prior_month_key
+        , lead(month_key) over (order by month_key) as next_month_key
+        , lag(month_key, 12) over (order by month_key) as month_last_year_key
+        -- Metadata
+        , current_timestamp() as dw_synced_ts
+        , 'dim_month' as dw_source_nm
+        , 'ETL_PROCESS' as create_user_id
+        , current_timestamp() as create_ts
+    from regular_months
 )
-
+, special_records as (
+    select * from (values
+        (
+            -1                      -- month_key
+            , -1                    -- year_num
+            , -1                    -- month_num
+            , 'Unknown'             -- month_nm
+            , 'UNK'                 -- month_abbr
+            , -1                    -- quarter_num
+            , 'UNK'                 -- quarter_nm
+            , 'Unknown'             -- quarter_full_nm
+            , '1900-01-01'::date    -- month_start_dt
+            , '1900-01-31'::date    -- month_end_dt
+            , -1                    -- month_start_key
+            , -1                    -- month_end_key
+            , '1899-01-01'::date    -- month_start_last_year_dt
+            , '1899-01-31'::date    -- month_end_last_year_dt
+            , 0                     -- weeks_in_month_num
+            , 0                     -- days_in_month_num
+            , 0                     -- weekdays_in_month_num
+            , 0                     -- weekend_days_in_month_num
+            , -1                    -- first_week_of_month_num
+            , -1                    -- last_week_of_month_num
+            , -1                    -- month_in_quarter_num
+            , -1                    -- month_overall_num
+            , -1                    -- yearmonth_num
+            , 'UNK'                 -- month_year_nm
+            , 'UNK'                 -- month_year_abbr
+            , 'UNK'                 -- year_month_txt
+            , 'UNK'                 -- month_year_code_txt
+            , 0                     -- current_month_flg
+            , 0                     -- prior_month_flg
+            , 0                     -- current_year_flg
+            , 0                     -- past_month_flg
+            , 0                     -- future_month_flg
+            , -999                  -- months_ago_num
+            , -999                  -- months_from_now_num
+            , null                  -- prior_month_key
+            , null                  -- next_month_key
+            , null                  -- month_last_year_key
+            , current_timestamp()   -- dw_synced_ts
+            , 'dim_month'           -- dw_source_nm
+            , 'ETL_PROCESS'         -- create_user_id
+            , current_timestamp()   -- create_ts
+        )
+        , (
+            -2                      -- month_key
+            , -2                    -- year_num
+            , -2                    -- month_num
+            , 'Invalid'             -- month_nm
+            , 'INV'                 -- month_abbr
+            , -2                    -- quarter_num
+            , 'INV'                 -- quarter_nm
+            , 'Invalid'             -- quarter_full_nm
+            , '1900-01-02'::date    -- month_start_dt
+            , '1900-01-31'::date    -- month_end_dt
+            , -2                    -- month_start_key
+            , -2                    -- month_end_key
+            , '1899-01-02'::date    -- month_start_last_year_dt
+            , '1899-01-31'::date    -- month_end_last_year_dt
+            , 0                     -- weeks_in_month_num
+            , 0                     -- days_in_month_num
+            , 0                     -- weekdays_in_month_num
+            , 0                     -- weekend_days_in_month_num
+            , -2                    -- first_week_of_month_num
+            , -2                    -- last_week_of_month_num
+            , -2                    -- month_in_quarter_num
+            , -2                    -- month_overall_num
+            , -2                    -- yearmonth_num
+            , 'INV'                 -- month_year_nm
+            , 'INV'                 -- month_year_abbr
+            , 'INV'                 -- year_month_txt
+            , 'INV'                 -- month_year_code_txt
+            , 0                     -- current_month_flg
+            , 0                     -- prior_month_flg
+            , 0                     -- current_year_flg
+            , 0                     -- past_month_flg
+            , 0                     -- future_month_flg
+            , -999                  -- months_ago_num
+            , -999                  -- months_from_now_num
+            , null                  -- prior_month_key
+            , null                  -- next_month_key
+            , null                  -- month_last_year_key
+            , current_timestamp()   -- dw_synced_ts
+            , 'dim_month'           -- dw_source_nm
+            , 'ETL_PROCESS'         -- create_user_id
+            , current_timestamp()   -- create_ts
+        )
+        , (
+            -3                      -- month_key
+            , -3                    -- year_num
+            , -3                    -- month_num
+            , 'Not Applicable'      -- month_nm
+            , 'N/A'                 -- month_abbr
+            , -3                    -- quarter_num
+            , 'N/A'                 -- quarter_nm
+            , 'Not Applicable'      -- quarter_full_nm
+            , '1900-01-03'::date    -- month_start_dt
+            , '1900-01-31'::date    -- month_end_dt
+            , -3                    -- month_start_key
+            , -3                    -- month_end_key
+            , '1899-01-03'::date    -- month_start_last_year_dt
+            , '1899-01-31'::date    -- month_end_last_year_dt
+            , 0                     -- weeks_in_month_num
+            , 0                     -- days_in_month_num
+            , 0                     -- weekdays_in_month_num
+            , 0                     -- weekend_days_in_month_num
+            , -3                    -- first_week_of_month_num
+            , -3                    -- last_week_of_month_num
+            , -3                    -- month_in_quarter_num
+            , -3                    -- month_overall_num
+            , -3                    -- yearmonth_num
+            , 'N/A'                 -- month_year_nm
+            , 'N/A'                 -- month_year_abbr
+            , 'N/A'                 -- year_month_txt
+            , 'N/A'                 -- month_year_code_txt
+            , 0                     -- current_month_flg
+            , 0                     -- prior_month_flg
+            , 0                     -- current_year_flg
+            , 0                     -- past_month_flg
+            , 0                     -- future_month_flg
+            , -999                  -- months_ago_num
+            , -999                  -- months_from_now_num
+            , null                  -- prior_month_key
+            , null                  -- next_month_key
+            , null                  -- month_last_year_key
+            , current_timestamp()   -- dw_synced_ts
+            , 'dim_month'           -- dw_source_nm
+            , 'ETL_PROCESS'         -- create_user_id
+            , current_timestamp()   -- create_ts
+        )
+    ) as t (
+        month_key
+        , year_num
+        , month_num
+        , month_nm
+        , month_abbr
+        , quarter_num
+        , quarter_nm
+        , quarter_full_nm
+        , month_start_dt
+        , month_end_dt
+        , month_start_key
+        , month_end_key
+        , month_start_last_year_dt
+        , month_end_last_year_dt
+        , weeks_in_month_num
+        , days_in_month_num
+        , weekdays_in_month_num
+        , weekend_days_in_month_num
+        , first_week_of_month_num
+        , last_week_of_month_num
+        , month_in_quarter_num
+        , month_overall_num
+        , yearmonth_num
+        , month_year_nm
+        , month_year_abbr
+        , year_month_txt
+        , month_year_code_txt
+        , current_month_flg
+        , prior_month_flg
+        , current_year_flg
+        , past_month_flg
+        , future_month_flg
+        , months_ago_num
+        , months_from_now_num
+        , prior_month_key
+        , next_month_key
+        , month_last_year_key
+        , dw_synced_ts
+        , dw_source_nm
+        , create_user_id
+        , create_ts
+    )
+)
+, final as (
+    select * from months_with_attributes
+    union all
+    select * from special_records
+)
 select * from final

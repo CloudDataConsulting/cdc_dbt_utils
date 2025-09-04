@@ -1,8 +1,8 @@
 # /* Copyright (C) 2022 Cloud Data Consultants Inc. - All Rights Reserved
 # *
-# * You may not copy, reproduce, distribute, transmit, modify, create derivative works, 
+# * You may not copy, reproduce, distribute, transmit, modify, create derivative works,
 # * or in any other way exploit any part of copyrighted material without permission.
-# * 
+# *
 # */
 
 config-version: 2
@@ -17,3 +17,8 @@ require-dbt-version: [">=1.0.0", "<2.0.0"]
 models:
   dw_util:
     materialized: table
+
+  cdc_dbt_utils:
+    dw_util:
+      +materialized: table
+      +schema: dw_util

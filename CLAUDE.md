@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a dbt utilities package that provides reusable macros and dimensional models for Cloud Data Consulting (CDC) dbt projects. It's designed to be imported as a dependency in other dbt projects.
+This is a dbt utilities package that provides reusable macros and time and date dimensional models for Cloud Data Consulting (CDC) dbt projects. It's designed to be imported as a dependency in other dbt projects.
 
 ## Key Architecture
 
 ### Package Structure
 - **macros/**: Reusable dbt macros for schema management, column generation, and dimensional modeling
-- **models/dw_util/**: Pre-built dimensional models (date and time dimensions)
+- **models/dw_util/**: Pre-built reusable dimensional models (date and time dimensions)
 
 ### Core Macros
 
@@ -28,7 +28,7 @@ This is a dbt utilities package that provides reusable macros and dimensional mo
 - **dim_quarter**: Quarterly grain dimension derived from dim_date
 - **dim_time**: Time dimension for intraday analysis
 
-#### Trade Calendar Dimensions  
+#### Trade Calendar Dimensions
 - **dim_trade_date**: Daily grain with trade/retail calendar support (4-4-5, 4-5-4, 5-4-4 patterns)
 - **dim_trade_week**: Weekly grain dimension derived from dim_trade_date
 - **dim_trade_month**: Monthly grain dimension derived from dim_trade_date (separate records per pattern)
@@ -42,14 +42,9 @@ This is a dbt utilities package that provides reusable macros and dimensional mo
 ## Development Commands
 
 ### Installing in a Project
-Add to the consuming project's `packages.yml`:
-```yaml
-packages:
-  - git: "https://github.com/CloudDataConsulting/cdc_dbt_utils.git"
-    revision: main
-```
-
-Then run: `dbt deps`
+To do development we make an exception to the normal process.
+We do NOT add the package to the consuming project's `packages.yml`!
+We then cd dbt_packages && git clone git@github.com:CloudDataConsulting/cdc_dbt_utils.git
 
 ### Configuration in Consuming Project
 Add to `dbt_project.yml`:
@@ -57,7 +52,7 @@ Add to `dbt_project.yml`:
 models:
   cdc_dbt_utils:
     dw_util:
-      +materialized: view  # or table as needed
+      +materialized: table  # or view as needed
       +schema: dw_util
 ```
 
@@ -68,12 +63,22 @@ dbt run-operation drop_dev_schemas --args '{username: developer_name}'
 
 # Build dimensions in consuming project
 dbt run --models cdc_dbt_utils.dw_util.*
+or
+dbt run -s +package:cdc_dbt_utils
 ```
 
 ### Testing
 ```bash
 # Run data tests defined in yml files
 dbt test --models cdc_dbt_utils.dw_util.*
+or
+dbt test -s +package:cdc_dbt_utils
+```
+
+### Run & Test
+```bash
+# to run and test as we run
+dbt build -s +package:cdc_dbt_utils
 ```
 
 ## Column Naming Convention Standards
@@ -90,6 +95,15 @@ The package follows strict naming conventions where the class word (data type in
 
 ISO-related columns have `iso_` prefix: `iso_day_of_week_num`, `iso_year_num`, `iso_week_of_year_txt`
 
+For dim_trade_date and its aggregates
+trade_*
+Should have the same name for the same thing.
+for instance
+trade_first_day_dt
+
+For dim_date and its aggregates
+No prefix.
+
 "Overall" metrics (since 1970-01-01) use pattern: `{measure}_overall_{class}` (e.g., `day_overall_num`, `month_overall_num`)
 
 ## CTE Standards
@@ -102,36 +116,28 @@ All dbt models in this package must follow CDC CTE standards:
 3. **All refs at the top**: All `{{ ref() }}` statements must be in the first CTEs, with any filters applied there
 4. **Descriptive comments in YAML**: Model descriptions belong in the `.yml` files, not as comments in SQL files
 
-### CTE Naming Examples
+### CTE Naming Examples (includes aliases)
 - ✅ GOOD: `trade_date`, `date_dimension`, `monthly_aggregated_data`, `quarter_with_retail_calendar`
 - ❌ BAD: `td`, `dd`, `month_agg`, `qtr_retail`
 
 ### Standard CTE Pattern
+- leading comma's
+- ) on the same line as last bit of sql, not on new line.
+- No extra blank lines
 ```sql
 {{ config(materialized='table') }}
 
 -- All refs must be at the top
-with source_model_name as (
-    select * from {{ ref('source_model') }}
-),
+with source_model_alias as ( select * from {{ ref('source_model') }} where date_key > 0 )  -- Any filters on the ref go here
 
-filtered_source_data as (
-    select * from source_model_name
-    where date_key > 0  -- Any filters on the ref go here
-),
-
-transformed_data as (
+,transformed_data as (
     -- Main transformations
     select ...
-    from filtered_source_data
-),
-
-final as (
+    from source_model_alias)
+, final as (
     -- Final structure
     select ...
-    from transformed_data
-)
-
+    from transformed_data)
 select * from final
 ```
 

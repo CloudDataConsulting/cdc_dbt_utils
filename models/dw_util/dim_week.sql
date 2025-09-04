@@ -1,151 +1,311 @@
 {{ config(materialized='table') }}
-
-with date_dimension as (
+{{ config( post_hook="alter table {{ this }} add primary key (week_key)", ) }}
+with dim_date as (
     select * from {{ ref('dim_date') }}
 )
-
-, date_dimension_filtered as (
+, regular_weeks as (
     select
-        date_key
-        , full_date
-        , week_begin_dt
-        , week_end_dt
-        , week_begin_key
-        , week_end_key
-        , year_num
-        , quarter_num
-        , month_num
-        , month_nm
-        , week_of_year_num
-        , week_of_month_num
-        , iso_week_of_year_txt
-        , iso_year_num
-        , week_overall_num
-    from date_dimension
-    where date_key > 0  -- Exclude the -1 "Not Set" record
-)
-
-, week_level_aggregated as (
-    -- Aggregate to week level, taking values from Monday (first day of ISO week)
-    select
-        week_begin_key as week_key
-        , min(week_begin_dt) as week_start_dt
-        , max(week_end_dt) as week_end_dt
-        , min(week_end_key) as week_end_key
-
-        -- Take calendar attributes from the Thursday of the week (ISO standard)
-        -- Thursday determines which month/year the week belongs to
-        , max(case when dayofweek(full_date) = 5 then year_num end) as year_num
-        , max(case when dayofweek(full_date) = 5 then quarter_num end) as quarter_num
-        , max(case when dayofweek(full_date) = 5 then month_num end) as month_num
-        , max(case when dayofweek(full_date) = 5 then month_nm end) as month_nm
-
-        -- Week attributes (same for all days in the week)
+        -- Use the Sunday of each week as the natural key
+        min(case when week_start_key > 0 then week_start_key else date_key end) as week_key
+        -- Core week identifiers
+        , min(full_dt) as week_start_dt
+        , max(full_dt) as week_end_dt
+        , min(week_start_key) as week_start_key
+        , max(week_end_key) as week_end_key
+        -- Previous year date for same week
+        , min(date_last_year_dt) as week_start_last_year_dt
+        , max(date_last_year_dt) as week_end_last_year_dt
+        -- Week attributes (use MIN/MAX for week that spans years)
+        , case
+            when count(distinct year_num) > 1 then max(year_num)
+            else max(year_num)
+        end as year_num
+        , max(week_num) as week_num
         , max(week_of_year_num) as week_of_year_num
-        , max(week_of_month_num) as week_of_month_num
-        , max(iso_week_of_year_txt) as iso_week_txt
-        , max(iso_year_num) as iso_year_num
+        , max(week_of_quarter_num) as week_of_quarter_num
         , max(week_overall_num) as week_overall_num
-
-        -- Count actual days in week (for partial weeks at year boundaries)
+        -- Month attributes (most common month in the week)
+        , mode(month_num) as month_num
+        , mode(month_nm) as month_nm
+        , mode(month_abbr) as month_abbr
+        , max(week_of_month_num) as week_of_month_num
+        , mode(yearmonth_num) as yearmonth_num
+        , mode(month_in_quarter_num) as month_in_quarter_num
+        , mode(month_overall_num) as month_overall_num
+        -- Quarter attributes
+        , mode(quarter_num) as quarter_num
+        , mode(quarter_nm) as quarter_nm
+        , mode(quarter_full_nm) as quarter_full_nm
+        -- Week metrics
         , count(*) as days_in_week_num
-
-    from date_dimension_filtered
-    group by week_begin_key
+        , sum(case when weekday_flg = 'Weekday' then 1 else 0 end) as weekdays_in_week_num
+        , sum(case when weekday_flg = 'Weekend' then 1 else 0 end) as weekend_days_in_week_num
+        -- ISO week attributes
+        , mode(iso_year_num) as iso_year_num
+        , mode(iso_week_of_year_txt) as iso_week_of_year_txt
+        , max(iso_week_overall_num) as iso_week_overall_num
+        , min(iso_week_start_dt) as iso_week_start_dt
+        , min(iso_week_start_key) as iso_week_start_key
+        , max(iso_week_end_dt) as iso_week_end_dt
+        , max(iso_week_end_key) as iso_week_end_key
+    from dim_date
+    where date_key > 0  -- Exclude special records
+    group by week_overall_num
 )
-
-, retail_calendar_dimension as (
-    select * from {{ ref('dim_date_trade') }}
-)
-
-, week_with_retail_calendar as (
-    -- Add retail calendar from dim_date_trade if it exists
+, weeks_with_attributes as (
     select
-        w.*
-
-        -- Pull retail/trade calendar attributes from retail calendar dimension
-        -- Using Thursday of the week to determine retail period
-        , coalesce(
-            (select max(trade_year_num)
-             from retail_calendar_dimension as dr
-             where dr.full_dt between w.week_start_dt and w.week_end_dt
-               and dayofweek(dr.full_dt) = 5)
-            , w.year_num
-        ) as trade_year_num
-
-        , coalesce(
-            (select max(trade_week_num)
-             from retail_calendar_dimension as dr
-             where dr.full_dt between w.week_start_dt and w.week_end_dt
-               and dayofweek(dr.full_dt) = 5)
-            , w.week_of_year_num
-        ) as trade_week_num
-
-    from week_level_aggregated as w
-)
-
-, final as (
-    select
-        -- Primary key
-        week_key
-
-        -- Week dates
-        , week_start_dt
-        , week_end_dt
-        , week_end_key
-
-        -- Standard calendar
-        , year_num
-        , quarter_num
-        , month_num
-        , week_of_year_num
-        , week_of_month_num
-
-        -- ISO week
-        , split_part(iso_week_txt, '-W', 2)::int as iso_week_num
-        , iso_year_num
-        , iso_week_txt
-
-        -- Retail calendar
-        , trade_year_num
-        , trade_week_num
-
-        -- Week descriptions
+        *
+        -- Derived display columns
+        , 'W' || lpad(week_num::varchar, 2, '0') || ' ' || year_num::varchar as week_year_txt
+        , year_num::varchar || '-W' || lpad(week_num::varchar, 2, '0') as year_week_txt
         , month_nm || ' ' || year_num::varchar as month_year_nm
         , 'Week ' || week_of_month_num::varchar || ' of ' || month_nm as week_of_month_nm
-        , 'W' || lpad(week_of_year_num::varchar, 2, '0') || ' ' || year_num::varchar as week_year_txt
-
-        -- Flags
+        -- Current period flags
         , case
             when week_start_dt <= current_date()
                 and week_end_dt >= current_date()
             then 1 else 0
-        end as is_current_week_flg
-
+        end as current_week_flg
         , case
             when week_start_dt <= dateadd(week, -1, current_date())
                 and week_end_dt >= dateadd(week, -1, current_date())
             then 1 else 0
-        end as is_prior_week_flg
-
+        end as prior_week_flg
         , case
             when year_num = year(current_date())
             then 1 else 0
-        end as is_current_year_flg
-
-        -- Relative week numbers
+        end as current_year_flg
+        , case
+            when week_end_dt < current_date()
+            then 1 else 0
+        end as past_week_flg
+        , case
+            when week_start_dt > current_date()
+            then 1 else 0
+        end as future_week_flg
+        -- Relative date calculations
         , datediff(week, week_start_dt, current_date()) as weeks_ago_num
-        , datediff(week, date_trunc(year, week_start_dt), week_start_dt) + 1 as week_of_year_fiscal_num
-
-        -- Week metrics
-        , days_in_week_num
-        , week_overall_num
-
-        -- ETL metadata
-        , current_user as create_user_id
-        , current_timestamp as create_timestamp
-
-    from week_with_retail_calendar
+        -- Navigation keys
+        , lag(week_key) over (order by week_key) as prior_week_key
+        , lead(week_key) over (order by week_key) as next_week_key
+        , lag(week_key, 52) over (order by week_key) as week_last_year_key
+        -- Metadata
+        , current_timestamp() as dw_synced_ts
+        , 'dim_week' as dw_source_nm
+        , 'ETL_PROCESS' as create_user_id
+        , current_timestamp() as create_ts
+    from regular_weeks
 )
-
+, special_records as (
+    select * from (values
+        (
+            -1                      -- week_key
+            , '1900-01-01'::date    -- week_start_dt
+            , '1900-01-07'::date    -- week_end_dt
+            , -1                    -- week_start_key
+            , -1                    -- week_end_key
+            , '1899-01-01'::date    -- week_start_last_year_dt
+            , '1899-01-07'::date    -- week_end_last_year_dt
+            , -1                    -- year_num
+            , -1                    -- week_num
+            , -1                    -- week_of_year_num
+            , -1                    -- week_of_quarter_num
+            , -1                    -- week_overall_num
+            , -1                    -- month_num
+            , 'Unknown'             -- month_nm
+            , 'UNK'                 -- month_abbr
+            , -1                    -- week_of_month_num
+            , -1                    -- yearmonth_num
+            , -1                    -- month_in_quarter_num
+            , -1                    -- month_overall_num
+            , -1                    -- quarter_num
+            , 'UNK'                 -- quarter_nm
+            , 'Unknown'             -- quarter_full_nm
+            , 7                     -- days_in_week_num
+            , 0                     -- weekdays_in_week_num
+            , 0                     -- weekend_days_in_week_num
+            , -1                    -- iso_year_num
+            , 'UNK'                 -- iso_week_of_year_txt
+            , -1                    -- iso_week_overall_num
+            , '1900-01-01'::date    -- iso_week_start_dt
+            , -1                    -- iso_week_start_key
+            , '1900-01-07'::date    -- iso_week_end_dt
+            , -1                    -- iso_week_end_key
+            , 'UNK'                 -- week_year_txt
+            , 'UNK'                 -- year_week_txt
+            , 'Unknown'             -- month_year_nm
+            , 'Unknown'             -- week_of_month_nm
+            , 0                     -- current_week_flg
+            , 0                     -- prior_week_flg
+            , 0                     -- current_year_flg
+            , 0                     -- past_week_flg
+            , 0                     -- future_week_flg
+            , -999                  -- weeks_ago_num
+            , null                  -- prior_week_key
+            , null                  -- next_week_key
+            , null                  -- week_last_year_key
+            , current_timestamp()   -- dw_synced_ts
+            , 'dim_week'            -- dw_source_nm
+            , 'ETL_PROCESS'         -- create_user_id
+            , current_timestamp()   -- create_ts
+        )
+        , (
+            -2                      -- week_key
+            , '1900-01-02'::date    -- week_start_dt
+            , '1900-01-08'::date    -- week_end_dt
+            , -2                    -- week_start_key
+            , -2                    -- week_end_key
+            , '1899-01-02'::date    -- week_start_last_year_dt
+            , '1899-01-08'::date    -- week_end_last_year_dt
+            , -2                    -- year_num
+            , -2                    -- week_num
+            , -2                    -- week_of_year_num
+            , -2                    -- week_of_quarter_num
+            , -2                    -- week_overall_num
+            , -2                    -- month_num
+            , 'Invalid'             -- month_nm
+            , 'INV'                 -- month_abbr
+            , -2                    -- week_of_month_num
+            , -2                    -- yearmonth_num
+            , -2                    -- month_in_quarter_num
+            , -2                    -- month_overall_num
+            , -2                    -- quarter_num
+            , 'INV'                 -- quarter_nm
+            , 'Invalid'             -- quarter_full_nm
+            , 7                     -- days_in_week_num
+            , 0                     -- weekdays_in_week_num
+            , 0                     -- weekend_days_in_week_num
+            , -2                    -- iso_year_num
+            , 'INV'                 -- iso_week_of_year_txt
+            , -2                    -- iso_week_overall_num
+            , '1900-01-02'::date    -- iso_week_start_dt
+            , -2                    -- iso_week_start_key
+            , '1900-01-08'::date    -- iso_week_end_dt
+            , -2                    -- iso_week_end_key
+            , 'INV'                 -- week_year_txt
+            , 'INV'                 -- year_week_txt
+            , 'Invalid'             -- month_year_nm
+            , 'Invalid'             -- week_of_month_nm
+            , 0                     -- current_week_flg
+            , 0                     -- prior_week_flg
+            , 0                     -- current_year_flg
+            , 0                     -- past_week_flg
+            , 0                     -- future_week_flg
+            , -999                  -- weeks_ago_num
+            , null                  -- prior_week_key
+            , null                  -- next_week_key
+            , null                  -- week_last_year_key
+            , current_timestamp()   -- dw_synced_ts
+            , 'dim_week'            -- dw_source_nm
+            , 'ETL_PROCESS'         -- create_user_id
+            , current_timestamp()   -- create_ts
+        )
+        , (
+            -3                      -- week_key
+            , '1900-01-03'::date    -- week_start_dt
+            , '1900-01-09'::date    -- week_end_dt
+            , -3                    -- week_start_key
+            , -3                    -- week_end_key
+            , '1899-01-03'::date    -- week_start_last_year_dt
+            , '1899-01-09'::date    -- week_end_last_year_dt
+            , -3                    -- year_num
+            , -3                    -- week_num
+            , -3                    -- week_of_year_num
+            , -3                    -- week_of_quarter_num
+            , -3                    -- week_overall_num
+            , -3                    -- month_num
+            , 'Not Applicable'      -- month_nm
+            , 'N/A'                 -- month_abbr
+            , -3                    -- week_of_month_num
+            , -3                    -- yearmonth_num
+            , -3                    -- month_in_quarter_num
+            , -3                    -- month_overall_num
+            , -3                    -- quarter_num
+            , 'N/A'                 -- quarter_nm
+            , 'Not Applicable'      -- quarter_full_nm
+            , 7                     -- days_in_week_num
+            , 0                     -- weekdays_in_week_num
+            , 0                     -- weekend_days_in_week_num
+            , -3                    -- iso_year_num
+            , 'N/A'                 -- iso_week_of_year_txt
+            , -3                    -- iso_week_overall_num
+            , '1900-01-03'::date    -- iso_week_start_dt
+            , -3                    -- iso_week_start_key
+            , '1900-01-09'::date    -- iso_week_end_dt
+            , -3                    -- iso_week_end_key
+            , 'N/A'                 -- week_year_txt
+            , 'N/A'                 -- year_week_txt
+            , 'Not Applicable'      -- month_year_nm
+            , 'Not Applicable'      -- week_of_month_nm
+            , 0                     -- current_week_flg
+            , 0                     -- prior_week_flg
+            , 0                     -- current_year_flg
+            , 0                     -- past_week_flg
+            , 0                     -- future_week_flg
+            , -999                  -- weeks_ago_num
+            , null                  -- prior_week_key
+            , null                  -- next_week_key
+            , null                  -- week_last_year_key
+            , current_timestamp()   -- dw_synced_ts
+            , 'dim_week'            -- dw_source_nm
+            , 'ETL_PROCESS'         -- create_user_id
+            , current_timestamp()   -- create_ts
+        )
+    ) as t (
+        week_key
+        , week_start_dt
+        , week_end_dt
+        , week_start_key
+        , week_end_key
+        , week_start_last_year_dt
+        , week_end_last_year_dt
+        , year_num
+        , week_num
+        , week_of_year_num
+        , week_of_quarter_num
+        , week_overall_num
+        , month_num
+        , month_nm
+        , month_abbr
+        , week_of_month_num
+        , yearmonth_num
+        , month_in_quarter_num
+        , month_overall_num
+        , quarter_num
+        , quarter_nm
+        , quarter_full_nm
+        , days_in_week_num
+        , weekdays_in_week_num
+        , weekend_days_in_week_num
+        , iso_year_num
+        , iso_week_of_year_txt
+        , iso_week_overall_num
+        , iso_week_start_dt
+        , iso_week_start_key
+        , iso_week_end_dt
+        , iso_week_end_key
+        , week_year_txt
+        , year_week_txt
+        , month_year_nm
+        , week_of_month_nm
+        , current_week_flg
+        , prior_week_flg
+        , current_year_flg
+        , past_week_flg
+        , future_week_flg
+        , weeks_ago_num
+        , prior_week_key
+        , next_week_key
+        , week_last_year_key
+        , dw_synced_ts
+        , dw_source_nm
+        , create_user_id
+        , create_ts
+    )
+)
+, final as (
+    select * from weeks_with_attributes
+    union all
+    select * from special_records
+)
 select * from final
