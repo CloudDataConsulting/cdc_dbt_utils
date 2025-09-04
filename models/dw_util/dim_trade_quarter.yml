@@ -5,38 +5,40 @@ models:
     description: |
       Trade calendar quarter dimension table containing one row per trade quarter, derived from dim_trade_month for consistency.
       Provides quarter-level aggregations and attributes for retail/trade calendar analysis at quarterly granularity.
-      
+
       Since all trade calendar patterns have identical quarterly structure (13 weeks per quarter),
       this model has a single record per trade quarter.
-      
+
       Column naming follows CDC standards:
       - _dt for dates/timestamps
       - _num for numbers
       - _flg for boolean flags
       - _nm for names
-      - _key for date keys in YYYYMMDD format
+      - _key for keys in YYYYMMDD or YYYYQQ format
       - _txt for text strings
-      
+      - _abbr for abbreviations
+
       Key Features:
       - Single record per trade quarter (patterns are identical at quarter level)
       - Derived from dim_trade_month to ensure consistency
-      - Trade quarters follow retail calendar conventions
+      - Includes special records (-1: Unknown, -2: Invalid, -3: Not Applicable)
+      - Navigation keys for time series analysis
       - All patterns have 13 weeks per quarter (14 weeks in Q4 for 53-week years)
-      
+
       Pattern Details:
       - 445: Each quarter has 4-4-5 week months (13 weeks per quarter)
-      - 454: Each quarter has 4-5-4 week months (13 weeks per quarter)  
+      - 454: Each quarter has 4-5-4 week months (13 weeks per quarter)
       - 544: Each quarter has 5-4-4 week months (13 weeks per quarter)
-    
+
     columns:
       # Primary key
       - name: trade_quarter_key
-        description: "Primary key as trade year * 10 + trade quarter number (e.g., 20231 for 2023 Q1)"
+        description: "Primary key as YYYYQQ format (e.g., 202301 for 2023 Q1)"
         data_tests:
           - unique
           - not_null
 
-      # Core trade calendar
+      # Core identifiers
       - name: trade_year_num
         description: "Trade year"
         data_tests:
@@ -47,14 +49,17 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4]
+              values: [-3, -2, -1, 1, 2, 3, 4]
 
       - name: trade_quarter_nm
-        description: "Trade quarter name (First, Second, Third, Fourth)"
+        description: "Trade quarter name short (Q1, Q2, Q3, Q4)"
         data_tests:
           - not_null
-          - accepted_values:
-              values: ['First', 'Second', 'Third', 'Fourth']
+
+      - name: trade_quarter_full_nm
+        description: "Trade quarter name full (First, Second, Third, Fourth)"
+        data_tests:
+          - not_null
 
       # Quarter boundaries
       - name: trade_quarter_start_dt
@@ -82,32 +87,22 @@ models:
         description: "Trade month number of the first month in this quarter"
         data_tests:
           - not_null
-          - accepted_values:
-              values: [1, 4, 7, 10]
 
       - name: last_month_of_quarter_num
         description: "Trade month number of the last month in this quarter"
         data_tests:
           - not_null
-          # Note: Edge cases at boundaries can have other values
-          # - accepted_values:
-          #     values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
       - name: months_in_quarter_num
         description: "Number of months in the quarter (normally 3)"
         data_tests:
           - not_null
-          - accepted_values:
-              values: [1, 2, 3]  # Can be less at boundaries
 
       # Week metrics
       - name: weeks_in_quarter_num
-        description: "Total number of weeks in the quarter (varies at boundaries)"
+        description: "Total number of weeks in the quarter (normally 13, 14 with leap week)"
         data_tests:
           - not_null
-          # Note: Edge cases at boundaries can have different values
-          # - accepted_values:
-          #     values: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 
       - name: first_week_of_quarter_num
         description: "Trade week number of the first week in this quarter"
@@ -119,32 +114,35 @@ models:
         data_tests:
           - not_null
 
-      - name: trade_weeks_in_quarter_num
-        description: "Number of weeks in quarter (varies at boundaries)"
+      - name: trade_weeks_in_quarter_445_num
+        description: "Number of weeks in quarter for 4-4-5 pattern"
         data_tests:
           - not_null
-          # Note: Edge cases at boundaries can have different values
-          # - accepted_values:
-          #     values: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+
+      - name: trade_weeks_in_quarter_454_num
+        description: "Number of weeks in quarter for 4-5-4 pattern"
+        data_tests:
+          - not_null
+
+      - name: trade_weeks_in_quarter_544_num
+        description: "Number of weeks in quarter for 5-4-4 pattern"
+        data_tests:
+          - not_null
 
       # Day metrics
       - name: days_in_quarter_num
-        description: "Total number of days in the quarter (varies at boundaries)"
+        description: "Total number of days in the quarter (normally 91, 98 with leap week)"
         data_tests:
           - not_null
-          # Note: Edge cases at boundaries can have different values
-          # Values typically range from partial quarters to full quarters
 
       # Display formats
       - name: trade_quarter_txt
         description: "Trade quarter text (Q1, Q2, Q3, Q4)"
         data_tests:
           - not_null
-          - accepted_values:
-              values: ['Q1', 'Q2', 'Q3', 'Q4']
 
       - name: trade_quarter_year_nm
-        description: "Quarter and year description (e.g., 'First Quarter 2023')"
+        description: "Quarter and year description (e.g., 'First 2023')"
         data_tests:
           - not_null
 
@@ -162,8 +160,6 @@ models:
         description: "Quarter position description (First Quarter, Second Quarter, etc.)"
         data_tests:
           - not_null
-          - accepted_values:
-              values: ['First Quarter', 'Second Quarter', 'Third Quarter', 'Fourth Quarter']
 
       # Flags
       - name: contains_leap_week_flg
@@ -171,11 +167,42 @@ models:
         data_tests:
           - not_null
 
-      # Overall numbering
-      - name: trade_quarter_overall_num
-        description: "Sequential trade quarter number since earliest trade quarter, useful for quarter-over-quarter calculations"
+      # Year context
+      - name: trade_year_start_dt
+        description: "Start date of the trade year"
         data_tests:
           - not_null
+
+      - name: trade_year_start_key
+        description: "Date key (YYYYMMDD) of the trade year start"
+        data_tests:
+          - not_null
+
+      - name: trade_year_end_dt
+        description: "End date of the trade year"
+        data_tests:
+          - not_null
+
+      - name: trade_year_end_key
+        description: "Date key (YYYYMMDD) of the trade year end"
+        data_tests:
+          - not_null
+
+      # Overall numbering
+      - name: trade_quarter_overall_num
+        description: "Sequential trade quarter number since year 2000, useful for quarter-over-quarter calculations"
+        data_tests:
+          - not_null
+
+      # Navigation keys
+      - name: prior_trade_quarter_key
+        description: "Key for the prior trade quarter"
+
+      - name: next_trade_quarter_key
+        description: "Key for the next trade quarter"
+
+      - name: trade_quarter_last_year_key
+        description: "Key for the same quarter last year (4 quarters prior)"
 
       # Metadata columns
       - name: dw_synced_ts
@@ -184,7 +211,7 @@ models:
           - not_null
 
       - name: dw_source_nm
-        description: "Source system name (always 'dim_trade_quarter')"
+        description: "Source system name"
         data_tests:
           - not_null
 
@@ -193,60 +220,132 @@ models:
         data_tests:
           - not_null
 
-      - name: create_timestamp
+      - name: create_ts
         description: "Timestamp when record was created"
         data_tests:
           - not_null
-    
+
     data_tests:
       # Test that trade quarter key follows expected format
       - dbt_utils.expression_is_true:
-          expression: "trade_quarter_key = trade_year_num * 10 + trade_quarter_num"
+          expression: "trade_quarter_key = trade_year_num * 100 + trade_quarter_num"
           config:
+            where: "trade_quarter_key > 0"
             error_if: ">0"
 
       # Test that first month of quarter is correct
       - dbt_utils.expression_is_true:
           expression: |
-            case 
+            case
               when trade_quarter_num = 1 then first_month_of_quarter_num = 1
               when trade_quarter_num = 2 then first_month_of_quarter_num = 4
               when trade_quarter_num = 3 then first_month_of_quarter_num = 7
               when trade_quarter_num = 4 then first_month_of_quarter_num = 10
-              else false
+              else true
             end
           config:
+            where: "trade_quarter_key > 0"
             error_if: ">0"
 
-      # Test that last month of quarter is correct (for complete quarters)
+      # Test that last month of quarter is correct
       - dbt_utils.expression_is_true:
           expression: |
-            case 
-              when trade_quarter_num = 1 then last_month_of_quarter_num <= 3
-              when trade_quarter_num = 2 then last_month_of_quarter_num <= 6
-              when trade_quarter_num = 3 then last_month_of_quarter_num <= 9
-              when trade_quarter_num = 4 then last_month_of_quarter_num <= 12
-              else false
+            case
+              when trade_quarter_num = 1 then last_month_of_quarter_num = 3
+              when trade_quarter_num = 2 then last_month_of_quarter_num = 6
+              when trade_quarter_num = 3 then last_month_of_quarter_num = 9
+              when trade_quarter_num = 4 then last_month_of_quarter_num = 12
+              else true
             end
           config:
+            where: "trade_quarter_key > 0"
             error_if: ">0"
 
-      # Test that days in quarter aligns with weeks (7 days per week or less for partial quarters)
+      # Test that days in quarter aligns with weeks (7 days per week)
       - dbt_utils.expression_is_true:
-          expression: "days_in_quarter_num <= weeks_in_quarter_num * 7"
+          expression: "days_in_quarter_num = weeks_in_quarter_num * 7"
           config:
+            where: "trade_quarter_key > 0"
             error_if: ">0"
 
       # Test that complete quarters without leap weeks have exactly 13 weeks
       - dbt_utils.expression_is_true:
           expression: "weeks_in_quarter_num = 13"
           config:
-            where: "contains_leap_week_flg = 0 and trade_year_num between 1971 and 2040"
+            where: "trade_quarter_key > 0 and contains_leap_week_flg = 0"
+            error_if: ">0"
+
+      # Test that quarters with leap weeks have 14 weeks
+      - dbt_utils.expression_is_true:
+          expression: "weeks_in_quarter_num = 14"
+          config:
+            where: "trade_quarter_key > 0 and contains_leap_week_flg = 1"
             error_if: ">0"
 
       # Test that only Q4 can have leap weeks (53rd week always falls in Q4)
       - dbt_utils.expression_is_true:
           expression: "trade_quarter_num = 4"
           config:
-            where: "contains_leap_week_flg = 1"
+            where: "trade_quarter_key > 0 and contains_leap_week_flg = 1"
+            error_if: ">0"
+
+      # Test that quarter start dates are always Sundays
+      - dbt_utils.expression_is_true:
+          expression: "dayofweek(trade_quarter_start_dt) = 0"  # Sunday = 0 in Snowflake
+          config:
+            where: "trade_quarter_key > 0"
+            error_if: ">0"
+
+      # Test that quarter end dates are always Saturdays
+      - dbt_utils.expression_is_true:
+          expression: "dayofweek(trade_quarter_end_dt) = 6"  # Saturday = 6 in Snowflake
+          config:
+            where: "trade_quarter_key > 0"
+            error_if: ">0"
+
+      # Test for prior quarter key validity - simplified
+      - dbt_utils.expression_is_true:
+          expression: |
+            prior_trade_quarter_key is null
+            or prior_trade_quarter_key < 0
+            or prior_trade_quarter_key between 200001 and 203004
+          config:
+            where: "trade_quarter_key > 0"
+            error_if: ">0"
+
+      # Test for next quarter key validity - simplified
+      - dbt_utils.expression_is_true:
+          expression: |
+            next_trade_quarter_key is null
+            or next_trade_quarter_key < 0
+            or next_trade_quarter_key between 200001 and 203004
+          config:
+            where: "trade_quarter_key > 0"
+            error_if: ">0"
+
+      # Test for last year quarter key validity - simplified
+      - dbt_utils.expression_is_true:
+          expression: |
+            trade_quarter_last_year_key is null
+            or trade_quarter_last_year_key < 0
+            or trade_quarter_last_year_key between 200001 and 203004
+          config:
+            where: "trade_quarter_key > 0"
+            error_if: ">0"
+
+      # Test that all pattern week counts are the same (quarterly structure is identical)
+      # Note: Only test for complete quarters in the middle of our date range
+      - dbt_utils.expression_is_true:
+          expression: |
+            trade_weeks_in_quarter_445_num = trade_weeks_in_quarter_454_num
+            and trade_weeks_in_quarter_454_num = trade_weeks_in_quarter_544_num
+          config:
+            where: "trade_quarter_key > 0 and trade_year_num between 2001 and 2029"
+            error_if: ">0"
+
+      # Test that months_in_quarter is always 3 for complete quarters
+      - dbt_utils.expression_is_true:
+          expression: "months_in_quarter_num = 3"
+          config:
+            where: "trade_quarter_key > 0"
             error_if: ">0"
