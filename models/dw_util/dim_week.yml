@@ -120,6 +120,18 @@ models:
         data_tests:
           - not_null
 
+      - name: month_in_quarter_num
+        description: "Position of month within quarter (1, 2, or 3) - most common in the week"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [-3, -2, -1, 1, 2, 3]
+
+      - name: month_overall_num
+        description: "Sequential month number since base date - most common in the week"
+        data_tests:
+          - not_null
+
       # Quarter attributes
       - name: quarter_num
         description: "Quarter number (1-4)"
