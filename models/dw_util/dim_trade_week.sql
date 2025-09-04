@@ -1,7 +1,5 @@
 {{ config(materialized='table') }}
-
 {{ config( post_hook="alter table {{ this }} add primary key (trade_week_key)", ) }}
-
 with date as (
     select * from {{ ref('dim_trade_date') }}
     where date_key > 0
@@ -16,14 +14,12 @@ with date as (
         , min(full_dt) as trade_week_start_dt
         , max(full_dt) as trade_week_end_dt
         , max(trade_week_end_key) as trade_week_end_key
-
         -- Week position metrics
         , max(trade_week_overall_num) as trade_week_overall_num
         , max(trade_week_of_quarter_num) as trade_week_of_quarter_num
         , max(trade_week_of_month_445_num) as trade_week_of_month_445_num
         , max(trade_week_of_month_454_num) as trade_week_of_month_454_num
         , max(trade_week_of_month_544_num) as trade_week_of_month_544_num
-
         -- Month attributes for all three patterns
         , max(trade_month_445_num) as trade_month_445_num
         , max(trade_month_454_num) as trade_month_454_num
@@ -34,7 +30,6 @@ with date as (
         , max(trade_month_abbr) as trade_month_abbr
         , max(trade_month_overall_num) as trade_month_overall_num
         , max(trade_yearmonth_num) as trade_yearmonth_num
-
         -- Month boundaries for all patterns
         , min(trade_month_445_start_dt) as trade_month_445_start_dt
         , min(trade_month_445_start_key) as trade_month_445_start_key
@@ -48,7 +43,6 @@ with date as (
         , min(trade_month_544_start_key) as trade_month_544_start_key
         , max(trade_month_544_end_dt) as trade_month_544_end_dt
         , max(trade_month_544_end_key) as trade_month_544_end_key
-
         -- Quarter attributes
         , max(trade_quarter_num) as trade_quarter_num
         , max(trade_quarter_nm) as trade_quarter_nm
@@ -57,7 +51,6 @@ with date as (
         , min(trade_quarter_start_key) as trade_quarter_start_key
         , max(trade_quarter_end_dt) as trade_quarter_end_dt
         , max(trade_quarter_end_key) as trade_quarter_end_key
-
         -- Year attributes
         , min(trade_year_start_dt) as trade_year_start_dt
         , min(trade_year_start_key) as trade_year_start_key
@@ -65,19 +58,21 @@ with date as (
         , max(trade_year_end_key) as trade_year_end_key
         , max(trade_leap_week_flg) as trade_leap_week_flg
         , max(weeks_in_trade_year_num) as weeks_in_trade_year_num
-
         -- Week metrics
         , count(*) as days_in_week
-
         -- Labels
         , 'W' || lpad(trade_week_num::varchar, 2, '0') as trade_week_label
         , trade_year_num::varchar || '-W' || lpad(trade_week_num::varchar, 2, '0') as trade_week_full_label
-
         -- Navigation keys
-        , lag(trade_year_num * 100 + trade_week_num) over (order by trade_year_num, trade_week_num) as prior_trade_week_key
-        , lead(trade_year_num * 100 + trade_week_num) over (order by trade_year_num, trade_week_num) as next_trade_week_key
-        , lag(trade_year_num * 100 + trade_week_num, 52) over (order by trade_year_num, trade_week_num) as trade_week_last_year_key
-
+        , lag(trade_year_num * 100 + trade_week_num)
+            over (order by trade_year_num, trade_week_num)
+            as prior_trade_week_key
+        , lead(trade_year_num * 100 + trade_week_num)
+            over (order by trade_year_num, trade_week_num)
+            as next_trade_week_key
+        , lag(trade_year_num * 100 + trade_week_num, 52)
+            over (order by trade_year_num, trade_week_num)
+            as trade_week_last_year_key
         -- Metadata
         , max(dw_synced_ts) as dw_synced_ts
         , max(dw_source_nm) as dw_source_nm

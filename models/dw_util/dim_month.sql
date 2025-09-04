@@ -1,7 +1,5 @@
 {{ config(materialized='table') }}
-
 {{ config( post_hook="alter table {{ this }} add primary key (month_key)", ) }}
-
 with dim_date as (
     select * from {{ ref('dim_date') }}
 )
@@ -9,7 +7,6 @@ with dim_date as (
     select
         -- Natural key: Year * 100 + Month
         year_num * 100 + month_num as month_key
-
         -- Core identifiers
         , year_num
         , month_num
@@ -18,17 +15,14 @@ with dim_date as (
         , max(quarter_num) as quarter_num
         , max(quarter_nm) as quarter_nm
         , max(quarter_full_nm) as quarter_full_nm
-
         -- Month boundaries (actual month dates, not week boundaries)
         , date_trunc('month', min(full_dt))::date as month_start_dt
         , last_day(min(full_dt))::date as month_end_dt
         , to_char(date_trunc('month', min(full_dt)), 'YYYYMMDD')::int as month_start_key
         , to_char(last_day(min(full_dt)), 'YYYYMMDD')::int as month_end_key
-
         -- Previous year dates for same month
         , dateadd('year', -1, date_trunc('month', min(full_dt)))::date as month_start_last_year_dt
         , dateadd('year', -1, last_day(min(full_dt)))::date as month_end_last_year_dt
-
         -- Month metrics
         , count(distinct week_num) as weeks_in_month_num
         , count(*) as days_in_month_num
@@ -36,11 +30,9 @@ with dim_date as (
         , sum(case when weekday_flg = 'Weekend' then 1 else 0 end) as weekend_days_in_month_num
         , min(week_num) as first_week_of_month_num
         , max(week_num) as last_week_of_month_num
-
         -- Position metrics
         , max(month_in_quarter_num) as month_in_quarter_num
         , max(month_overall_num) as month_overall_num
-
     from dim_date
     where date_key > 0  -- Exclude special records
     group by year_num, month_num
@@ -49,50 +41,41 @@ with dim_date as (
     select
         *
         , month_key as yearmonth_num  -- Add for compatibility
-
         -- Display formats
         , month_nm || ' ' || year_num::varchar as month_year_nm
         , month_abbr || ' ' || year_num::varchar as month_year_abbr
         , year_num::varchar || '-' || lpad(month_num::varchar, 2, '0') as year_month_txt
         , 'M' || lpad(month_num::varchar, 2, '0') || ' ' || year_num::varchar as month_year_code_txt
-
         -- Current period flags
         , case
             when year_num = year(current_date())
                 and month_num = month(current_date())
             then 1 else 0
         end as current_month_flg
-
         , case
             when year_num = year(dateadd(month, -1, current_date()))
                 and month_num = month(dateadd(month, -1, current_date()))
             then 1 else 0
         end as prior_month_flg
-
         , case
             when year_num = year(current_date())
             then 1 else 0
         end as current_year_flg
-
         , case
             when month_end_dt < current_date()
             then 1 else 0
         end as past_month_flg
-
         , case
             when month_start_dt > current_date()
             then 1 else 0
         end as future_month_flg
-
         -- Relative date calculations
         , datediff(month, month_start_dt, current_date()) as months_ago_num
         , datediff(month, current_date(), month_start_dt) as months_from_now_num
-
         -- Navigation keys
         , lag(month_key) over (order by month_key) as prior_month_key
         , lead(month_key) over (order by month_key) as next_month_key
         , lag(month_key, 12) over (order by month_key) as month_last_year_key
-
         -- Metadata
         , current_timestamp() as dw_synced_ts
         , 'dim_month' as dw_source_nm

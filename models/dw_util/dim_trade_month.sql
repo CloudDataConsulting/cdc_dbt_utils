@@ -1,7 +1,5 @@
 {{ config(materialized='table') }}
-
 {{ config( post_hook="alter table {{ this }} add primary key (trade_month_key)", ) }}
-
 with trade_weeks as (
     select * from {{ ref('dim_trade_week') }}
     where trade_week_key > 0  -- Exclude special records
@@ -10,30 +8,25 @@ with trade_weeks as (
     select
         -- Primary key: YYYYMM format
         trade_year_num * 100 + trade_month_445_num as trade_month_key
-
         -- Core identifiers (all patterns have same month numbers)
         , trade_year_num
         , trade_month_445_num as trade_month_num
         , max(trade_month_445_nm) as trade_month_nm
         , max(trade_month_abbr) as trade_month_abbr
-
         -- Quarter information
         , max(trade_quarter_num) as trade_quarter_num
         , max(trade_quarter_nm) as trade_quarter_nm
         , max(trade_quarter_full_nm) as trade_quarter_full_nm
-
         -- Month boundaries (same for all patterns - based on week boundaries)
         , min(trade_week_start_dt) as trade_month_start_dt
         , max(trade_week_end_dt) as trade_month_end_dt
         , min(trade_week_start_key) as trade_month_start_key
         , max(trade_week_end_key) as trade_month_end_key
-
         -- Week metrics
         , min(trade_week_num) as first_week_of_month_num
         , max(trade_week_num) as last_week_of_month_num
         , count(distinct trade_week_num) as weeks_in_month_num
         , sum(days_in_week) as days_in_month_num
-
         -- Pattern-specific week counts (from the week dimension)
         , max(trade_week_of_month_445_num) as trade_weeks_in_month_445_num
         , max(case when trade_week_of_month_445_num = 5 then 1 else 0 end) as is_5_week_month_445_flg
@@ -41,28 +34,23 @@ with trade_weeks as (
         , max(case when trade_week_of_month_454_num = 5 then 1 else 0 end) as is_5_week_month_454_flg
         , max(trade_week_of_month_544_num) as trade_weeks_in_month_544_num
         , max(case when trade_week_of_month_544_num = 5 then 1 else 0 end) as is_5_week_month_544_flg
-
         -- Leap week flag
         , max(trade_leap_week_flg) as contains_leap_week_flg
-
         -- Year boundaries (for context)
         , min(trade_year_start_dt) as trade_year_start_dt
         , min(trade_year_start_key) as trade_year_start_key
         , max(trade_year_end_dt) as trade_year_end_dt
         , max(trade_year_end_key) as trade_year_end_key
-
         -- Quarter boundaries
         , min(trade_quarter_start_dt) as trade_quarter_start_dt
         , min(trade_quarter_start_key) as trade_quarter_start_key
         , max(trade_quarter_end_dt) as trade_quarter_end_dt
         , max(trade_quarter_end_key) as trade_quarter_end_key
-
         -- Metadata
         , max(dw_synced_ts) as dw_synced_ts
         , max(dw_source_nm) as dw_source_nm
         , max(create_user_id) as create_user_id
         , max(create_ts) as create_ts
-
     from trade_weeks
     group by
         trade_year_num
@@ -75,7 +63,6 @@ with trade_weeks as (
         , trade_month_num
         , trade_month_nm
         , trade_month_abbr
-
         -- Quarter
         , trade_quarter_num
         , trade_quarter_nm
@@ -84,27 +71,23 @@ with trade_weeks as (
         , trade_quarter_start_key
         , trade_quarter_end_dt
         , trade_quarter_end_key
-
         -- Month boundaries
         , trade_month_start_dt
         , trade_month_end_dt
         , trade_month_start_key
         , trade_month_end_key
-
         -- Position metrics
         , case
             when trade_month_num in (1, 4, 7, 10) then 1
             when trade_month_num in (2, 5, 8, 11) then 2
             else 3
         end as trade_month_in_quarter_num
-
         -- Week/day metrics
         , first_week_of_month_num
         , last_week_of_month_num
         , weeks_in_month_num
         , days_in_month_num
         , contains_leap_week_flg
-
         -- Pattern-specific columns
         , trade_weeks_in_month_445_num
         , is_5_week_month_445_flg
@@ -112,26 +95,21 @@ with trade_weeks as (
         , is_5_week_month_454_flg
         , trade_weeks_in_month_544_num
         , is_5_week_month_544_flg
-
         -- Display formats
         , trade_month_nm || ' ' || trade_year_num::varchar as trade_month_year_nm
         , 'TY' || trade_year_num::varchar || '-M' || lpad(trade_month_num::varchar, 2, '0') as trade_year_month_txt
         , trade_month_abbr || ' ' || trade_year_num::varchar as trade_month_year_abbr
-
         -- Year context
         , trade_year_start_dt
         , trade_year_start_key
         , trade_year_end_dt
         , trade_year_end_key
-
         -- Overall numbering
         , (trade_year_num - 2000) * 12 + trade_month_num as trade_month_overall_num
-
         -- Navigation keys
         , lag(trade_month_key) over (order by trade_month_key) as prior_trade_month_key
         , lead(trade_month_key) over (order by trade_month_key) as next_trade_month_key
         , lag(trade_month_key, 12) over (order by trade_month_key) as trade_month_last_year_key
-
         -- Metadata
         , dw_synced_ts
         , 'TRADE_CALENDAR' as dw_source_nm

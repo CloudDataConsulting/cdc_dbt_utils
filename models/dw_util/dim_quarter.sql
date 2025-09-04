@@ -1,7 +1,5 @@
 {{ config(materialized='table') }}
-
 {{ config( post_hook="alter table {{ this }} add primary key (quarter_key)", ) }}
-
 with dim_month as (
     select * from {{ ref('dim_month') }}
 )
@@ -9,36 +7,30 @@ with dim_month as (
     select
         -- Natural key: Year * 10 + Quarter
         year_num * 10 + quarter_num as quarter_key
-
         -- Core identifiers
         , year_num
         , quarter_num
         , quarter_nm
         , quarter_full_nm
-
         -- Quarter boundaries
         , min(month_start_dt) as quarter_start_dt
         , max(month_end_dt) as quarter_end_dt
         , min(month_start_key) as quarter_start_key
         , max(month_end_key) as quarter_end_key
-
         -- Previous year dates for same quarter
         , min(month_start_last_year_dt) as quarter_start_last_year_dt
         , max(month_end_last_year_dt) as quarter_end_last_year_dt
-
         -- Quarter metrics
         , count(distinct month_key) as months_in_quarter_num
         , sum(weeks_in_month_num) as weeks_in_quarter_num
         , sum(days_in_month_num) as days_in_quarter_num
         , sum(weekdays_in_month_num) as weekdays_in_quarter_num
         , sum(weekend_days_in_month_num) as weekend_days_in_quarter_num
-
         -- Month boundaries within quarter
         , min(month_num) as first_month_of_quarter_num
         , max(month_num) as last_month_of_quarter_num
         , min(first_week_of_month_num) as first_week_of_quarter_num
         , max(last_week_of_month_num) as last_week_of_quarter_num
-
     from dim_month
     where month_key > 0  -- Exclude special records
     group by year_num, quarter_num, quarter_nm, quarter_full_nm
@@ -46,52 +38,42 @@ with dim_month as (
 , quarters_with_attributes as (
     select
         *
-
         -- Overall numbering
         , row_number() over (order by quarter_key) as quarter_overall_num
-
         -- Display formats
         , quarter_nm || ' ' || year_num::varchar as quarter_year_nm
         , year_num::varchar || '-' || quarter_nm as year_quarter_txt
         , quarter_full_nm || ' Quarter ' || year_num::varchar as quarter_full_nm_year
-
         -- Current period flags
         , case
             when year_num = year(current_date())
                 and quarter_num = quarter(current_date())
             then 1 else 0
         end as current_quarter_flg
-
         , case
             when year_num = year(dateadd(quarter, -1, current_date()))
                 and quarter_num = quarter(dateadd(quarter, -1, current_date()))
             then 1 else 0
         end as prior_quarter_flg
-
         , case
             when year_num = year(current_date())
             then 1 else 0
         end as current_year_flg
-
         , case
             when quarter_end_dt < current_date()
             then 1 else 0
         end as past_quarter_flg
-
         , case
             when quarter_start_dt > current_date()
             then 1 else 0
         end as future_quarter_flg
-
         -- Relative date calculations
         , datediff(quarter, quarter_start_dt, current_date()) as quarters_ago_num
         , datediff(quarter, current_date(), quarter_start_dt) as quarters_from_now_num
-
         -- Navigation keys
         , lag(quarter_key) over (order by quarter_key) as prior_quarter_key
         , lead(quarter_key) over (order by quarter_key) as next_quarter_key
         , lag(quarter_key, 4) over (order by quarter_key) as quarter_last_year_key
-
         -- Metadata
         , current_timestamp() as dw_synced_ts
         , 'dim_quarter' as dw_source_nm
