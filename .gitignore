@@ -33,5 +33,3 @@ htmlcov/
 
 # AI logs
 ai-logs/
-
-uv.lock
