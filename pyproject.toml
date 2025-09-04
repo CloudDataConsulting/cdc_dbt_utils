@@ -18,12 +18,14 @@ dialect = "snowflake"
 templater = "dbt"
 sql_file_exts = ".sql,.sql.j2,.dml,.ddl"
 max_line_length = 120
+large_file_skip_byte_limit = 0
 # L034 was re-ordering columns in a way that broke downstream code
 # LT07 enforces CTE brackets on new lines, which we don't want
 # LT02 enforces closing parenthesis on new line, which we don't want
 # LT08 enforces blank line after CTE closing bracket, which we don't want
 # AL09 removes self-aliasing which we want to keep (datecode as datecode)
 exclude_rules = "LT08,L034,LT07,LT02,AL09"
+tab_space_size = 2
 
 # Configure LT15 rule for consecutive blank lines
 [tool.sqlfluff.rules.layout.newlines]
@@ -73,7 +75,7 @@ spacing_before = "touch"
 closing_bracket_line_position = "same"
 
 [tool.sqlfluff.rules.layout.indent]
-closing_bracket_line_position = "trailing"
+closing_bracket_line_position = "same"
 
 [tool.sqlfluff.indentation]
 indented_joins = false

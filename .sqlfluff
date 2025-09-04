@@ -4,14 +4,15 @@ verbose = 1
 dialect = snowflake
 # One of [raw|jinja|python|placeholder]
 # Note: Using jinja templater as dbt templater requires separate package
-templater = jinja
+templater = dbt
 sql_file_exts = .sql,.sql.j2,.dml,.ddl
 max_line_length = 120
 large_file_skip_byte_limit = 0
 # L034 was re-ordering columns in a way that broke downstream code.
 # LT07 enforces CTE brackets on new lines, which we don't want
 # LT02 enforces closing parenthesis on new line, which we don't want
-exclude_rules = LT08, L034, LT07, LT02
+# AL09 removes self-aliasing which we want to keep (trim(col) as col pattern in staging)
+exclude_rules = LT08, L034, LT07, LT02, AL09
 tab_space_size = 2
 
 [sqlfluff:templater:dbt]
