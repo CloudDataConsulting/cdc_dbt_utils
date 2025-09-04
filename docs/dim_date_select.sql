@@ -1,3 +1,6 @@
+-- this select statement is for testing and development purposes only
+-- it was a way to verfy that claude code, and claude the app did not randomly rename columns.
+
 select
     date.date_key
     , date.full_dt
