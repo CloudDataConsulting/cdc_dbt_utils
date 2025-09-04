@@ -1,6 +1,6 @@
 {{ config(materialized='table') }}
 
-{{ config( post_hook="alter table {{ this }} add primary key (trade_month_key, calendar_pattern_txt)", ) }}
+{{ config( post_hook="alter table {{ this }} add primary key (trade_month_key)", ) }}
 
 with trade_weeks as (
     select * from {{ ref('dim_trade_week') }}
