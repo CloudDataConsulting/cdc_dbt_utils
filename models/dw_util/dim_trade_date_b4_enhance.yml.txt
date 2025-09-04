@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: dim_trade_date
+  - name: dim_trade_date_b4_enhance
     description: |
       Trade date dimension table with all three common patterns (445, 454, 544).
       This model provides trade_week_of_month calculations for all patterns in a single table,
@@ -21,17 +21,11 @@ models:
       - Columns suffixed with pattern type (_445_num, _454_num, _544_num)
       - No configuration or lookups needed - all patterns always available
       - Designed for cdc_dbt_utils package
-      - Multiple year-over-year comparison methods for 53-week year handling
 
       Pattern Details:
       - 445: Each quarter has 4-4-5 week months (13 weeks per quarter)
       - 454: Each quarter has 4-5-4 week months (13 weeks per quarter)
       - 544: Each quarter has 5-4-4 week months (13 weeks per quarter)
-
-      Year-over-Year Comparison Methods:
-      - NRF Standard: Week 53 maps to prior year week 52
-      - Walmart Method: Week 53 maps to same year week 1
-      - 364-Day Method: Always compare to exactly 52 weeks (364 days) prior
 
     columns:
       # Primary Key
@@ -48,26 +42,15 @@ models:
         data_tests:
           - not_null
 
-      # Year-over-year comparison keys
-      - name: trade_date_last_year_nrf_key
-        description: NRF standard method - Week 53 maps to prior year week 52, maintaining holiday alignment
-
-      - name: trade_date_last_year_walmart_key
-        description: Walmart method - Week 53 maps to same year week 1 for comparison
-
-      - name: trade_date_last_year_364_key
-        description: 364-day method - Always exactly 52 weeks (364 days) prior, same day of week
+      - name: trade_date_last_year_key
+        description: Same trade date from the previous year (same day of week, 52 weeks ago) for YoY comparisons
 
       # Day position metrics
       - name: trade_day_of_year_num
-        description: Day number within the trade year (1-364 or 1-371)
+        description: Day number within the trade year
         data_tests:
           - not_null
-
-      - name: trade_day_of_quarter_num
-        description: Day number within the trade quarter (1-91 or 1-98)
-        data_tests:
-          - not_null
+      # Day descriptors
 
       # WEEK Level
       # Week numbers
@@ -75,6 +58,7 @@ models:
         description: Trade week number within the year (1-52 or 1-53)
         data_tests:
           - not_null
+
 
       - name: trade_week_of_year_num
         description: Trade week number within the year (1-52 or 1-53), same as trade_week_num
@@ -107,6 +91,7 @@ models:
           - not_null
 
       # Week boundaries
+
       - name: trade_week_start_dt
         description: Start date of the trade week (Sunday)
         data_tests:
@@ -116,6 +101,7 @@ models:
         description: Date key of trade week start (YYYYMMDD)
         data_tests:
           - not_null
+
 
       - name: trade_week_end_dt
         description: End date of the trade week (Saturday)
@@ -150,6 +136,7 @@ models:
           - accepted_values:
               values: [-3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
+
       - name: trade_month_445_nm
         description: Trade month name for 4-4-5 pattern
         data_tests:
@@ -182,6 +169,7 @@ models:
           - not_null
 
       # Month boundaries
+
       - name: trade_month_445_start_dt
         description: Start date of the trade month for 4-4-5 pattern
         data_tests:
@@ -244,6 +232,7 @@ models:
 
       # QUARTER Level
       # Quarter identifiers
+
       - name: trade_quarter_num
         description: Trade quarter (1-4) - same for all patterns
         data_tests:
@@ -252,7 +241,7 @@ models:
               values: [-3, -2, -1, 1, 2, 3, 4]
 
       - name: trade_quarter_nm
-        description: Trade quarter name (Q1, Q2, Q3, Q4)
+        description: Trade quarter name (First, Second, Third, Fourth)
         data_tests:
           - not_null
           - accepted_values:
@@ -266,6 +255,7 @@ models:
               values: ['First', 'Second', 'Third', 'Fourth', 'Not Applicable', 'Invalid', 'Unknown']
 
       # Quarter boundaries
+
       - name: trade_quarter_start_dt
         description: Start date of the trade quarter (same for all patterns)
         data_tests:
@@ -314,7 +304,8 @@ models:
         data_tests:
           - not_null
 
-      # Year and quarter metrics
+      # Year flags and metrics
+
       - name: trade_leap_week_flg
         description: Flag indicating if this date falls in the 53rd trade week
         data_tests:
@@ -326,27 +317,6 @@ models:
           - not_null
           - accepted_values:
               values: [-3, -2, -1, 52, 53]
-
-      - name: days_in_trade_year_num
-        description: Total number of days in the trade year (364 or 371)
-        data_tests:
-          - not_null
-          - accepted_values:
-              values: [-3, -2, -1, 364, 371]
-
-      - name: weeks_in_trade_quarter_num
-        description: Total number of weeks in the trade quarter (13 or 14 for Q4 in leap years)
-        data_tests:
-          - not_null
-          - accepted_values:
-              values: [-3, -2, -1, 13, 14]
-
-      - name: days_in_trade_quarter_num
-        description: Total number of days in the trade quarter (91 or 98 for Q4 in leap years)
-        data_tests:
-          - not_null
-          - accepted_values:
-              values: [-3, -2, -1, 91, 98]
 
       # Metadata Columns
       - name: dw_synced_ts
@@ -419,30 +389,12 @@ models:
             where: "date_key >0"  # Exclude special rows
             error_if: ">0"
 
-      # Test that year-over-year comparison keys point to valid dates when not null
+      # Test that trade_date_last_year_key points to valid dates when not null
+      # Note: 1995 dates will have keys pointing to 1994 which is outside our range, so we exclude them
       - dbt_utils.expression_is_true:
           expression: |
-            (trade_date_last_year_nrf_key is null or trade_date_last_year_nrf_key between 19990101 and 20301231)
-            and (trade_date_last_year_walmart_key is null or trade_date_last_year_walmart_key between 20000101 and 20301231)
-            and (trade_date_last_year_364_key is null or trade_date_last_year_364_key between 19990101 and 20301231)
+            trade_date_last_year_key is null
+            or trade_date_last_year_key between 19940101 and 20401231
           config:
-            where: "trade_year_num >= 2000 and date_key >0"
-            error_if: ">0"
-
-      # Test that days_in_trade_year_num is correct (364 for 52-week years, 371 for 53-week years)
-      - dbt_utils.expression_is_true:
-          expression: |
-            (weeks_in_trade_year_num = 52 and days_in_trade_year_num = 364)
-            or (weeks_in_trade_year_num = 53 and days_in_trade_year_num = 371)
-          config:
-            where: "date_key >0"  # Exclude special rows
-            error_if: ">0"
-
-      # Test that days_in_trade_quarter_num is correct (91 for regular quarters, 98 for Q4 in 53-week years)
-      - dbt_utils.expression_is_true:
-          expression: |
-            (weeks_in_trade_quarter_num = 13 and days_in_trade_quarter_num = 91)
-            or (weeks_in_trade_quarter_num = 14 and days_in_trade_quarter_num = 98)
-          config:
-            where: "date_key >0"  # Exclude special rows
+            where: "trade_year_num > 1995 and date_key >0"   # First year won't have valid last year references
             error_if: ">0"
