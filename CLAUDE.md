@@ -155,3 +155,4 @@ select * from final
 - Last published version: 0.1.4
 - See CHANGELOG.md for complete version history
 - Major breaking changes in v1.0.0: Standardized column naming conventions
+- dbt tags do not start with v
