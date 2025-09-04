@@ -2,96 +2,311 @@ version: 2
 
 models:
   - name: dim_quarter
-    description: "Quarter dimension table containing one row per calendar quarter, derived from dim_date. Provides quarter-level aggregations and attributes for time series analysis at quarterly granularity. Essential for financial reporting, quarterly business reviews, and year-over-year quarterly comparisons."
+    description: |
+      Calendar quarter dimension table containing one row per calendar quarter, derived from dim_date for consistency.
+      Provides quarter-level aggregations and attributes for time series analysis at quarterly granularity.
+
+      Column naming follows CDC standards:
+      - _dt for dates
+      - _ts for timestamps
+      - _num for numbers
+      - _flg for boolean flags
+      - _nm for names
+      - _key for date keys in YYYYMMDD format or YYYYQ for quarter keys
+      - _txt for text strings
+      - _abbr for abbreviations
+
+      Key Features:
+      - Primary key is quarter_key (YYYYQ format where Q is 1-4)
+      - Derived from dim_date to ensure consistency
+      - Contains special records (-1, -2, -3) for Unknown, Invalid, and Not Applicable
+      - Useful for financial reporting, quarterly business reviews, and year-over-year comparisons
+
     columns:
-    - name: quarter_key
-      description: "Primary key as YYYYQ integer (e.g., 20231 for Q1 2023)"
-      data_tests:
-        - unique
-        - not_null
-    
-    # Quarter dates
-    - name: first_day_of_quarter_dt
-      description: "First calendar date of the quarter"
-    - name: last_day_of_quarter_dt
-      description: "Last calendar date of the quarter"
-    - name: first_day_of_quarter_key
-      description: "Date key (YYYYMMDD) of the quarter's first day"
-    - name: last_day_of_quarter_key
-      description: "Date key (YYYYMMDD) of the quarter's last day"
-    
-    # Quarter identifiers
-    - name: quarter_num
-      description: "Quarter number within the year (1-4)"
-    - name: quarter_nm
-      description: "Quarter name (First, Second, Third, Fourth)"
-    - name: quarter_abbr
-      description: "Quarter abbreviation (Q1, Q2, Q3, Q4)"
-    - name: quarter_overall_num
-      description: "Sequential quarter number since 1970-01-01, useful for quarter-over-quarter calculations"
-    
-    # Year context
-    - name: year_num
-      description: "Calendar year as 4-digit integer"
-    - name: yearquarter_txt
-      description: "Year-quarter formatted as YYYY-Q# string (e.g., 2023-Q1)"
-    
-    # Quarter characteristics
-    - name: days_in_quarter
-      description: "Total number of days in the quarter (90-92)"
-    - name: workdays_in_quarter
-      description: "Number of weekdays (Monday-Friday) in the quarter"
-    - name: weekends_in_quarter
-      description: "Number of weekend days (Saturday-Sunday) in the quarter"
-    - name: weeks_in_quarter
-      description: "Number of weeks that overlap with this quarter"
-    - name: months_in_quarter
-      description: "Number of months in the quarter (always 3)"
-    
-    # Month composition
-    - name: first_month_num
-      description: "First month number in the quarter (1, 4, 7, or 10)"
-    - name: first_month_nm
-      description: "Name of the first month in the quarter"
-    - name: second_month_num
-      description: "Second month number in the quarter (2, 5, 8, or 11)"
-    - name: second_month_nm
-      description: "Name of the second month in the quarter"
-    - name: third_month_num
-      description: "Third month number in the quarter (3, 6, 9, or 12)"
-    - name: third_month_nm
-      description: "Name of the third month in the quarter"
-    
-    # Relative quarter indicators
-    - name: same_quarter_last_year_key
-      description: "Quarter key (YYYYQ) of the same quarter from the previous year"
-    - name: same_quarter_last_year_begin_dt
-      description: "First day of the same quarter from the previous year"
-    - name: same_quarter_last_year_end_dt
-      description: "Last day of the same quarter from the previous year"
-    - name: prior_quarter_key
-      description: "Quarter key (YYYYQ) of the previous quarter"
-    - name: next_quarter_key
-      description: "Quarter key (YYYYQ) of the following quarter"
-    
-    # Fiscal calendar support (when applicable)
-    - name: fiscal_quarter_num
-      description: "Quarter number in fiscal year (if fiscal calendar is configured)"
-    - name: fiscal_year_num
-      description: "Fiscal year (if fiscal calendar is configured)"
-    - name: fiscal_yearquarter_num
-      description: "Fiscal year-quarter combination as integer"
-    
-    # Retail calendar support
-    - name: retail_quarter_num
-      description: "Retail quarter number (1-4)"
-    - name: retail_year_num
-      description: "Retail year (starts in February for NRF calendar)"
-    - name: retail_weeks_in_quarter
-      description: "Number of weeks in this retail quarter (13 or 14 for 53-week years)"
-    
-    # Metadata
-    - name: create_user_id
-      description: "User ID who created the record"
-    - name: create_timestamp
-      description: "Timestamp when the record was created"
+      - name: quarter_key
+        description: "Primary key as YYYYQ integer representing the year and quarter"
+        data_tests:
+          - unique
+          - not_null
+
+      # Core identifiers
+      - name: year_num
+        description: "Calendar year as 4-digit integer"
+        data_tests:
+          - not_null
+
+      - name: quarter_num
+        description: "Quarter number within the year (1-4)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [-3, -2, -1, 1, 2, 3, 4]
+
+      - name: quarter_nm
+        description: "Quarter name in Q format (Q1, Q2, Q3, Q4)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['Q1', 'Q2', 'Q3', 'Q4', 'N/A', 'INV', 'UNK']
+
+      - name: quarter_full_nm
+        description: "Quarter full name (First, Second, Third, Fourth)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['First', 'Second', 'Third', 'Fourth', 'Not Applicable', 'Invalid', 'Unknown']
+
+      # Quarter boundaries
+      - name: quarter_start_dt
+        description: "First calendar date of the quarter"
+        data_tests:
+          - not_null
+
+      - name: quarter_end_dt
+        description: "Last calendar date of the quarter"
+        data_tests:
+          - not_null
+
+      - name: quarter_start_key
+        description: "Date key (YYYYMMDD) of the quarter's first day"
+        data_tests:
+          - not_null
+
+      - name: quarter_end_key
+        description: "Date key (YYYYMMDD) of the quarter's last day"
+        data_tests:
+          - not_null
+
+      # Previous year dates
+      - name: quarter_start_last_year_dt
+        description: "First day of the same quarter from the previous year"
+        data_tests:
+          - not_null
+
+      - name: quarter_end_last_year_dt
+        description: "Last day of the same quarter from the previous year"
+        data_tests:
+          - not_null
+
+      # Quarter metrics
+      - name: months_in_quarter_num
+        description: "Number of distinct months in the quarter (typically 3)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1, 2, 3]
+
+      - name: weeks_in_quarter_num
+        description: "Number of distinct weeks that overlap with this quarter"
+        data_tests:
+          - not_null
+
+      - name: days_in_quarter_num
+        description: "Total number of days in the quarter (89-92)"
+        data_tests:
+          - not_null
+
+      - name: weekdays_in_quarter_num
+        description: "Number of weekdays (Monday-Friday) in the quarter"
+        data_tests:
+          - not_null
+
+      - name: weekend_days_in_quarter_num
+        description: "Number of weekend days (Saturday-Sunday) in the quarter"
+        data_tests:
+          - not_null
+
+      - name: first_month_of_quarter_num
+        description: "Month number of the first month in this quarter"
+        data_tests:
+          - not_null
+
+      - name: last_month_of_quarter_num
+        description: "Month number of the last month in this quarter"
+        data_tests:
+          - not_null
+
+      - name: first_week_of_quarter_num
+        description: "Week number of the first week in this quarter"
+        data_tests:
+          - not_null
+
+      - name: last_week_of_quarter_num
+        description: "Week number of the last week in this quarter"
+        data_tests:
+          - not_null
+
+      # Position metrics
+      - name: quarter_overall_num
+        description: "Sequential quarter number since base date, useful for quarter-over-quarter calculations"
+        data_tests:
+          - not_null
+
+      # Display formats
+      - name: quarter_year_nm
+        description: "Quarter and year display name (e.g., 'Q1 2023')"
+        data_tests:
+          - not_null
+
+      - name: year_quarter_txt
+        description: "Year-quarter formatted as YYYY-Q string (e.g., '2023-Q1')"
+        data_tests:
+          - not_null
+
+      - name: quarter_full_nm_year
+        description: "Full quarter name with year (e.g., 'First Quarter 2023')"
+        data_tests:
+          - not_null
+
+      # Current period flags
+      - name: current_quarter_flg
+        description: "Flag indicating if this is the current quarter"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+
+      - name: prior_quarter_flg
+        description: "Flag indicating if this is the prior quarter"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+
+      - name: current_year_flg
+        description: "Flag indicating if this quarter is in the current year"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+
+      - name: past_quarter_flg
+        description: "Flag indicating if this quarter has ended (quarter_end_dt < current date)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+
+      - name: future_quarter_flg
+        description: "Flag indicating if this quarter has not started yet (quarter_start_dt > current date)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+
+      # Relative date calculations
+      - name: quarters_ago_num
+        description: "Number of quarters ago from current date (negative for future quarters, -999 for special records)"
+        data_tests:
+          - not_null
+
+      - name: quarters_from_now_num
+        description: "Number of quarters from now (negative for past quarters, -999 for special records)"
+        data_tests:
+          - not_null
+
+      # Navigation keys
+      - name: prior_quarter_key
+        description: "Key for the prior quarter (null for first quarter)"
+
+      - name: next_quarter_key
+        description: "Key for the next quarter (null for last quarter)"
+
+      - name: quarter_last_year_key
+        description: "Key for the same quarter last year (4 quarters prior, null if not exists)"
+
+      # Metadata columns
+      - name: dw_synced_ts
+        description: "Timestamp when record was created/updated"
+        data_tests:
+          - not_null
+
+      - name: dw_source_nm
+        description: "Source system name (always 'dim_quarter')"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['dim_quarter']
+
+      - name: create_user_id
+        description: "User who created the record"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['ETL_PROCESS']
+
+      - name: create_ts
+        description: "Timestamp when record was created"
+        data_tests:
+          - not_null
+
+    data_tests:
+      # Test that quarter key matches year and quarter
+      - dbt_utils.expression_is_true:
+          expression: "quarter_key = year_num * 10 + quarter_num"
+          config:
+            where: "quarter_key > 0"
+            error_if: ">0"
+
+      # Test that quarter start dates align with calendar quarters
+      - dbt_utils.expression_is_true:
+          expression: |
+            case
+              when quarter_num = 1 then month(quarter_start_dt) = 1 and day(quarter_start_dt) = 1
+              when quarter_num = 2 then month(quarter_start_dt) = 4 and day(quarter_start_dt) = 1
+              when quarter_num = 3 then month(quarter_start_dt) = 7 and day(quarter_start_dt) = 1
+              when quarter_num = 4 then month(quarter_start_dt) = 10 and day(quarter_start_dt) = 1
+              else true
+            end
+          config:
+            where: "quarter_key > 0 and days_in_quarter_num >= 89"  # Only test complete quarters
+            error_if: ">0"
+
+      # Test that quarter end dates align with calendar quarters
+      - dbt_utils.expression_is_true:
+          expression: |
+            case
+              when quarter_num = 1 then month(quarter_end_dt) = 3 and day(quarter_end_dt) = 31
+              when quarter_num = 2 then month(quarter_end_dt) = 6 and day(quarter_end_dt) = 30
+              when quarter_num = 3 then month(quarter_end_dt) = 9 and day(quarter_end_dt) = 30
+              when quarter_num = 4 then month(quarter_end_dt) = 12 and day(quarter_end_dt) = 31
+              else true
+            end
+          config:
+            where: "quarter_key > 0 and days_in_quarter_num >= 89"  # Only test complete quarters
+            error_if: ">0"
+
+      # Test that weekdays + weekend days = total days
+      - dbt_utils.expression_is_true:
+          expression: "weekdays_in_quarter_num + weekend_days_in_quarter_num = days_in_quarter_num"
+          config:
+            where: "quarter_key > 0"
+            error_if: ">0"
+
+      # Test month boundaries within quarters
+      - dbt_utils.expression_is_true:
+          expression: |
+            case
+              when quarter_num = 1 then first_month_of_quarter_num = 1 and last_month_of_quarter_num = 3
+              when quarter_num = 2 then first_month_of_quarter_num = 4 and last_month_of_quarter_num = 6
+              when quarter_num = 3 then first_month_of_quarter_num = 7 and last_month_of_quarter_num = 9
+              when quarter_num = 4 then first_month_of_quarter_num = 10 and last_month_of_quarter_num = 12
+              else true
+            end
+          config:
+            where: "quarter_key > 0 and months_in_quarter_num = 3"  # Only test complete quarters
+            error_if: ">0"
+
+      # Test that current flags are mutually exclusive
+      - dbt_utils.expression_is_true:
+          expression: "past_quarter_flg + current_quarter_flg + future_quarter_flg <= 1"
+          config:
+            where: "quarter_key > 0"
+            error_if: ">0"
+
+      # Test that quarters have reasonable number of days (89-92)
+      - dbt_utils.expression_is_true:
+          expression: "days_in_quarter_num between 89 and 92"
+          config:
+            where: "quarter_key > 0 and months_in_quarter_num = 3"  # Only test complete quarters
+            error_if: ">0"
