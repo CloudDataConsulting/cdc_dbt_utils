@@ -3,7 +3,7 @@ version: 2
 models:
   - name: dim_date
     description: |
-      Standard calendar date dimension table containing one row per calendar day, derived from dim_trade_date.
+      Standard calendar date dimension table containing one row per calendar day.
       Provides comprehensive date attributes for standard calendar analysis without trade/retail calendar complexity.
 
       Column naming follows CDC standards:

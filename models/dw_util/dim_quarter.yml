@@ -3,7 +3,7 @@ version: 2
 models:
   - name: dim_quarter
     description: |
-      Calendar quarter dimension table containing one row per calendar quarter, derived from dim_date for consistency.
+      Calendar quarter dimension table containing one row per calendar quarter, derived from dim_month for consistency.
       Provides quarter-level aggregations and attributes for time series analysis at quarterly granularity.
 
       Column naming follows CDC standards:

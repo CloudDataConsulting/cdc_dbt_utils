@@ -96,13 +96,13 @@ The package follows strict naming conventions where the class word (data type in
 ISO-related columns have `iso_` prefix: `iso_day_of_week_num`, `iso_year_num`, `iso_week_of_year_txt`
 
 For dim_trade_date and its aggregates
-calendar_*
 trade_*
-iso_*
 Should have the same name for the same thing.
 for instance
 trade_first_day_dt
 
+For dim_date and its aggregates
+No prefix.
 
 "Overall" metrics (since 1970-01-01) use pattern: `{measure}_overall_{class}` (e.g., `day_overall_num`, `month_overall_num`)
 
@@ -116,7 +116,7 @@ All dbt models in this package must follow CDC CTE standards:
 3. **All refs at the top**: All `{{ ref() }}` statements must be in the first CTEs, with any filters applied there
 4. **Descriptive comments in YAML**: Model descriptions belong in the `.yml` files, not as comments in SQL files
 
-### CTE Naming Examples
+### CTE Naming Examples (includes aliases)
 - ✅ GOOD: `trade_date`, `date_dimension`, `monthly_aggregated_data`, `quarter_with_retail_calendar`
 - ❌ BAD: `td`, `dd`, `month_agg`, `qtr_retail`
 
