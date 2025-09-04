@@ -222,32 +222,32 @@ with dim_date as (
             when week_start_dt <= current_date()
                 and week_end_dt >= current_date()
             then 1 else 0
-        end as is_current_week_flg
+        end as current_week_flg
 
         , case
             when week_key < 0 then 0
             when week_start_dt <= dateadd(week, -1, current_date())
                 and week_end_dt >= dateadd(week, -1, current_date())
             then 1 else 0
-        end as is_prior_week_flg
+        end as prior_week_flg
 
         , case
             when week_key < 0 then 0
             when year_num = year(current_date())
             then 1 else 0
-        end as is_current_year_flg
+        end as current_year_flg
 
         , case
             when week_key < 0 then 0
             when week_end_dt < current_date()
             then 1 else 0
-        end as is_past_week_flg
+        end as past_week_flg
 
         , case
             when week_key < 0 then 0
             when week_start_dt > current_date()
             then 1 else 0
-        end as is_future_week_flg
+        end as future_week_flg
 
         -- Relative date calculations
         , case

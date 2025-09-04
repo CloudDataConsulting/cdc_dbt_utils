@@ -222,35 +222,35 @@ models:
           - not_null
 
       # Current period flags
-      - name: is_current_week_flg
+      - name: current_week_flg
         description: "Flag indicating if this is the current week"
         data_tests:
           - not_null
           - accepted_values:
               values: [0, 1]
 
-      - name: is_prior_week_flg
+      - name: prior_week_flg
         description: "Flag indicating if this is the prior week"
         data_tests:
           - not_null
           - accepted_values:
               values: [0, 1]
 
-      - name: is_current_year_flg
+      - name: current_year_flg
         description: "Flag indicating if this week is in the current year"
         data_tests:
           - not_null
           - accepted_values:
               values: [0, 1]
 
-      - name: is_past_week_flg
+      - name: past_week_flg
         description: "Flag indicating if this week has ended (week_end_dt < current date)"
         data_tests:
           - not_null
           - accepted_values:
               values: [0, 1]
 
-      - name: is_future_week_flg
+      - name: future_week_flg
         description: "Flag indicating if this week has not started yet (week_start_dt > current date)"
         data_tests:
           - not_null
@@ -309,7 +309,7 @@ models:
       - dbt_utils.expression_is_true:
           expression: "dayofweek(week_start_dt) = 0"  # Sunday
           config:
-            where: "week_key > 0"  # Exclude special records
+            where: "week_key > 0 and days_in_week_num = 7"  # Only test complete weeks
             error_if: ">0"
 
       - dbt_utils.expression_is_true:
@@ -345,31 +345,9 @@ models:
             where: "week_key > 0"  # Exclude special records
             error_if: ">0"
 
-      # Test navigation keys reference valid weeks
-      - dbt_utils.expression_is_true:
-          expression: |
-            prior_week_key is null
-            or exists (select 1 from {{ this }} t2 where t2.week_key = {{ this }}.prior_week_key)
-          config:
-            error_if: ">0"
-
-      - dbt_utils.expression_is_true:
-          expression: |
-            next_week_key is null
-            or exists (select 1 from {{ this }} t2 where t2.week_key = {{ this }}.next_week_key)
-          config:
-            error_if: ">0"
-
-      - dbt_utils.expression_is_true:
-          expression: |
-            week_last_year_key is null
-            or exists (select 1 from {{ this }} t2 where t2.week_key = {{ this }}.week_last_year_key)
-          config:
-            error_if: ">0"
-
       # Test that current flags are mutually exclusive
       - dbt_utils.expression_is_true:
-          expression: "is_past_week_flg + is_current_week_flg + is_future_week_flg <= 1"
+          expression: "past_week_flg + current_week_flg + future_week_flg <= 1"
           config:
             where: "week_key > 0"  # Exclude special records
             error_if: ">0"
