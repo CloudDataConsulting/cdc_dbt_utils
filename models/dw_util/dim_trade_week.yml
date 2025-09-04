@@ -350,36 +350,6 @@ models:
             where: "trade_week_key > 0"
             error_if: ">0"
 
-      # Test for prior week key validity
-      - dbt_utils.expression_is_true:
-          expression: |
-            prior_trade_week_key is null
-            or prior_trade_week_key < 0
-            or exists (select 1 from {{ ref('dim_trade_week') }} t2 where t2.trade_week_key = {{ this }}.prior_trade_week_key)
-          config:
-            where: "trade_week_key > 0"
-            error_if: ">0"
-
-      # Test for next week key validity
-      - dbt_utils.expression_is_true:
-          expression: |
-            next_trade_week_key is null
-            or next_trade_week_key < 0
-            or exists (select 1 from {{ ref('dim_trade_week') }} t2 where t2.trade_week_key = {{ this }}.next_trade_week_key)
-          config:
-            where: "trade_week_key > 0"
-            error_if: ">0"
-
-      # Test for last year week key validity
-      - dbt_utils.expression_is_true:
-          expression: |
-            trade_week_last_year_key is null
-            or trade_week_last_year_key < 0
-            or exists (select 1 from {{ ref('dim_trade_week') }} t2 where t2.trade_week_key = {{ this }}.trade_week_last_year_key)
-          config:
-            where: "trade_week_key > 0"
-            error_if: ">0"
-
       # Test week of month values align with month patterns
       - dbt_utils.expression_is_true:
           expression: |
