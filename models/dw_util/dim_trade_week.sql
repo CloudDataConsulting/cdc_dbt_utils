@@ -1,5 +1,7 @@
 {{ config(materialized='table') }}
 
+{{ config( post_hook="alter table {{ this }} add primary key (trade_week_key)", ) }}
+
 with date as (
     select * from {{ ref('dim_trade_date') }}
     where date_key > 0

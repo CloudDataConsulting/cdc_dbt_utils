@@ -1,4 +1,7 @@
 {{ config(materialized='table') }}
+
+{{ config( post_hook="alter table {{ this }} add primary key (time_key)", ) }}
+
 with gapless_row_numbers as (select row_number() over (order by seq4()) - 1 as row_number
   from table(generator(rowcount => 60 * 60 * 24))
 )

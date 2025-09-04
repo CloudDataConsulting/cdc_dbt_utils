@@ -1,5 +1,7 @@
 {{ config(materialized='table') }}
 
+{{ config( post_hook="alter table {{ this }} add primary key (quarter_key)", ) }}
+
 with dim_month as (
     select * from {{ ref('dim_month') }}
 )

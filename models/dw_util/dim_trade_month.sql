@@ -1,5 +1,7 @@
 {{ config(materialized='table') }}
 
+{{ config( post_hook="alter table {{ this }} add primary key (trade_month_key, calendar_pattern_txt)", ) }}
+
 with trade_weeks as (
     select * from {{ ref('dim_trade_week') }}
     where trade_week_key > 0  -- Exclude special records
