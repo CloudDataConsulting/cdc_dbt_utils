@@ -178,22 +178,22 @@ models:
           - not_null
 
       # Current period flags
-      - name: is_current_trade_week_flg
+      - name: current_trade_week_flg
         description: "Flag indicating if this is the current trade week"
         data_tests:
           - not_null
 
-      - name: is_prior_trade_week_flg
+      - name: prior_trade_week_flg
         description: "Flag indicating if this is the prior trade week"
         data_tests:
           - not_null
 
-      - name: is_current_trade_year_flg
+      - name: current_trade_year_flg
         description: "Flag indicating if this week is in the current trade year"
         data_tests:
           - not_null
 
-      - name: is_past_trade_week_flg
+      - name: past_trade_week_flg
         description: "Flag indicating if this week has ended (trade_week_end_dt < current date)"
         data_tests:
           - not_null
@@ -242,7 +242,7 @@ models:
               else false
             end
           config:
-            where: "trade_leap_week_flg = 0"  # Exclude leap weeks from this test
+            where: "is_trade_leap_week_flg = 0"  # Exclude leap weeks from this test
             error_if: ">0"
 
       # Test 454 pattern: months 1,4,7,10 have max 4 weeks; 2,5,8,11 have max 5 weeks; 3,6,9,12 have max 4 weeks
@@ -255,7 +255,7 @@ models:
               else false
             end
           config:
-            where: "trade_leap_week_flg = 0"  # Exclude leap weeks from this test
+            where: "is_trade_leap_week_flg = 0"  # Exclude leap weeks from this test
             error_if: ">0"
 
       # Test 544 pattern: months 1,4,7,10 have max 5 weeks; 2,5,8,11 have max 4 weeks; 3,6,9,12 have max 4 weeks
@@ -268,7 +268,7 @@ models:
               else false
             end
           config:
-            where: "trade_leap_week_flg = 0"  # Exclude leap weeks from this test
+            where: "is_trade_leap_week_flg = 0"  # Exclude leap weeks from this test
             error_if: ">0"
 
       # Test that all patterns have reasonable values for week of month (1-6, allowing for leap weeks)

@@ -1,62 +1,81 @@
 {{ config(materialized='table') }}
-with dim_trade_date as (select * from {{ ref('dim_trade_date') }}
-where date_key > 0)  -- exclude special records
-, trade_weeks as (
-    select
-        -- Use the Sunday of each week as the natural key
-        min(date_key) as trade_week_key
-        -- Core week identifiers
-        , min(full_dt) as trade_week_start_dt
-        , max(full_dt) as trade_week_end_dt
-        , min(date_key) as trade_week_start_key
-        , max(date_key) as trade_week_end_key
-        -- Week attributes (constant within week, so just use MAX)
-        , max(trade_year_num) as trade_year_num
-        , max(trade_week_num) as trade_week_num
-        , max(trade_week_of_year_num) as trade_week_of_year_num
-        , max(trade_week_of_quarter_num) as trade_week_of_quarter_num
-        , max(trade_week_overall_num) as trade_week_overall_num
-        -- Month variants (only need these, not quarter variants)
-        , max(trade_month_445_num) as trade_month_445_num
-        , max(trade_month_445_nm) as trade_month_445_nm
-        , max(trade_week_of_month_445_num) as trade_week_of_month_445_num
-        , max(trade_month_454_num) as trade_month_454_num
-        , max(trade_month_454_nm) as trade_month_454_nm
-        , max(trade_week_of_month_454_num) as trade_week_of_month_454_num
-        , max(trade_month_544_num) as trade_month_544_num
-        , max(trade_month_544_nm) as trade_month_544_nm
-        , max(trade_week_of_month_544_num) as trade_week_of_month_544_num
-        -- Quarter (only one variant needed)
-        , max(trade_quarter_num) as trade_quarter_num
-        , max(trade_quarter_nm) as trade_quarter_nm
-        -- Week metrics
-        , count(*) as days_in_week_num
-        , max(weeks_in_trade_year_num) as weeks_in_trade_year_num
-        , max(trade_leap_week_flg) as trade_leap_week_flg
-    from dim_trade_date
-    group by trade_week_start_dt, trade_week_end_dt)
-, final as (
-    select
-        *
-        -- Derived display columns
-        , 'TY' || trade_year_num::varchar || '-W' || lpad(trade_week_num::varchar, 2, '0') as trade_year_week_txt
-        -- Current period flags
-        , case when trade_week_start_dt <= current_date()
-             and trade_week_end_dt >= current_date()
-             then 1 else 0 end as is_current_trade_week_flg
-        , case when trade_week_start_dt <= dateadd(week, -1, current_date())
-             and trade_week_end_dt >= dateadd(week, -1, current_date())
-             then 1 else 0 end as is_prior_trade_week_flg
-        , case when trade_year_num = year(current_date())
-             then 1 else 0 end as is_current_trade_year_flg
-        , case when trade_week_end_dt < current_date()
-             then 1 else 0 end as is_past_trade_week_flg
-        -- Relative date calculations
-        , datediff(week, trade_week_start_dt, current_date()) as trade_weeks_ago_num
-        -- Metadata
-        , current_timestamp() as dw_synced_ts
-        , 'dim_trade_week' as dw_source_nm
-        , current_user as create_user_id
-        , current_timestamp() as create_timestamp
-    from trade_weeks)
-select * from final
+
+with trade_weeks_base as (
+    select distinct
+        trade_week_start_key as trade_week_key  -- PRIMARY KEY
+        , trade_year_num
+        , trade_week_num
+        , trade_year_num * 100 + trade_week_num as trade_year_week_num  -- 202301
+        , trade_week_start_dt
+        , trade_week_start_key
+        , trade_week_end_dt
+        , trade_week_end_key
+        , trade_week_overall_num
+        , trade_quarter_num
+        , trade_quarter_nm
+        , trade_quarter_full_nm
+        , trade_leap_week_flg
+        , weeks_in_trade_year_num
+        -- Week labels
+        , 'W' || lpad(trade_week_num::varchar, 2, '0') as trade_week_label  -- W01
+        , trade_year_num::varchar || '-W' || lpad(trade_week_num::varchar, 2, '0') as trade_week_full_label  -- 2023-W01
+        -- Counts
+        , 7 as days_in_week  -- Always 7 for complete weeks
+        -- Relative weeks
+        , lag(trade_week_start_key) over (order by trade_week_start_key) as prior_trade_week_key
+        , lead(trade_week_start_key) over (order by trade_week_start_key) as next_trade_week_key
+        , lag(trade_week_start_key, 52) over (order by trade_week_start_key) as trade_week_last_year_key
+    from {{ ref('dim_trade_date') }}
+    where date_key > 0  -- Exclude special records
+)
+, special_records as (
+    select * from (values
+        (
+            -1                      -- trade_week_key
+            , -1                    -- trade_year_num
+            , -1                    -- trade_week_num
+            , -1                    -- trade_year_week_num
+            , '1900-01-01'::date    -- trade_week_start_dt
+            , -1                    -- trade_week_start_key
+            , '1900-01-01'::date    -- trade_week_end_dt
+            , -1                    -- trade_week_end_key
+            , -1                    -- trade_week_overall_num
+            , -1                    -- trade_quarter_num
+            , 'UNK'                 -- trade_quarter_nm
+            , 'Unknown'             -- trade_quarter_full_nm
+            , 0                     -- trade_leap_week_flg
+            , -1                    -- weeks_in_trade_year_num
+            , 'UNK'                 -- trade_week_label
+            , 'Unknown'             -- trade_week_full_label
+            , 0                     -- days_in_week
+            , -1                    -- prior_trade_week_key
+            , -1                    -- next_trade_week_key
+            , -1                    -- trade_week_last_year_key
+        )
+        -- Similar records for -2 (Invalid) and -3 (Not Applicable)
+    ) as t (
+        trade_week_key
+        , trade_year_num
+        , trade_week_num
+        , trade_year_week_num
+        , trade_week_start_dt
+        , trade_week_start_key
+        , trade_week_end_dt
+        , trade_week_end_key
+        , trade_week_overall_num
+        , trade_quarter_num
+        , trade_quarter_nm
+        , trade_quarter_full_nm
+        , trade_leap_week_flg
+        , weeks_in_trade_year_num
+        , trade_week_label
+        , trade_week_full_label
+        , days_in_week
+        , prior_trade_week_key
+        , next_trade_week_key
+        , trade_week_last_year_key
+    )
+)
+select * from trade_weeks_base
+union all
+select * from special_records
