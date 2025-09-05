@@ -24,11 +24,17 @@ models:
       - Includes special records (-1: Unknown, -2: Invalid, -3: Not Applicable)
       - Navigation keys for time series analysis
       - All patterns have 13 weeks per quarter (14 weeks in Q4 for 53-week years)
+      - Multiple year-over-year comparison methods for handling 53-week years
 
       Pattern Details:
       - 445: Each quarter has 4-4-5 week months (13 weeks per quarter)
       - 454: Each quarter has 4-5-4 week months (13 weeks per quarter)
       - 544: Each quarter has 5-4-4 week months (13 weeks per quarter)
+
+      Year-over-Year Comparison Methods:
+      - NRF Standard: Q4 with week 53 maps to Q4 of prior year
+      - Walmart Method: Standard quarter-to-quarter mapping
+      - 4-Quarter Method: Always compare to exactly 4 quarters prior
 
     columns:
       # Primary key
@@ -103,6 +109,8 @@ models:
         description: "Total number of weeks in the quarter (normally 13, 14 with leap week)"
         data_tests:
           - not_null
+          - accepted_values:
+              values: [-3, -2, -1, 13, 14]
 
       - name: first_week_of_quarter_num
         description: "Trade week number of the first week in this quarter"
@@ -134,6 +142,23 @@ models:
         description: "Total number of days in the quarter (normally 91, 98 with leap week)"
         data_tests:
           - not_null
+          - accepted_values:
+              values: [-3, -2, -1, 91, 98]
+
+      # Year count metrics
+      - name: weeks_in_trade_year_num
+        description: "Total number of weeks in the trade year (52 or 53)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [-3, -2, -1, 52, 53]
+
+      - name: days_in_trade_year_num
+        description: "Total number of days in the trade year (364 or 371)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [-3, -2, -1, 364, 371]
 
       # Display formats
       - name: trade_quarter_txt
@@ -142,7 +167,7 @@ models:
           - not_null
 
       - name: trade_quarter_year_nm
-        description: "Quarter and year description (e.g., 'First 2023')"
+        description: "Quarter and year description (e.g., 'Q1 2023')"
         data_tests:
           - not_null
 
@@ -157,7 +182,7 @@ models:
           - not_null
 
       - name: trade_quarter_position_txt
-        description: "Quarter position description (First Quarter, Second Quarter, etc.)"
+        description: "Quarter position description (Q1 Quarter, Q2 Quarter, etc.)"
         data_tests:
           - not_null
 
@@ -201,8 +226,14 @@ models:
       - name: next_trade_quarter_key
         description: "Key for the next trade quarter"
 
-      - name: trade_quarter_last_year_key
-        description: "Key for the same quarter last year (4 quarters prior)"
+      - name: trade_quarter_last_year_nrf_key
+        description: "NRF standard method - Q4 with week 53 maps to Q4 of prior year"
+
+      - name: trade_quarter_last_year_walmart_key
+        description: "Walmart method - Standard quarter-to-quarter mapping"
+
+      - name: trade_quarter_last_year_4q_key
+        description: "4-quarter method - Always exactly 4 quarters prior"
 
       # Metadata columns
       - name: dw_synced_ts
@@ -303,7 +334,7 @@ models:
             where: "trade_quarter_key > 0"
             error_if: ">0"
 
-      # Test for prior quarter key validity - simplified
+      # Test for prior quarter key validity
       - dbt_utils.expression_is_true:
           expression: |
             prior_trade_quarter_key is null
@@ -313,7 +344,7 @@ models:
             where: "trade_quarter_key > 0"
             error_if: ">0"
 
-      # Test for next quarter key validity - simplified
+      # Test for next quarter key validity
       - dbt_utils.expression_is_true:
           expression: |
             next_trade_quarter_key is null
@@ -323,18 +354,17 @@ models:
             where: "trade_quarter_key > 0"
             error_if: ">0"
 
-      # Test for last year quarter key validity - simplified
+      # Test for last year quarter key validity - updated for three methods
       - dbt_utils.expression_is_true:
           expression: |
-            trade_quarter_last_year_key is null
-            or trade_quarter_last_year_key < 0
-            or trade_quarter_last_year_key between 200001 and 203004
+            (trade_quarter_last_year_nrf_key is null or trade_quarter_last_year_nrf_key < 0 or trade_quarter_last_year_nrf_key between 199901 and 203004)
+            and (trade_quarter_last_year_walmart_key is null or trade_quarter_last_year_walmart_key < 0 or trade_quarter_last_year_walmart_key between 199901 and 203004)
+            and (trade_quarter_last_year_4q_key is null or trade_quarter_last_year_4q_key < 0 or trade_quarter_last_year_4q_key between 199901 and 203004)
           config:
             where: "trade_quarter_key > 0"
             error_if: ">0"
 
       # Test that all pattern week counts are close (within 1 week difference)
-      # Patterns can differ slightly due to leap week handling and year boundaries
       - dbt_utils.expression_is_true:
           expression: |
             abs(trade_weeks_in_quarter_445_num - trade_weeks_in_quarter_454_num) <= 1
@@ -347,6 +377,15 @@ models:
       # Test that months_in_quarter is always 3 for complete quarters
       - dbt_utils.expression_is_true:
           expression: "months_in_quarter_num = 3"
+          config:
+            where: "trade_quarter_key > 0"
+            error_if: ">0"
+
+      # Test that days_in_trade_year_num is correct
+      - dbt_utils.expression_is_true:
+          expression: |
+            (weeks_in_trade_year_num = 52 and days_in_trade_year_num = 364)
+            or (weeks_in_trade_year_num = 53 and days_in_trade_year_num = 371)
           config:
             where: "trade_quarter_key > 0"
             error_if: ">0"

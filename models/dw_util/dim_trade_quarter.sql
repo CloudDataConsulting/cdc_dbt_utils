@@ -1,7 +1,9 @@
 {{ config(materialized='table') }}
 {{ config( post_hook="alter table {{ this }} add primary key (trade_quarter_key)", ) }}
-with trade_months as (select * from {{ ref('dim_trade_month') }}
- where trade_month_key > 0)  -- Exclude special records
+with trade_months as (
+    select * from {{ ref('dim_trade_month') }}
+    where trade_month_key > 0  -- Exclude special records
+)
 , quarter_aggregated as (
     select
         -- Primary key: YYYYQQ format (e.g., 202301 for 2023 Q1)
@@ -32,6 +34,9 @@ with trade_months as (select * from {{ ref('dim_trade_month') }}
         , sum(trade_weeks_in_month_544_num) as trade_weeks_in_quarter_544_num
         -- Leap week flag
         , max(contains_leap_week_flg) as contains_leap_week_flg
+        -- Year and quarter counts from month
+        , max(weeks_in_trade_year_num) as weeks_in_trade_year_num
+        , max(days_in_trade_year_num) as days_in_trade_year_num
         -- Year boundaries (for context)
         , min(trade_year_start_dt) as trade_year_start_dt
         , min(trade_year_start_key) as trade_year_start_key
@@ -45,7 +50,43 @@ with trade_months as (select * from {{ ref('dim_trade_month') }}
     from trade_months
     group by
         trade_year_num
-        , trade_quarter_num)
+        , trade_quarter_num
+)
+, quarter_with_navigation as (
+    select
+        q.*
+        -- Navigation keys
+        , lag(q.trade_quarter_key) over (order by q.trade_quarter_key) as prior_trade_quarter_key
+        , lead(q.trade_quarter_key) over (order by q.trade_quarter_key) as next_trade_quarter_key
+    from quarter_aggregated q
+)
+, quarter_with_yoy as (
+    select
+        q.*
+        -- Year-over-year comparison keys
+        -- For Q4 containing week 53, special handling for NRF method
+        , case
+            when q.contains_leap_week_flg = 1 then
+                -- Q4 of 53-week year maps to Q4 of prior year
+                lyq4.trade_quarter_key
+            when lyq.trade_quarter_key is not null then
+                lyq.trade_quarter_key
+            else null
+        end as trade_quarter_last_year_nrf_key
+        -- Walmart method keeps standard quarter mapping
+        , lyq.trade_quarter_key as trade_quarter_last_year_walmart_key
+        -- 4-quarter back method
+        , lag(q.trade_quarter_key, 4) over (order by q.trade_quarter_key) as trade_quarter_last_year_4q_key
+    from quarter_with_navigation q
+    -- Standard join to prior year same quarter
+    left join quarter_with_navigation lyq
+        on lyq.trade_year_num = q.trade_year_num - 1
+        and lyq.trade_quarter_num = q.trade_quarter_num
+    -- For NRF method when quarter contains leap week (always Q4)
+    left join quarter_with_navigation lyq4
+        on lyq4.trade_year_num = q.trade_year_num - 1
+        and lyq4.trade_quarter_num = 4
+)
 , regular_records as (
     select
         trade_quarter_key
@@ -71,6 +112,9 @@ with trade_months as (select * from {{ ref('dim_trade_month') }}
         , trade_weeks_in_quarter_544_num
         -- Day metrics
         , days_in_quarter_num
+        -- Year counts
+        , weeks_in_trade_year_num
+        , days_in_trade_year_num
         -- Display formats
         , 'Q' || trade_quarter_num::varchar as trade_quarter_txt
         , trade_quarter_nm || ' ' || trade_year_num::varchar as trade_quarter_year_nm
@@ -87,15 +131,18 @@ with trade_months as (select * from {{ ref('dim_trade_month') }}
         -- Overall numbering
         , (trade_year_num - 2000) * 4 + trade_quarter_num as trade_quarter_overall_num
         -- Navigation keys
-        , lag(trade_quarter_key) over (order by trade_quarter_key) as prior_trade_quarter_key
-        , lead(trade_quarter_key) over (order by trade_quarter_key) as next_trade_quarter_key
-        , lag(trade_quarter_key, 4) over (order by trade_quarter_key) as trade_quarter_last_year_key
+        , prior_trade_quarter_key
+        , next_trade_quarter_key
+        , trade_quarter_last_year_nrf_key
+        , trade_quarter_last_year_walmart_key
+        , trade_quarter_last_year_4q_key
         -- Metadata
         , dw_synced_ts
         , 'TRADE_CALENDAR' as dw_source_nm
         , create_user_id
         , create_ts
-    from quarter_aggregated)
+    from quarter_with_yoy
+)
 , special_records as (
     select * from (values
         (
@@ -118,6 +165,8 @@ with trade_months as (select * from {{ ref('dim_trade_month') }}
             , -1                    -- trade_weeks_in_quarter_454_num
             , -1                    -- trade_weeks_in_quarter_544_num
             , -1                    -- days_in_quarter_num
+            , -1                    -- weeks_in_trade_year_num
+            , -1                    -- days_in_trade_year_num
             , 'UNK'                 -- trade_quarter_txt
             , 'Unknown'             -- trade_quarter_year_nm
             , 'Unknown'             -- trade_year_quarter_txt
@@ -131,7 +180,9 @@ with trade_months as (select * from {{ ref('dim_trade_month') }}
             , -1                    -- trade_quarter_overall_num
             , null                  -- prior_trade_quarter_key
             , null                  -- next_trade_quarter_key
-            , null                  -- trade_quarter_last_year_key
+            , -1                    -- trade_quarter_last_year_nrf_key
+            , -1                    -- trade_quarter_last_year_walmart_key
+            , -1                    -- trade_quarter_last_year_4q_key
             , current_timestamp()   -- dw_synced_ts
             , 'SPECIAL'             -- dw_source_nm
             , 'SYSTEM'              -- create_user_id
@@ -157,6 +208,8 @@ with trade_months as (select * from {{ ref('dim_trade_month') }}
             , -2                    -- trade_weeks_in_quarter_454_num
             , -2                    -- trade_weeks_in_quarter_544_num
             , -2                    -- days_in_quarter_num
+            , -2                    -- weeks_in_trade_year_num
+            , -2                    -- days_in_trade_year_num
             , 'INV'                 -- trade_quarter_txt
             , 'Invalid'             -- trade_quarter_year_nm
             , 'Invalid'             -- trade_year_quarter_txt
@@ -170,7 +223,9 @@ with trade_months as (select * from {{ ref('dim_trade_month') }}
             , -2                    -- trade_quarter_overall_num
             , null                  -- prior_trade_quarter_key
             , null                  -- next_trade_quarter_key
-            , null                  -- trade_quarter_last_year_key
+            , -2                    -- trade_quarter_last_year_nrf_key
+            , -2                    -- trade_quarter_last_year_walmart_key
+            , -2                    -- trade_quarter_last_year_4q_key
             , current_timestamp()   -- dw_synced_ts
             , 'SPECIAL'             -- dw_source_nm
             , 'SYSTEM'              -- create_user_id
@@ -196,6 +251,8 @@ with trade_months as (select * from {{ ref('dim_trade_month') }}
             , -3                    -- trade_weeks_in_quarter_454_num
             , -3                    -- trade_weeks_in_quarter_544_num
             , -3                    -- days_in_quarter_num
+            , -3                    -- weeks_in_trade_year_num
+            , -3                    -- days_in_trade_year_num
             , 'N/A'                 -- trade_quarter_txt
             , 'Not Applicable'      -- trade_quarter_year_nm
             , 'Not Applicable'      -- trade_year_quarter_txt
@@ -209,7 +266,9 @@ with trade_months as (select * from {{ ref('dim_trade_month') }}
             , -3                    -- trade_quarter_overall_num
             , null                  -- prior_trade_quarter_key
             , null                  -- next_trade_quarter_key
-            , null                  -- trade_quarter_last_year_key
+            , -3                    -- trade_quarter_last_year_nrf_key
+            , -3                    -- trade_quarter_last_year_walmart_key
+            , -3                    -- trade_quarter_last_year_4q_key
             , current_timestamp()   -- dw_synced_ts
             , 'SPECIAL'             -- dw_source_nm
             , 'SYSTEM'              -- create_user_id
@@ -235,6 +294,8 @@ with trade_months as (select * from {{ ref('dim_trade_month') }}
         , trade_weeks_in_quarter_454_num
         , trade_weeks_in_quarter_544_num
         , days_in_quarter_num
+        , weeks_in_trade_year_num
+        , days_in_trade_year_num
         , trade_quarter_txt
         , trade_quarter_year_nm
         , trade_year_quarter_txt
@@ -248,7 +309,9 @@ with trade_months as (select * from {{ ref('dim_trade_month') }}
         , trade_quarter_overall_num
         , prior_trade_quarter_key
         , next_trade_quarter_key
-        , trade_quarter_last_year_key
+        , trade_quarter_last_year_nrf_key
+        , trade_quarter_last_year_walmart_key
+        , trade_quarter_last_year_4q_key
         , dw_synced_ts
         , dw_source_nm
         , create_user_id

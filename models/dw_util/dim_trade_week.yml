@@ -17,6 +17,11 @@ models:
       - _txt for text strings
       - _abbr for abbreviations
 
+      Year-over-Year Comparison Methods:
+      - NRF Standard: Week 53 maps to prior year week 52
+      - Walmart Method: Week 53 maps to same year week 1
+      - 364-Day Method: Always compare to exactly 52 weeks prior
+
     columns:
       # Primary Key
       - name: trade_week_key
@@ -283,6 +288,27 @@ models:
           - accepted_values:
               values: [-3, -2, -1, 52, 53]
 
+      - name: days_in_trade_year_num
+        description: "Total number of days in the trade year (364 or 371)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [-3, -2, -1, 364, 371]
+
+      - name: weeks_in_trade_quarter_num
+        description: "Total number of weeks in the trade quarter (13 or 14 for Q4 in leap years)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [-3, -2, -1, 13, 14]
+
+      - name: days_in_trade_quarter_num
+        description: "Total number of days in the trade quarter (91 or 98 for Q4 in leap years)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [-3, -2, -1, 91, 98]
+
       # Week Labels
       - name: trade_week_label
         description: "Week label (e.g., 'W01')"
@@ -309,8 +335,14 @@ models:
       - name: next_trade_week_key
         description: "Key for the next trade week"
 
-      - name: trade_week_last_year_key
-        description: "Key for the same week last year (52 weeks prior)"
+      - name: trade_week_last_year_nrf_key
+        description: "NRF standard method - Week 53 maps to prior year week 52, maintaining holiday alignment"
+
+      - name: trade_week_last_year_walmart_key
+        description: "Walmart method - Week 53 maps to same year week 1 for comparison"
+
+      - name: trade_week_last_year_364_key
+        description: "364-day method - Always exactly 52 weeks (364 days) prior"
 
       # Metadata Columns
       - name: dw_synced_ts
@@ -341,8 +373,7 @@ models:
             where: "trade_week_key > 0"
             error_if: ">0"
 
-      # Test that weeks are sequential within year (simplified test)
-      # Validates that week numbers don't have gaps within a year
+      # Test that weeks are sequential within year
       - dbt_utils.expression_is_true:
           expression: |
             trade_week_num between 1 and 53
@@ -374,6 +405,24 @@ models:
       # Test that week end dates are always Saturdays
       - dbt_utils.expression_is_true:
           expression: "dayofweek(trade_week_end_dt) = 6"  # Saturday = 6 in Snowflake
+          config:
+            where: "trade_week_key > 0"
+            error_if: ">0"
+
+      # Test that days_in_trade_year_num is correct
+      - dbt_utils.expression_is_true:
+          expression: |
+            (weeks_in_trade_year_num = 52 and days_in_trade_year_num = 364)
+            or (weeks_in_trade_year_num = 53 and days_in_trade_year_num = 371)
+          config:
+            where: "trade_week_key > 0"
+            error_if: ">0"
+
+      # Test that days_in_trade_quarter_num is correct
+      - dbt_utils.expression_is_true:
+          expression: |
+            (weeks_in_trade_quarter_num = 13 and days_in_trade_quarter_num = 91)
+            or (weeks_in_trade_quarter_num = 14 and days_in_trade_quarter_num = 98)
           config:
             where: "trade_week_key > 0"
             error_if: ">0"
