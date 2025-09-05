@@ -235,8 +235,14 @@ models:
       - name: next_trade_month_key
         description: "Key for the next trade month"
 
-      - name: trade_month_last_year_key
-        description: "Key for the same month last year (12 months prior)"
+      - name: trade_month_last_year_nrf_key
+        description: "NRF standard method - Handles 53-week year months appropriately"
+
+      - name: trade_month_last_year_walmart_key
+        description: "Walmart method - Standard month-to-month mapping"
+
+      - name: trade_month_last_year_12m_key
+        description: "12-month method - Always exactly 12 months prior"
 
       # Metadata columns
       - name: dw_synced_ts

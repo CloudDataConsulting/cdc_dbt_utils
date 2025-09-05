@@ -58,21 +58,14 @@ with date as (
         , max(trade_year_end_key) as trade_year_end_key
         , max(trade_leap_week_flg) as trade_leap_week_flg
         , max(weeks_in_trade_year_num) as weeks_in_trade_year_num
+        , max(days_in_trade_year_num) as days_in_trade_year_num
+        , max(weeks_in_trade_quarter_num) as weeks_in_trade_quarter_num
+        , max(days_in_trade_quarter_num) as days_in_trade_quarter_num
         -- Week metrics
         , count(*) as days_in_week
         -- Labels
         , 'W' || lpad(trade_week_num::varchar, 2, '0') as trade_week_label
         , trade_year_num::varchar || '-W' || lpad(trade_week_num::varchar, 2, '0') as trade_week_full_label
-        -- Navigation keys
-        , lag(trade_year_num * 100 + trade_week_num)
-            over (order by trade_year_num, trade_week_num)
-            as prior_trade_week_key
-        , lead(trade_year_num * 100 + trade_week_num)
-            over (order by trade_year_num, trade_week_num)
-            as next_trade_week_key
-        , lag(trade_year_num * 100 + trade_week_num, 52)
-            over (order by trade_year_num, trade_week_num)
-            as trade_week_last_year_key
         -- Metadata
         , max(dw_synced_ts) as dw_synced_ts
         , max(dw_source_nm) as dw_source_nm
@@ -83,6 +76,51 @@ with date as (
         trade_week_start_key
         , trade_year_num
         , trade_week_num
+)
+, trade_week_with_navigation as (
+    select
+        tw.*
+        -- Navigation keys
+        , lag(tw.trade_week_key)
+            over (order by tw.trade_year_num, tw.trade_week_num)
+            as prior_trade_week_key
+        , lead(tw.trade_week_key)
+            over (order by tw.trade_year_num, tw.trade_week_num)
+            as next_trade_week_key
+    from trade_week_base tw
+)
+, trade_week_with_yoy as (
+    select
+        tw.*
+        -- Year-over-year comparison keys (NRF method: Week 53 → Prior Year Week 52)
+        , case
+            when tw.trade_week_num = 53 then ly52.trade_week_key
+            when lyw.trade_week_key is not null then lyw.trade_week_key
+            else null
+        end as trade_week_last_year_nrf_key
+        -- Walmart method (Week 53 → Same Year Week 1)
+        , case
+            when tw.trade_week_num = 53 then w1.trade_week_key
+            when lyw.trade_week_key is not null then lyw.trade_week_key
+            else null
+        end as trade_week_last_year_walmart_key
+        -- 364-day method (exactly 52 weeks back)
+        , lag(tw.trade_week_key, 52)
+            over (order by tw.trade_year_num, tw.trade_week_num)
+            as trade_week_last_year_364_key
+    from trade_week_with_navigation tw
+    -- Join to prior year week 52 for NRF method
+    left join trade_week_with_navigation ly52
+        on ly52.trade_year_num = tw.trade_year_num - 1
+        and ly52.trade_week_num = 52
+    -- Join to current year week 1 for Walmart method
+    left join trade_week_with_navigation w1
+        on w1.trade_year_num = tw.trade_year_num
+        and w1.trade_week_num = 1
+    -- Standard join to prior year same week
+    left join trade_week_with_navigation lyw
+        on lyw.trade_year_num = tw.trade_year_num - 1
+        and lyw.trade_week_num = tw.trade_week_num
 )
 , special_records as (
     select * from (values
@@ -133,16 +171,21 @@ with date as (
             , -1                    -- trade_year_end_key
             , 0                     -- trade_leap_week_flg
             , -1                    -- weeks_in_trade_year_num
+            , -1                    -- days_in_trade_year_num
+            , -1                    -- weeks_in_trade_quarter_num
+            , -1                    -- days_in_trade_quarter_num
             , 7                     -- days_in_week
             , 'UNK'                 -- trade_week_label
             , 'Unknown'             -- trade_week_full_label
-            , null                  -- prior_trade_week_key
-            , null                  -- next_trade_week_key
-            , null                  -- trade_week_last_year_key
             , current_timestamp()   -- dw_synced_ts
             , 'SPECIAL'             -- dw_source_nm
             , 'SYSTEM'              -- create_user_id
             , current_timestamp()   -- create_ts
+            , null                  -- prior_trade_week_key
+            , null                  -- next_trade_week_key
+            , -1                    -- trade_week_last_year_nrf_key
+            , -1                    -- trade_week_last_year_walmart_key
+            , -1                    -- trade_week_last_year_364_key
         )
         , (
             -2                      -- trade_week_key
@@ -191,16 +234,21 @@ with date as (
             , -2                    -- trade_year_end_key
             , 0                     -- trade_leap_week_flg
             , -2                    -- weeks_in_trade_year_num
+            , -2                    -- days_in_trade_year_num
+            , -2                    -- weeks_in_trade_quarter_num
+            , -2                    -- days_in_trade_quarter_num
             , 7                     -- days_in_week
             , 'INV'                 -- trade_week_label
             , 'Invalid'             -- trade_week_full_label
-            , null                  -- prior_trade_week_key
-            , null                  -- next_trade_week_key
-            , null                  -- trade_week_last_year_key
             , current_timestamp()   -- dw_synced_ts
             , 'SPECIAL'             -- dw_source_nm
             , 'SYSTEM'              -- create_user_id
             , current_timestamp()   -- create_ts
+            , null                  -- prior_trade_week_key
+            , null                  -- next_trade_week_key
+            , -2                    -- trade_week_last_year_nrf_key
+            , -2                    -- trade_week_last_year_walmart_key
+            , -2                    -- trade_week_last_year_364_key
         )
         , (
             -3                      -- trade_week_key
@@ -249,16 +297,21 @@ with date as (
             , -3                    -- trade_year_end_key
             , 0                     -- trade_leap_week_flg
             , -3                    -- weeks_in_trade_year_num
+            , -3                    -- days_in_trade_year_num
+            , -3                    -- weeks_in_trade_quarter_num
+            , -3                    -- days_in_trade_quarter_num
             , 7                     -- days_in_week
             , 'N/A'                 -- trade_week_label
             , 'Not Applicable'      -- trade_week_full_label
-            , null                  -- prior_trade_week_key
-            , null                  -- next_trade_week_key
-            , null                  -- trade_week_last_year_key
             , current_timestamp()   -- dw_synced_ts
             , 'SPECIAL'             -- dw_source_nm
             , 'SYSTEM'              -- create_user_id
             , current_timestamp()   -- create_ts
+            , null                  -- prior_trade_week_key
+            , null                  -- next_trade_week_key
+            , -3                    -- trade_week_last_year_nrf_key
+            , -3                    -- trade_week_last_year_walmart_key
+            , -3                    -- trade_week_last_year_364_key
         )
     ) as t (
         trade_week_key
@@ -307,21 +360,26 @@ with date as (
         , trade_year_end_key
         , trade_leap_week_flg
         , weeks_in_trade_year_num
+        , days_in_trade_year_num
+        , weeks_in_trade_quarter_num
+        , days_in_trade_quarter_num
         , days_in_week
         , trade_week_label
         , trade_week_full_label
-        , prior_trade_week_key
-        , next_trade_week_key
-        , trade_week_last_year_key
         , dw_synced_ts
         , dw_source_nm
         , create_user_id
         , create_ts
+        , prior_trade_week_key
+        , next_trade_week_key
+        , trade_week_last_year_nrf_key
+        , trade_week_last_year_walmart_key
+        , trade_week_last_year_364_key
     )
 )
 , final as (
     select * from special_records
     union all
-    select * from trade_week_base
+    select * from trade_week_with_yoy
 )
 select * from final
