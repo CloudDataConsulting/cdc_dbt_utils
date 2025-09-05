@@ -24,11 +24,17 @@ models:
       - Derived from dim_trade_week to ensure consistency
       - Includes special records (-1: Unknown, -2: Invalid, -3: Not Applicable)
       - Navigation keys for time series analysis
+      - Multiple year-over-year comparison methods for handling 53-week years
 
       Pattern Details:
       - 445: Each quarter has 4-4-5 week months (13 weeks per quarter)
       - 454: Each quarter has 4-5-4 week months (13 weeks per quarter)
       - 544: Each quarter has 5-4-4 week months (13 weeks per quarter)
+
+      Year-over-Year Comparison Methods:
+      - NRF Standard: Months containing week 53 map appropriately to prior year
+      - Walmart Method: Standard month-to-month mapping regardless of leap weeks
+      - 12-Month Method: Always compare to exactly 12 months prior
 
     columns:
       # Primary key
@@ -153,6 +159,35 @@ models:
         description: "Flag indicating if this month contains the 53rd week (leap week)"
         data_tests:
           - not_null
+
+      # Year and quarter count metrics
+      - name: weeks_in_trade_year_num
+        description: "Total number of weeks in the trade year (52 or 53)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [-3, -2, -1, 52, 53]
+
+      - name: days_in_trade_year_num
+        description: "Total number of days in the trade year (364 or 371)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [-3, -2, -1, 364, 371]
+
+      - name: weeks_in_trade_quarter_num
+        description: "Total number of weeks in the trade quarter (13 or 14)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [-3, -2, -1, 13, 14]
+
+      - name: days_in_trade_quarter_num
+        description: "Total number of days in the trade quarter (91 or 98)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [-3, -2, -1, 91, 98]
 
       # Pattern-specific week counts
       - name: trade_weeks_in_month_445_num
@@ -307,7 +342,7 @@ models:
             where: "trade_month_key > 0"
             error_if: ">0"
 
-      # Test for prior month key validity - simplified
+      # Test for prior month key validity
       - dbt_utils.expression_is_true:
           expression: |
             prior_trade_month_key is null
@@ -317,7 +352,7 @@ models:
             where: "trade_month_key > 0"
             error_if: ">0"
 
-      # Test for next month key validity - simplified
+      # Test for next month key validity
       - dbt_utils.expression_is_true:
           expression: |
             next_trade_month_key is null
@@ -327,12 +362,12 @@ models:
             where: "trade_month_key > 0"
             error_if: ">0"
 
-      # Test for last year month key validity - simplified
+      # Test for last year month key validity - updated for three methods
       - dbt_utils.expression_is_true:
           expression: |
-            trade_month_last_year_key is null
-            or trade_month_last_year_key < 0
-            or trade_month_last_year_key between 200001 and 203012
+            (trade_month_last_year_nrf_key is null or trade_month_last_year_nrf_key < 0 or trade_month_last_year_nrf_key between 199901 and 203012)
+            and (trade_month_last_year_walmart_key is null or trade_month_last_year_walmart_key < 0 or trade_month_last_year_walmart_key between 199901 and 203012)
+            and (trade_month_last_year_12m_key is null or trade_month_last_year_12m_key < 0 or trade_month_last_year_12m_key between 199901 and 203012)
           config:
             where: "trade_month_key > 0"
             error_if: ">0"
@@ -358,6 +393,24 @@ models:
           expression: |
             (is_5_week_month_544_flg = 1 and trade_weeks_in_month_544_num >= 5)
             or (is_5_week_month_544_flg = 0 and trade_weeks_in_month_544_num < 5)
+          config:
+            where: "trade_month_key > 0"
+            error_if: ">0"
+
+      # Test that days_in_trade_year_num is correct
+      - dbt_utils.expression_is_true:
+          expression: |
+            (weeks_in_trade_year_num = 52 and days_in_trade_year_num = 364)
+            or (weeks_in_trade_year_num = 53 and days_in_trade_year_num = 371)
+          config:
+            where: "trade_month_key > 0"
+            error_if: ">0"
+
+      # Test that days_in_trade_quarter_num is correct
+      - dbt_utils.expression_is_true:
+          expression: |
+            (weeks_in_trade_quarter_num = 13 and days_in_trade_quarter_num = 91)
+            or (weeks_in_trade_quarter_num = 14 and days_in_trade_quarter_num = 98)
           config:
             where: "trade_month_key > 0"
             error_if: ">0"
