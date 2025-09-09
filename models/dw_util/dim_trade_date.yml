@@ -446,3 +446,28 @@ models:
           config:
             where: "date_key >0"  # Exclude special rows
             error_if: ">0"
+
+      # Test that year-over-year comparison keys maintain consistent year progression
+      # This test catches issues where the year might incorrectly revert (e.g., 2025 -> 2024 -> 2025)
+      - dbt_utils.expression_is_true:
+          expression: |
+            -- For NRF method: should be from prior year or same year (for week 53) or null
+            (trade_date_last_year_nrf_key is null 
+             or floor(trade_date_last_year_nrf_key / 10000) <= trade_year_num)
+          config:
+            where: "date_key > 0 and trade_year_num >= 2001"  # Start from 2001 to ensure prior year exists
+            error_if: ">0"
+            severity: error
+
+      # Test to ensure Walmart method doesn't have year reversions in 53-week years
+      # Specifically: week 53 should point to next year, not same year
+      - dbt_utils.expression_is_true:
+          expression: |
+            -- For week 53, the Walmart key should be from the next year (week 1)
+            -- This test only runs on dates that are actually in week 53
+            (trade_date_last_year_walmart_key is null 
+             or floor(trade_date_last_year_walmart_key / 10000) = trade_year_num + 1)
+          config:
+            where: "date_key > 0 and trade_week_num = 53 and trade_year_num <= 2029"  # Only week 53 dates where next year exists
+            error_if: ">0"
+            severity: error
