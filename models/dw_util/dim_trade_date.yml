@@ -459,15 +459,19 @@ models:
             error_if: ">0"
             severity: error
 
-      # Test to ensure Walmart method doesn't have year reversions in 53-week years
-      # Specifically: week 53 should point to next year, not same year
+      # Test to ensure Walmart method week 53 compares to same trade year's week 1
+      # Note: Week 1 dates may span calendar years (e.g. Dec 29-31 of prior year)
       - dbt_utils.expression_is_true:
           expression: |
-            -- For week 53, the Walmart key should be from the next year (week 1)
-            -- This test only runs on dates that are actually in week 53
+            -- For week 53, the comparison should be to a date that:
+            -- 1. Is 52 weeks (364 days) earlier, OR
+            -- 2. Falls within the acceptable date range for same year week 1
+            -- We allow dates from late December (prior calendar year) since week 1 can start then
             (trade_date_last_year_walmart_key is null 
-             or floor(trade_date_last_year_walmart_key / 10000) = trade_year_num + 1)
+             or (trade_week_num = 53 
+                 and (floor(trade_date_last_year_walmart_key / 10000) = trade_year_num
+                      or floor(trade_date_last_year_walmart_key / 10000) = trade_year_num - 1)))
           config:
-            where: "date_key > 0 and trade_week_num = 53 and trade_year_num <= 2029"  # Only week 53 dates where next year exists
+            where: "date_key > 0 and trade_week_num = 53"  # Only week 53 dates
             error_if: ">0"
             severity: error

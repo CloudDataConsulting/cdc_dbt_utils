@@ -190,8 +190,8 @@ with date_spine as (
         td.*
         -- Join to prior year week 52 for NRF method
         , ly52.date_key as prior_year_week52_key
-        -- Join to next year week 1 for Walmart method
-        , w1.date_key as next_year_week1_key
+        -- Join to same year week 1 for Walmart method (52 weeks ago for week 53)
+        , w1.date_key as same_year_week1_key
         -- Standard prior year same week/day
         , ly.date_key as prior_year_same_week_key
     from trade_dates_with_boundaries as td
@@ -200,9 +200,9 @@ with date_spine as (
         on ly52.trade_year_num = td.trade_year_num - 1
         and ly52.trade_week_num = 52
         and dayofweek(ly52.calendar_date) = dayofweek(td.calendar_date)
-    -- Join to get Week 1 of next year for Walmart method (week 53 compares to next year week 1)
+    -- Join to get Week 1 of same year for Walmart method (week 53 compares to week 1 of same year - 52 weeks ago)
     left join trade_dates_with_boundaries w1
-        on w1.trade_year_num = td.trade_year_num + 1
+        on w1.trade_year_num = td.trade_year_num
         and w1.trade_week_num = 1
         and dayofweek(w1.calendar_date) = dayofweek(td.calendar_date)
     -- Standard join to prior year same week
@@ -221,7 +221,7 @@ with date_spine as (
             else null
         end as trade_date_last_year_nrf_key
         , case
-            when tdb.trade_week_num = 53 then tdb.next_year_week1_key
+            when tdb.trade_week_num = 53 then tdb.same_year_week1_key
             when tdb.prior_year_same_week_key is not null then tdb.prior_year_same_week_key
             else null
         end as trade_date_last_year_walmart_key

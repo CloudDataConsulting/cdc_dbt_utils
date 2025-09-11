@@ -155,3 +155,21 @@ select * from final
 - Last published version: 0.1.4
 - See CHANGELOG.md for complete version history
 - Major breaking changes in v1.0.0: Standardized column naming conventions
+
+## Snowflake Connection
+
+To connect to Snowflake via snowsql:
+
+```bash
+# Simple connection - everything is already in environment variables
+snowsql -a aubuchon-prd -u "$DBT_USER" --private-key-path ~/.ssh/aubuchon/bpruss_eng_rsa_key.p8 -d dev_edw_db -s "$DBT_SCHEMA"_dw_util
+
+# Or even simpler using the env variable:
+snowsql -a aubuchon-prd -u "$DBT_USER" --private-key-path "$SNOWSQL_PRIVATE_KEY_PATH" -d dev_edw_db -s "$DBT_SCHEMA"_dw_util
+```
+
+Available environment variables (already set):
+- `SNOWSQL_PRIVATE_KEY_PATH` - path to private key file (~/.ssh/aubuchon/bpruss_eng_rsa_key.p8)
+- `SNOWSQL_PRIVATE_KEY_PASSPHRASE` - passphrase (auto-used by snowsql)
+- `DBT_USER` - username
+- `DBT_SCHEMA` - user schema prefix
