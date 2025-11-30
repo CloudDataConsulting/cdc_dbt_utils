@@ -321,7 +321,7 @@ models:
           - not_null
 
       # Week Metrics
-      - name: days_in_week
+      - name: days_in_week_num
         description: "Number of days in the week (always 7 for complete weeks)"
         data_tests:
           - not_null
@@ -381,11 +381,11 @@ models:
             where: "trade_week_key > 0"
             error_if: ">0"
 
-      # Test week of month values align with month patterns
+      # Test 4-4-5 pattern: months 1,2,4,5,7,8,10,11 have max 4 weeks; months 3,6,9,12 have max 5 weeks
       - dbt_utils.expression_is_true:
           expression: |
             case
-              when trade_month_445_num in (1, 4, 7, 10) and trade_month_445_num in (2, 5, 8, 11)
+              when trade_month_445_num in (1, 2, 4, 5, 7, 8, 10, 11)
                 then trade_week_of_month_445_num <= 4
               when trade_month_445_num in (3, 6, 9, 12)
                 then trade_week_of_month_445_num <= 5
