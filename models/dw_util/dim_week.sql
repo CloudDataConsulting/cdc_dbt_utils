@@ -1,5 +1,4 @@
-{{ config(materialized='table') }}
-{{ config( post_hook="alter table {{ this }} add primary key (week_key)", ) }}
+{{ config(materialized='table', post_hook="alter table {{ this }} add primary key (week_key)") }}
 with dim_date as (
     select * from {{ ref('dim_date') }}
 )
@@ -15,11 +14,8 @@ with dim_date as (
         -- Previous year date for same week
         , min(date_last_year_dt) as week_start_last_year_dt
         , max(date_last_year_dt) as week_end_last_year_dt
-        -- Week attributes (use MIN/MAX for week that spans years)
-        , case
-            when count(distinct year_num) > 1 then max(year_num)
-            else max(year_num)
-        end as year_num
+        -- Week attributes (use MAX for week that spans years to get the primary year)
+        , max(year_num) as year_num
         , max(week_num) as week_num
         , max(week_of_year_num) as week_of_year_num
         , max(week_of_quarter_num) as week_of_quarter_num

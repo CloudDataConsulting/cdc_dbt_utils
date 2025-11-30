@@ -15,9 +15,6 @@ profile: 'cdc_dbt_utils'
 require-dbt-version: [">=1.0.0", "<2.0.0"]
 
 models:
-  dw_util:
-    materialized: table
-
   cdc_dbt_utils:
     dw_util:
       +materialized: table

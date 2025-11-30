@@ -56,14 +56,14 @@ models:
             quote: false
     
     - name: day_shift_flag
-      description: "Binary flag: 1 if time falls within day shift hours (typically 7 AM - 3 PM), 0 otherwise"
+      description: "Binary flag: 1 if time falls within day shift hours (6 AM - 6 PM), 0 otherwise"
       data_tests:
         - accepted_values:
             values: [0, 1]
             quote: false
-    
+
     - name: night_shift_flag
-      description: "Binary flag: 1 if time falls within night shift hours (typically 11 PM - 7 AM), 0 otherwise"
+      description: "Binary flag: 1 if time falls outside day shift hours (before 6 AM or 6 PM and later), 0 otherwise"
       data_tests:
         - accepted_values:
             values: [0, 1]

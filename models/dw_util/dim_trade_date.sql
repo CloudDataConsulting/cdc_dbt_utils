@@ -1,5 +1,4 @@
-{{ config(materialized='table') }}
-{{ config( post_hook="alter table {{ this }} add primary key (date_key)", ) }}
+{{ config(materialized='table', post_hook="alter table {{ this }} add primary key (date_key)") }}
 with date_spine as (
     select dateadd(day, seq4(), '2000-01-01'::date) as calendar_date
     from table(generator(rowcount => 11323))  -- 31 years of dates

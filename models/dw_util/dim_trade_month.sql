@@ -1,5 +1,4 @@
-{{ config(materialized='table') }}
-{{ config( post_hook="alter table {{ this }} add primary key (trade_month_key)", ) }}
+{{ config(materialized='table', post_hook="alter table {{ this }} add primary key (trade_month_key)") }}
 with trade_weeks as (
     select * from {{ ref('dim_trade_week') }}
     where trade_week_key > 0  -- Exclude special records
@@ -26,7 +25,7 @@ with trade_weeks as (
         , min(trade_week_num) as first_week_of_month_num
         , max(trade_week_num) as last_week_of_month_num
         , count(distinct trade_week_num) as weeks_in_month_num
-        , sum(days_in_week) as days_in_month_num
+        , sum(days_in_week_num) as days_in_month_num
         -- Pattern-specific week counts (from the week dimension)
         , max(trade_week_of_month_445_num) as trade_weeks_in_month_445_num
         , max(case when trade_week_of_month_445_num = 5 then 1 else 0 end) as is_5_week_month_445_flg

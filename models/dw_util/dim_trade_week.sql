@@ -1,6 +1,5 @@
-{{ config(materialized='table') }}
-{{ config( post_hook="alter table {{ this }} add primary key (trade_week_key)", ) }}
-with date as (
+{{ config(materialized='table', post_hook="alter table {{ this }} add primary key (trade_week_key)") }}
+with trade_date as (
     select * from {{ ref('dim_trade_date') }}
     where date_key > 0
 )
@@ -62,7 +61,7 @@ with date as (
         , max(weeks_in_trade_quarter_num) as weeks_in_trade_quarter_num
         , max(days_in_trade_quarter_num) as days_in_trade_quarter_num
         -- Week metrics
-        , count(*) as days_in_week
+        , count(*) as days_in_week_num
         -- Labels
         , 'W' || lpad(trade_week_num::varchar, 2, '0') as trade_week_label
         , trade_year_num::varchar || '-W' || lpad(trade_week_num::varchar, 2, '0') as trade_week_full_label
@@ -71,7 +70,7 @@ with date as (
         , max(dw_source_nm) as dw_source_nm
         , max(create_user_id) as create_user_id
         , max(create_ts) as create_ts
-    from date
+    from trade_date
     group by
         trade_week_start_key
         , trade_year_num
@@ -174,7 +173,7 @@ with date as (
             , -1                    -- days_in_trade_year_num
             , -1                    -- weeks_in_trade_quarter_num
             , -1                    -- days_in_trade_quarter_num
-            , 7                     -- days_in_week
+            , 7                     -- days_in_week_num
             , 'UNK'                 -- trade_week_label
             , 'Unknown'             -- trade_week_full_label
             , current_timestamp()   -- dw_synced_ts
@@ -237,7 +236,7 @@ with date as (
             , -2                    -- days_in_trade_year_num
             , -2                    -- weeks_in_trade_quarter_num
             , -2                    -- days_in_trade_quarter_num
-            , 7                     -- days_in_week
+            , 7                     -- days_in_week_num
             , 'INV'                 -- trade_week_label
             , 'Invalid'             -- trade_week_full_label
             , current_timestamp()   -- dw_synced_ts
@@ -300,7 +299,7 @@ with date as (
             , -3                    -- days_in_trade_year_num
             , -3                    -- weeks_in_trade_quarter_num
             , -3                    -- days_in_trade_quarter_num
-            , 7                     -- days_in_week
+            , 7                     -- days_in_week_num
             , 'N/A'                 -- trade_week_label
             , 'Not Applicable'      -- trade_week_full_label
             , current_timestamp()   -- dw_synced_ts
@@ -363,7 +362,7 @@ with date as (
         , days_in_trade_year_num
         , weeks_in_trade_quarter_num
         , days_in_trade_quarter_num
-        , days_in_week
+        , days_in_week_num
         , trade_week_label
         , trade_week_full_label
         , dw_synced_ts

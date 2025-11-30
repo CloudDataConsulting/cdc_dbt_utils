@@ -1,5 +1,4 @@
-{{ config(materialized='table') }}
-{{ config( post_hook="alter table {{ this }} add primary key (trade_quarter_key)", ) }}
+{{ config(materialized='table', post_hook="alter table {{ this }} add primary key (trade_quarter_key)") }}
 with trade_months as (
     select * from {{ ref('dim_trade_month') }}
     where trade_month_key > 0  -- Exclude special records
