@@ -297,21 +297,24 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
       
       - name: trade_month_454_num
         description: Trade month for 4-5-4 pattern
         tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
       
       - name: trade_month_544_num
         description: Trade month for 5-4-4 pattern
         tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
       
       # Pattern-specific month name columns
       - name: trade_month_445_nm
@@ -335,21 +338,24 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4]
+              arguments:
+                values: [1, 2, 3, 4]
       
       - name: trade_quarter_454_num
         description: Trade quarter for 4-5-4 pattern
         tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4]
+              arguments:
+                values: [1, 2, 3, 4]
       
       - name: trade_quarter_544_num
         description: Trade quarter for 5-4-4 pattern
         tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4]
+              arguments:
+                values: [1, 2, 3, 4]
       
       # Pattern-specific quarter name columns
       - name: trade_quarter_445_nm
@@ -440,48 +446,52 @@ models:
     tests:
       # Test 445 pattern: months 1,4,7,10 have max 4 weeks; 2,5,8,11 have max 4 weeks; 3,6,9,12 have max 5 weeks
       - dbt_utils.expression_is_true:
-          expression: |
-            case 
-              when trade_month_445_num in (1, 4, 7, 10) then trade_week_of_month_445_num <= 4
-              when trade_month_445_num in (2, 5, 8, 11) then trade_week_of_month_445_num <= 4
-              when trade_month_445_num in (3, 6, 9, 12) then trade_week_of_month_445_num <= 5
-              else false
-            end
+          arguments:
+            expression: |
+              case
+                when trade_month_445_num in (1, 4, 7, 10) then trade_week_of_month_445_num <= 4
+                when trade_month_445_num in (2, 5, 8, 11) then trade_week_of_month_445_num <= 4
+                when trade_month_445_num in (3, 6, 9, 12) then trade_week_of_month_445_num <= 5
+                else false
+              end
           config:
             where: "is_leap_week_flg = false"  # Exclude leap weeks
             error_if: ">0"
       
       # Test 454 pattern: months 1,4,7,10 have max 4 weeks; 2,5,8,11 have max 5 weeks; 3,6,9,12 have max 4 weeks
       - dbt_utils.expression_is_true:
-          expression: |
-            case 
-              when trade_month_454_num in (1, 4, 7, 10) then trade_week_of_month_454_num <= 4
-              when trade_month_454_num in (2, 5, 8, 11) then trade_week_of_month_454_num <= 5
-              when trade_month_454_num in (3, 6, 9, 12) then trade_week_of_month_454_num <= 4
-              else false
-            end
+          arguments:
+            expression: |
+              case
+                when trade_month_454_num in (1, 4, 7, 10) then trade_week_of_month_454_num <= 4
+                when trade_month_454_num in (2, 5, 8, 11) then trade_week_of_month_454_num <= 5
+                when trade_month_454_num in (3, 6, 9, 12) then trade_week_of_month_454_num <= 4
+                else false
+              end
           config:
             where: "is_leap_week_flg = false"  # Exclude leap weeks
             error_if: ">0"
       
       # Test 544 pattern: months 1,4,7,10 have max 5 weeks; 2,5,8,11 have max 4 weeks; 3,6,9,12 have max 4 weeks
       - dbt_utils.expression_is_true:
-          expression: |
-            case 
-              when trade_month_544_num in (1, 4, 7, 10) then trade_week_of_month_544_num <= 5
-              when trade_month_544_num in (2, 5, 8, 11) then trade_week_of_month_544_num <= 4
-              when trade_month_544_num in (3, 6, 9, 12) then trade_week_of_month_544_num <= 4
-              else false
-            end
+          arguments:
+            expression: |
+              case
+                when trade_month_544_num in (1, 4, 7, 10) then trade_week_of_month_544_num <= 5
+                when trade_month_544_num in (2, 5, 8, 11) then trade_week_of_month_544_num <= 4
+                when trade_month_544_num in (3, 6, 9, 12) then trade_week_of_month_544_num <= 4
+                else false
+              end
           config:
             where: "is_leap_week_flg = false"  # Exclude leap weeks
             error_if: ">0"
       
       # Test that all patterns have values between 1 and 6 (6 for leap week months)
       - dbt_utils.expression_is_true:
-          expression: |
-            trade_week_of_month_445_num between 1 and 6
-            and trade_week_of_month_454_num between 1 and 6
-            and trade_week_of_month_544_num between 1 and 6
+          arguments:
+            expression: |
+              trade_week_of_month_445_num between 1 and 6
+              and trade_week_of_month_454_num between 1 and 6
+              and trade_week_of_month_544_num between 1 and 6
           config:
             error_if: ">0"

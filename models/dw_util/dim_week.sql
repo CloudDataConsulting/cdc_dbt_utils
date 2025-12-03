@@ -55,7 +55,7 @@ week_level_aggregated as (
 ),
 
 retail_calendar_dimension as (
-    select * from {{ ref('dim_date_trade') }}
+    select * from {{ ref('dim_trade_date') }}
 ),
 
 week_with_retail_calendar as (

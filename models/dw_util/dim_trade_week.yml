@@ -60,7 +60,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53]
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53]
       
       # 445 Pattern attributes
       - name: trade_month_445_num
@@ -68,7 +69,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
       
       - name: trade_month_445_nm
         description: "Trade month name for 4-4-5 pattern"
@@ -80,7 +82,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4]
+              arguments:
+                values: [1, 2, 3, 4]
       
       - name: trade_quarter_445_nm
         description: "Trade quarter name for 4-4-5 pattern (First, Second, Third, Fourth)"
@@ -103,7 +106,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
       
       - name: trade_month_454_nm
         description: "Trade month name for 4-5-4 pattern"
@@ -115,7 +119,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4]
+              arguments:
+                values: [1, 2, 3, 4]
       
       - name: trade_quarter_454_nm
         description: "Trade quarter name for 4-5-4 pattern (First, Second, Third, Fourth)"
@@ -138,7 +143,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
       
       - name: trade_month_544_nm
         description: "Trade month name for 5-4-4 pattern"
@@ -150,7 +156,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4]
+              arguments:
+                values: [1, 2, 3, 4]
       
       - name: trade_quarter_544_nm
         description: "Trade quarter name for 5-4-4 pattern (First, Second, Third, Fourth)"
@@ -243,14 +250,16 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [7]
+              arguments:
+                values: [7]
       
       - name: weeks_in_trade_year_num
         description: "Total number of weeks in the trade year (52 or 53)"
         data_tests:
           - not_null
           - accepted_values:
-              values: [52, 53]
+              arguments:
+                values: [52, 53]
       
       - name: trade_week_overall_num
         description: "Sequential trade week number since earliest trade week, useful for week-over-week calculations"
@@ -286,69 +295,76 @@ models:
     data_tests:
       # Test 445 pattern: months 1,4,7,10 have max 4 weeks; 2,5,8,11 have max 4 weeks; 3,6,9,12 have max 5 weeks
       - dbt_utils.expression_is_true:
-          expression: |
-            case 
-              when trade_month_445_num in (1, 4, 7, 10) then trade_week_of_month_445_num <= 4
-              when trade_month_445_num in (2, 5, 8, 11) then trade_week_of_month_445_num <= 4
-              when trade_month_445_num in (3, 6, 9, 12) then trade_week_of_month_445_num <= 5
-              else false
-            end
+          arguments:
+            expression: |
+              case
+                when trade_month_445_num in (1, 4, 7, 10) then trade_week_of_month_445_num <= 4
+                when trade_month_445_num in (2, 5, 8, 11) then trade_week_of_month_445_num <= 4
+                when trade_month_445_num in (3, 6, 9, 12) then trade_week_of_month_445_num <= 5
+                else false
+              end
           config:
             where: "is_leap_week_flg = false"  # Exclude leap weeks from this test
             error_if: ">0"
       
       # Test 454 pattern: months 1,4,7,10 have max 4 weeks; 2,5,8,11 have max 5 weeks; 3,6,9,12 have max 4 weeks
       - dbt_utils.expression_is_true:
-          expression: |
-            case 
-              when trade_month_454_num in (1, 4, 7, 10) then trade_week_of_month_454_num <= 4
-              when trade_month_454_num in (2, 5, 8, 11) then trade_week_of_month_454_num <= 5
-              when trade_month_454_num in (3, 6, 9, 12) then trade_week_of_month_454_num <= 4
-              else false
-            end
+          arguments:
+            expression: |
+              case
+                when trade_month_454_num in (1, 4, 7, 10) then trade_week_of_month_454_num <= 4
+                when trade_month_454_num in (2, 5, 8, 11) then trade_week_of_month_454_num <= 5
+                when trade_month_454_num in (3, 6, 9, 12) then trade_week_of_month_454_num <= 4
+                else false
+              end
           config:
             where: "is_leap_week_flg = false"  # Exclude leap weeks from this test
             error_if: ">0"
       
       # Test 544 pattern: months 1,4,7,10 have max 5 weeks; 2,5,8,11 have max 4 weeks; 3,6,9,12 have max 4 weeks
       - dbt_utils.expression_is_true:
-          expression: |
-            case 
-              when trade_month_544_num in (1, 4, 7, 10) then trade_week_of_month_544_num <= 5
-              when trade_month_544_num in (2, 5, 8, 11) then trade_week_of_month_544_num <= 4
-              when trade_month_544_num in (3, 6, 9, 12) then trade_week_of_month_544_num <= 4
-              else false
-            end
+          arguments:
+            expression: |
+              case
+                when trade_month_544_num in (1, 4, 7, 10) then trade_week_of_month_544_num <= 5
+                when trade_month_544_num in (2, 5, 8, 11) then trade_week_of_month_544_num <= 4
+                when trade_month_544_num in (3, 6, 9, 12) then trade_week_of_month_544_num <= 4
+                else false
+              end
           config:
             where: "is_leap_week_flg = false"  # Exclude leap weeks from this test
             error_if: ">0"
       
       # Test that all patterns have reasonable values for week of month (1-6, allowing for leap weeks)
       - dbt_utils.expression_is_true:
-          expression: |
-            trade_week_of_month_445_num between 1 and 6
-            and trade_week_of_month_454_num between 1 and 6
-            and trade_week_of_month_544_num between 1 and 6
+          arguments:
+            expression: |
+              trade_week_of_month_445_num between 1 and 6
+              and trade_week_of_month_454_num between 1 and 6
+              and trade_week_of_month_544_num between 1 and 6
           config:
             error_if: ">0"
       
       # Test that all patterns have reasonable values for week of quarter (1-14, allowing for leap weeks)
       - dbt_utils.expression_is_true:
-          expression: |
-            trade_week_of_quarter_445_num between 1 and 14
-            and trade_week_of_quarter_454_num between 1 and 14
-            and trade_week_of_quarter_544_num between 1 and 14
+          arguments:
+            expression: |
+              trade_week_of_quarter_445_num between 1 and 14
+              and trade_week_of_quarter_454_num between 1 and 14
+              and trade_week_of_quarter_544_num between 1 and 14
           config:
             error_if: ">0"
       
       # Test that trade week end date is exactly 6 days after start date
       - dbt_utils.expression_is_true:
-          expression: "datediff(day, trade_week_start_dt, trade_week_end_dt) = 6"
+          arguments:
+            expression: "datediff(day, trade_week_start_dt, trade_week_end_dt) = 6"
           config:
             error_if: ">0"
       
       # Test that trade week key matches year and week components
       - dbt_utils.expression_is_true:
-          expression: "trade_week_key = trade_year_num * 100 + trade_week_num"
+          arguments:
+            expression: "trade_week_key = trade_year_num * 100 + trade_week_num"
           config:
             error_if: ">0"

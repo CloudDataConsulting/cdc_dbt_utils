@@ -51,7 +51,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: ['445', '454', '544']
+              arguments:
+                values: ['445', '454', '544']
 
       # Core trade calendar
       - name: trade_year_num
@@ -64,35 +65,40 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
       - name: trade_month_nm
         description: "Trade month name (January through December)"
         data_tests:
           - not_null
           - accepted_values:
-              values: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+              arguments:
+                values: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
       - name: trade_quarter_num
         description: "Trade quarter number (1-4)"
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4]
+              arguments:
+                values: [1, 2, 3, 4]
 
       - name: trade_quarter_nm
         description: "Trade quarter name (First, Second, Third, Fourth)"
         data_tests:
           - not_null
           - accepted_values:
-              values: ['First', 'Second', 'Third', 'Fourth']
+              arguments:
+                values: ['First', 'Second', 'Third', 'Fourth']
 
       - name: month_in_quarter_num
         description: "Position of month within the quarter (1-3)"
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3]
+              arguments:
+                values: [1, 2, 3]
 
       # Month boundaries
       - name: trade_month_start_dt
@@ -121,7 +127,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: ['Q1', 'Q2', 'Q3', 'Q4']
+              arguments:
+                values: ['Q1', 'Q2', 'Q3', 'Q4']
 
       - name: trade_month_year_nm
         description: "Month and year description (e.g., 'January 2023')"
@@ -143,7 +150,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+              arguments:
+                values: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
       # Pattern-specific descriptions
       - name: trade_month_pattern_desc_txt
@@ -182,7 +190,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [4, 5]
+              arguments:
+                values: [4, 5]
 
       - name: trade_week_span_txt
         description: "Descriptive text of week span (e.g., 'Weeks 1-4' or 'Week 5')"
@@ -227,7 +236,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
       - name: trade_month_pct_of_year_num
         description: "Percentage of trade year completed as of this month (0.0-100.0)"
@@ -273,79 +283,89 @@ models:
     data_tests:
       # Test that expected weeks matches actual weeks for each pattern
       - dbt_utils.expression_is_true:
-          expression: "weeks_in_month_num = expected_weeks_in_month_num"
+          arguments:
+            expression: "weeks_in_month_num = expected_weeks_in_month_num"
           config:
             error_if: ">0"
 
       # Test 445 pattern: months 1,2,4,5,7,8,10,11 have 4 weeks; 3,6,9,12 have 5 weeks
       - dbt_utils.expression_is_true:
-          expression: |
-            case 
-              when trade_pattern_txt = '445' and month_in_quarter_num in (1, 2) then weeks_in_month_num = 4
-              when trade_pattern_txt = '445' and month_in_quarter_num = 3 then weeks_in_month_num = 5
-              else true
-            end
+          arguments:
+            expression: |
+              case
+                when trade_pattern_txt = '445' and month_in_quarter_num in (1, 2) then weeks_in_month_num = 4
+                when trade_pattern_txt = '445' and month_in_quarter_num = 3 then weeks_in_month_num = 5
+                else true
+              end
           config:
             error_if: ">0"
 
       # Test 454 pattern: months 1,3,4,6,7,9,10,12 have 4 weeks; 2,5,8,11 have 5 weeks
       - dbt_utils.expression_is_true:
-          expression: |
-            case 
-              when trade_pattern_txt = '454' and month_in_quarter_num in (1, 3) then weeks_in_month_num = 4
-              when trade_pattern_txt = '454' and month_in_quarter_num = 2 then weeks_in_month_num = 5
-              else true
-            end
+          arguments:
+            expression: |
+              case
+                when trade_pattern_txt = '454' and month_in_quarter_num in (1, 3) then weeks_in_month_num = 4
+                when trade_pattern_txt = '454' and month_in_quarter_num = 2 then weeks_in_month_num = 5
+                else true
+              end
           config:
             error_if: ">0"
 
       # Test 544 pattern: months 1,4,7,10 have 5 weeks; 2,3,5,6,8,9,11,12 have 4 weeks
       - dbt_utils.expression_is_true:
-          expression: |
-            case 
-              when trade_pattern_txt = '544' and month_in_quarter_num = 1 then weeks_in_month_num = 5
-              when trade_pattern_txt = '544' and month_in_quarter_num in (2, 3) then weeks_in_month_num = 4
-              else true
-            end
+          arguments:
+            expression: |
+              case
+                when trade_pattern_txt = '544' and month_in_quarter_num = 1 then weeks_in_month_num = 5
+                when trade_pattern_txt = '544' and month_in_quarter_num in (2, 3) then weeks_in_month_num = 4
+                else true
+              end
           config:
             error_if: ">0"
 
       # Test that trade month end date is after start date
       - dbt_utils.expression_is_true:
-          expression: "trade_month_end_dt > trade_month_start_dt"
+          arguments:
+            expression: "trade_month_end_dt > trade_month_start_dt"
           config:
             error_if: ">0"
 
       # Test that days in month is reasonable (minimum 28 days for 4-week months, maximum 35 days for 5-week months)
       - dbt_utils.expression_is_true:
-          expression: "days_in_month_num between 28 and 35"
+          arguments:
+            expression: "days_in_month_num between 28 and 35"
           config:
             error_if: ">0"
 
       # Test that trade month key matches year and month components for each pattern
       - dbt_utils.expression_is_true:
-          expression: "trade_month_key = trade_year_num * 100 + trade_month_num"
+          arguments:
+            expression: "trade_month_key = trade_year_num * 100 + trade_month_num"
           config:
             error_if: ">0"
 
       # Test that trade month pattern key is constructed correctly
       - dbt_utils.expression_is_true:
-          expression: "trade_month_pattern_key = trade_year_num * 10000 + trade_month_num * 100 + trade_pattern_txt::int"
+          arguments:
+            expression: "trade_month_pattern_key = trade_year_num * 10000 + trade_month_num * 100 + trade_pattern_txt::int"
           config:
             error_if: ">0"
 
       # Test that all three patterns exist for each trade year and month combination
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - trade_year_num
-            - trade_month_num
-            - trade_pattern_txt
+          arguments:
+            combination_of_columns:
+              - trade_year_num
+              - trade_month_num
+              - trade_pattern_txt
 
       # Test that week span is within reasonable bounds (1-53)
       - dbt_utils.expression_is_true:
-          expression: |
-            first_week_of_month_num between 1 and 53
-            and last_week_of_month_num between 1 and 53
-            and last_week_of_month_num >= first_week_of_month_num
+          arguments:
+            expression: |
+              first_week_of_month_num between 1 and 53
+              and last_week_of_month_num between 1 and 53
+              and last_week_of_month_num >= first_week_of_month_num
           config:
             error_if: ">0"

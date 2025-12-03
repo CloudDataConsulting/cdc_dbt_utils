@@ -52,14 +52,16 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: ['445', '454', '544']
+              arguments:
+                values: ['445', '454', '544']
 
       - name: pattern_desc_txt
         description: "Description of the pattern structure (e.g., '4-4-5 weeks per month')"
         data_tests:
           - not_null
           - accepted_values:
-              values: ['4-4-5 weeks per month', '4-5-4 weeks per month', '5-4-4 weeks per month']
+              arguments:
+                values: ['4-4-5 weeks per month', '4-5-4 weeks per month', '5-4-4 weeks per month']
 
       # Core trade calendar
       - name: trade_year_num
@@ -72,14 +74,16 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4]
+              arguments:
+                values: [1, 2, 3, 4]
 
       - name: trade_quarter_nm
         description: "Trade quarter name (First, Second, Third, Fourth)"
         data_tests:
           - not_null
           - accepted_values:
-              values: ['First', 'Second', 'Third', 'Fourth']
+              arguments:
+                values: ['First', 'Second', 'Third', 'Fourth']
 
       # Quarter boundaries
       - name: trade_quarter_start_dt
@@ -108,7 +112,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: ['Q1', 'Q2', 'Q3', 'Q4']
+              arguments:
+                values: ['Q1', 'Q2', 'Q3', 'Q4']
 
       - name: trade_quarter_year_txt
         description: "Quarter and year description (e.g., 'Q1 2023')"
@@ -137,21 +142,24 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 4, 7, 10]
+              arguments:
+                values: [1, 4, 7, 10]
 
       - name: second_month_num
         description: "Trade month number of the second month in this quarter"
         data_tests:
           - not_null
           - accepted_values:
-              values: [2, 5, 8, 11]
+              arguments:
+                values: [2, 5, 8, 11]
 
       - name: third_month_num
         description: "Trade month number of the third month in this quarter"
         data_tests:
           - not_null
           - accepted_values:
-              values: [3, 6, 9, 12]
+              arguments:
+                values: [3, 6, 9, 12]
 
       - name: first_month_nm
         description: "Trade month name of the first month in this quarter"
@@ -199,14 +207,16 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [13, 14]
+              arguments:
+                values: [13, 14]
 
       - name: months_in_quarter_num
         description: "Number of months in the trade quarter (always 3)"
         data_tests:
           - not_null
           - accepted_values:
-              values: [3]
+              arguments:
+                values: [3]
 
       - name: first_week_of_quarter_num
         description: "Trade week number of the first week in this quarter"
@@ -223,7 +233,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [13, 14]
+              arguments:
+                values: [13, 14]
 
       - name: trade_week_span_txt
         description: "Descriptive text of week span (e.g., 'Weeks 1-13' or 'Week 14')"
@@ -273,7 +284,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4]
+              arguments:
+                values: [1, 2, 3, 4]
 
       - name: trade_quarter_pct_of_year_num
         description: "Percentage of trade year completed as of this quarter (25.0-100.0)"
@@ -319,86 +331,97 @@ models:
     data_tests:
       # Test that expected weeks matches actual weeks
       - dbt_utils.expression_is_true:
-          expression: "weeks_in_quarter_num = expected_weeks_in_quarter_num"
+          arguments:
+            expression: "weeks_in_quarter_num = expected_weeks_in_quarter_num"
           config:
             error_if: ">0"
 
       # Test that all quarters have 13 weeks except Q4 which may have 14 (leap week)
       - dbt_utils.expression_is_true:
-          expression: |
-            case 
-              when trade_quarter_num in (1, 2, 3) then weeks_in_quarter_num = 13
-              when trade_quarter_num = 4 then weeks_in_quarter_num in (13, 14)
-              else false
-            end
+          arguments:
+            expression: |
+              case
+                when trade_quarter_num in (1, 2, 3) then weeks_in_quarter_num = 13
+                when trade_quarter_num = 4 then weeks_in_quarter_num in (13, 14)
+                else false
+              end
           config:
             error_if: ">0"
 
       # Test that trade quarter end date is after start date
       - dbt_utils.expression_is_true:
-          expression: "trade_quarter_end_dt > trade_quarter_start_dt"
+          arguments:
+            expression: "trade_quarter_end_dt > trade_quarter_start_dt"
           config:
             error_if: ">0"
 
       # Test that days in quarter is reasonable (minimum 91 days for 13-week quarters, maximum 98 days for 14-week quarters)
       - dbt_utils.expression_is_true:
-          expression: "days_in_quarter_num between 91 and 98"
+          arguments:
+            expression: "days_in_quarter_num between 91 and 98"
           config:
             error_if: ">0"
 
       # Test that trade quarter key matches year and quarter components
       - dbt_utils.expression_is_true:
-          expression: "trade_quarter_key = trade_year_num * 10 + trade_quarter_num"
+          arguments:
+            expression: "trade_quarter_key = trade_year_num * 10 + trade_quarter_num"
           config:
             error_if: ">0"
 
       # Test that trade quarter pattern key is constructed correctly
       - dbt_utils.expression_is_true:
-          expression: "trade_quarter_pattern_key = trade_year_num * 10000 + trade_quarter_num * 1000 + trade_pattern_txt::int"
+          arguments:
+            expression: "trade_quarter_pattern_key = trade_year_num * 10000 + trade_quarter_num * 1000 + trade_pattern_txt::int"
           config:
             error_if: ">0"
 
       # Test that all three patterns exist for each trade year and quarter combination
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - trade_year_num
-            - trade_quarter_num
-            - trade_pattern_txt
+          arguments:
+            combination_of_columns:
+              - trade_year_num
+              - trade_quarter_num
+              - trade_pattern_txt
 
       # Test that week span is within reasonable bounds (1-53)
       - dbt_utils.expression_is_true:
-          expression: |
-            first_week_of_quarter_num between 1 and 53
-            and last_week_of_quarter_num between 1 and 53
-            and last_week_of_quarter_num >= first_week_of_quarter_num
+          arguments:
+            expression: |
+              first_week_of_quarter_num between 1 and 53
+              and last_week_of_quarter_num between 1 and 53
+              and last_week_of_quarter_num >= first_week_of_quarter_num
           config:
             error_if: ">0"
 
       # Test that leap quarter flag is only set for Q4 with 14 weeks
       - dbt_utils.expression_is_true:
-          expression: |
-            case 
-              when is_leap_quarter_flg = 1 then trade_quarter_num = 4 and weeks_in_quarter_num = 14
-              else trade_quarter_num != 4 or weeks_in_quarter_num = 13
-            end
+          arguments:
+            expression: |
+              case
+                when is_leap_quarter_flg = 1 then trade_quarter_num = 4 and weeks_in_quarter_num = 14
+                else trade_quarter_num != 4 or weeks_in_quarter_num = 13
+              end
           config:
             error_if: ">0"
 
       # Test that months in quarter are consecutive and correct for each quarter
       - dbt_utils.expression_is_true:
-          expression: |
-            case trade_quarter_num
-              when 1 then first_month_num = 1 and second_month_num = 2 and third_month_num = 3
-              when 2 then first_month_num = 4 and second_month_num = 5 and third_month_num = 6
-              when 3 then first_month_num = 7 and second_month_num = 8 and third_month_num = 9
-              when 4 then first_month_num = 10 and second_month_num = 11 and third_month_num = 12
-              else false
-            end
+          arguments:
+            expression: |
+              case trade_quarter_num
+                when 1 then first_month_num = 1 and second_month_num = 2 and third_month_num = 3
+                when 2 then first_month_num = 4 and second_month_num = 5 and third_month_num = 6
+                when 3 then first_month_num = 7 and second_month_num = 8 and third_month_num = 9
+                when 4 then first_month_num = 10 and second_month_num = 11 and third_month_num = 12
+                else false
+              end
           config:
             error_if: ">0"
 
       # Test that quarter percentage is calculated correctly
       - dbt_utils.expression_is_true:
-          expression: "trade_quarter_pct_of_year_num = round(trade_quarter_num / 4.0 * 100, 1)"
+          arguments:
+            expression: "trade_quarter_pct_of_year_num = round(trade_quarter_num / 4.0 * 100, 1)"
           config:
             error_if: ">0"

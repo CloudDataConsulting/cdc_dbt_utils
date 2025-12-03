@@ -5,7 +5,7 @@ with date_dimension as (
 ),
 
 trade_date_dimension as (
-    select * from {{ ref('dim_date_trade') }}
+    select * from {{ ref('dim_trade_date') }}
 ),
 
 filtered_date_data as (
@@ -61,11 +61,11 @@ monthly_aggregated_data as (
 ),
 
 monthly_data_with_trade_calendar as (
-    -- Add retail calendar from dim_date_trade if it exists
+    -- Add retail calendar from dim_trade_date if it exists
     select 
         m.*,
         
-        -- Pull retail/trade calendar attributes from dim_date_trade
+        -- Pull retail/trade calendar attributes from dim_trade_date
         -- Using the 15th of the month as the determinant
         coalesce(
             (select max(trade_year_num) 

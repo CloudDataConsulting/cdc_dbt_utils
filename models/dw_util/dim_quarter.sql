@@ -58,7 +58,7 @@ quarter_level_aggregation as (
 ),
 
 quarter_with_retail_calendar as (
-    -- Add retail calendar from dim_date_trade if it exists
+    -- Add retail calendar from dim_trade_date if it exists
     select 
         q.*,
         
@@ -66,11 +66,11 @@ quarter_with_retail_calendar as (
         q.year_num as fiscal_year_num,
         q.quarter_num as fiscal_quarter_num,
         
-        -- Pull retail/trade calendar attributes from dim_date_trade
+        -- Pull retail/trade calendar attributes from dim_trade_date
         -- Using the middle of the quarter (day 46) as the determinant
         coalesce(
             (select max(trade_year_num) 
-             from {{ ref('dim_date_trade') }} dr
+             from {{ ref('dim_trade_date') }} dr
              where dr.full_dt = dateadd(day, 45, q.first_day_of_quarter_dt)),
             q.year_num
         ) as trade_year_num,

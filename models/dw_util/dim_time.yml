@@ -10,10 +10,11 @@ models:
         - unique
         - not_null
         - accepted_values:
-            values: [0, 86399]
-            quote: false
+            arguments:
+              values: [0, 86399]
+              quote: false
             config:
-              where: "time_key = 0 or time_key = 86399"  # Test boundary values
+              where: "time_key = 0 or time_key = 86399"
     
     - name: time
       description: "Time value in HH:MM:SS format (e.g., 14:30:45)"
@@ -25,8 +26,9 @@ models:
       data_tests:
         - not_null
         - accepted_values:
-            values: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
-            quote: false
+            arguments:
+              values: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+              quote: false
     
     - name: minute
       description: "Minute within the hour (0-59)"
@@ -48,32 +50,36 @@ models:
       data_tests:
         - not_null
         - accepted_values:
-            values: [0, 1]
-            quote: false
-    
+            arguments:
+              values: [0, 1]
+              quote: false
+
     - name: quarter_hour_flag
       description: "Binary flag: 1 if time is on a quarter hour mark (:00, :15, :30, :45), 0 otherwise"
       data_tests:
         - not_null
         - accepted_values:
-            values: [0, 1]
-            quote: false
-    
+            arguments:
+              values: [0, 1]
+              quote: false
+
     - name: day_shift_flag
       description: "Binary flag: 1 if time falls within day shift hours (typically 7 AM - 3 PM), 0 otherwise"
       data_tests:
         - not_null
         - accepted_values:
-            values: [0, 1]
-            quote: false
-    
+            arguments:
+              values: [0, 1]
+              quote: false
+
     - name: night_shift_flag
       description: "Binary flag: 1 if time falls within night shift hours (typically 11 PM - 7 AM), 0 otherwise"
       data_tests:
         - not_null
         - accepted_values:
-            values: [0, 1]
-            quote: false
+            arguments:
+              values: [0, 1]
+              quote: false
     
     - name: time_period
       description: "Descriptive period of day (e.g., 'Early Morning', 'Morning', 'Afternoon', 'Evening', 'Night')"
