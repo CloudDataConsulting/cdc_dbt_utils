@@ -101,8 +101,8 @@ final as (
         week_of_year_num,
         week_of_month_num,
         
-        -- ISO week
-        split_part(iso_week_txt, '-W', 2)::int as iso_week_num,
+        -- ISO week (iso_week_txt format is YYYY-Www-d, extract just the week number)
+        split_part(split_part(iso_week_txt, '-W', 2), '-', 1)::int as iso_week_num,
         iso_year_num,
         iso_week_txt,
         

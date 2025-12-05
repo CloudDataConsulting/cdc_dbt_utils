@@ -26,6 +26,8 @@ __pycache__/
 *$py.class
 venv/
 .venv/
+*.egg-info/
+uv.lock
 
 # Testing
 .coverage

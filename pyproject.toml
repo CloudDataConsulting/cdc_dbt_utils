@@ -1,0 +1,97 @@
+[project]
+name = "cdc-dbt-utils"
+version = "1.0.2"
+description = "CDC dbt utilities package with reusable macros and dimensional models"
+requires-python = ">=3.11"
+
+dependencies = [
+    "dbt-core==1.10.15",
+    "dbt-snowflake==1.10.3",
+    "sqlfluff==3.4.2",
+    "sqlfluff-templater-dbt==3.4.2",
+]
+
+[tool.sqlfluff.core]
+verbose = 1
+dialect = "snowflake"
+templater = "dbt"
+sql_file_exts = ".sql,.sql.j2,.dml,.ddl"
+max_line_length = 120
+# L034 - was re-ordering columns, breaking downstream code
+# LT07 - enforces CTE brackets on new lines (we want same line)
+# LT02 - enforces closing parenthesis on new line (we want same line)
+# AL09 - removes self-aliasing like trim(col) as col (we want to keep)
+# LT14 - enforces WHERE on new line (we use inline where in CTE definitions)
+# ST01 - removes else null (sometimes clearer to keep explicit)
+# LT01 - spacing after commas in functions - we don't want decimal(18, 2)
+# LT09 - select targets on new line (we allow inline selects in CTEs)
+# LT05 - line too long (we handle manually, 120 is guide not strict)
+exclude_rules = "LT08,L034,LT07,LT02,AL09,LT14,ST01,LT01,LT09,LT05"
+large_file_skip_byte_limit = 0
+runaway_limit = 100
+tab_space_size = 2
+
+[tool.sqlfluff.templater.dbt]
+project_dir = "."
+profiles_dir = "."
+
+[tool.sqlfluff.rules.layout.newlines]
+maximum_empty_lines_between_statements = 0
+maximum_empty_lines_inside_statements = 0
+
+[tool.sqlfluff.rules.layout.cte_bracket]
+cte_bracket_style = "same_line"
+
+[tool.sqlfluff.rules.aliasing.table]
+aliasing = "explicit"
+
+[tool.sqlfluff.rules.aliasing.column]
+aliasing = "explicit"
+
+[tool.sqlfluff.rules.aliasing.length]
+min_alias_length = 3
+
+[tool.sqlfluff.rules.capitalisation.keywords]
+capitalisation_policy = "lower"
+
+[tool.sqlfluff.rules.capitalisation.identifiers]
+capitalisation_policy = "lower"
+
+[tool.sqlfluff.rules.capitalisation.functions]
+extended_capitalisation_policy = "lower"
+
+[tool.sqlfluff.rules.capitalisation.literals]
+capitalisation_policy = "lower"
+
+[tool.sqlfluff.rules.capitalisation.types]
+extended_capitalisation_policy = "lower"
+
+[tool.sqlfluff.rules.convention.select_trailing_comma]
+select_clause_trailing_comma = "forbid"
+
+[tool.sqlfluff.layout.type.comma]
+spacing_before = "touch"
+line_position = "leading"
+
+[tool.sqlfluff.layout.type.end_of_file]
+spacing_before = "touch"
+
+[tool.sqlfluff.rules.layout.select_modifiers]
+closing_bracket_line_position = "same"
+
+[tool.sqlfluff.rules.layout.indent]
+closing_bracket_line_position = "trailing"
+
+[tool.sqlfluff.indentation]
+indented_joins = false
+indented_using_on = true
+template_blocks_indent = false
+
+[tool.sqlfluff.templater]
+unwrap_wrapped_queries = true
+
+[tool.sqlfluff.templater.jinja]
+apply_dbt_builtins = true
+
+[tool.setuptools]
+packages = []

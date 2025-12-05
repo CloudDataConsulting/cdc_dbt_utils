@@ -7,7 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.0.0] - Unreleased
+## [1.0.2] - 2025-12-05
+### Fixed
+- Extended dim_trade_date range from 2040 to 2045 to ensure complete trade calendar coverage
+- Fixed dim_time "Not Set" record with null flags (now uses false instead of null)
+- Fixed dim_trade_week `denserank()` → `dense_rank()` syntax error
+- Fixed dim_week ISO week parsing error in `split_part` expression
+- Fixed dim_trade_month `expected_weeks_in_month_num` calculation to account for leap weeks in 53-week years
+- Updated dim_trade_month tests to allow 6-week months and 42-day months in 53-week years
+
+### Changed
+- Upgraded to dbt 1.10.15 with pyproject.toml and uv for dependency management
+- Added packages.yml with dbt_utils dependency
+- Added sqlfluff configuration in pyproject.toml following CDC standards
+
+## [1.0.1] - 2025 (tagged but not released)
+### Fixed
+- Fixed dbt 1.10 deprecation warnings for generic tests
+
+## [1.0.0] - 2025
 ### Added
 - New dimensional models at different time grains (all derived from dim_date for consistency):
   - **dim_week**: Week-level dimension derived from dim_date with ISO week standards and retail calendar

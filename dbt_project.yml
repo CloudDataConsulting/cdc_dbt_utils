@@ -8,7 +8,7 @@
 config-version: 2
 
 name: 'cdc_dbt_utils'
-version: '1.0.0'
+version: '1.0.2'
 profile: 'cdc_dbt_utils'
 
 

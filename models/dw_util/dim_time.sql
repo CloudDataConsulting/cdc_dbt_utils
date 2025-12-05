@@ -27,18 +27,18 @@ select
 from gapless_row_numbers
 ),
 null_values as (
-  select 
+  select
      -1 as time_key
-  , null                              as time -- dimension starts at 00:00
-  , -1                                                     as hour
-  , -1                                                   as minute
-  , -1                                                 as second
+  , time('00:00:00')                                    as time
+  , -1                                                  as hour
+  , -1                                                  as minute
+  , -1                                                  as second
   , 'Not Set'                                           as time_12h
-  , null                                                 as hour_flag
-  , null                                                as quarter_hour_flag
-  , null                                                     as day_shift_flag
-  , null                                                          as night_shift_flag
-  , 'Not Set'                                                 as time_period
+  , false                                               as hour_flag
+  , false                                               as quarter_hour_flag
+  , false                                               as day_shift_flag
+  , false                                               as night_shift_flag
+  , 'Not Set'                                           as time_period
   {{ last_run_fields() }}
 
 )

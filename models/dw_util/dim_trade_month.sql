@@ -313,7 +313,7 @@ final as (
         first_week_of_month_num,
         last_week_of_month_num,
 
-        -- Expected weeks based on pattern
+        -- Expected weeks based on pattern (add 1 for leap week in month 12 during 53-week years)
         case
             when trade_pattern_txt = '445' and month_in_quarter_num in (1, 2) then 4
             when trade_pattern_txt = '445' and month_in_quarter_num = 3 then 5
@@ -321,7 +321,10 @@ final as (
             when trade_pattern_txt = '454' and month_in_quarter_num = 2 then 5
             when trade_pattern_txt = '544' and month_in_quarter_num = 1 then 5
             when trade_pattern_txt = '544' and month_in_quarter_num in (2, 3) then 4
-        end as expected_weeks_in_month_num,
+        end
+        -- Add leap week to month 12 in 53-week years
+        + case when trade_month_num = 12 and last_week_of_month_num = 53 then 1 else 0 end
+        as expected_weeks_in_month_num,
 
         -- Week span description
         case

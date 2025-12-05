@@ -182,7 +182,7 @@ final as (
         weeks_in_trade_year_num,
         
         -- Calculate overall week number (weeks since earliest trade week)
-        denserank() over (order by trade_week_start_dt) as trade_week_overall_num,
+        dense_rank() over (order by trade_week_start_dt) as trade_week_overall_num,
         
         -- ETL metadata
         false as dw_deleted_flg,

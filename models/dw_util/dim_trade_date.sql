@@ -342,7 +342,7 @@ with date_sequence as (
         current_timestamp as create_timestamp
         
     from retail_dates
-    where calendar_date between '1995-01-01' and '2040-12-31'
+    where calendar_date between '1995-01-01' and '2045-12-31'
 )
 
 select * from final
