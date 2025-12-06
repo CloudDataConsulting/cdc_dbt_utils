@@ -1,4 +1,9 @@
-{{ config(materialized='table') }}
+{{
+  config(
+    materialized='table',
+    post_hook="alter table {{ this }} add primary key (trade_quarter_pattern_key)"
+  )
+}}
 with trade_date as (
     -- Pull from dim_trade_date to ensure consistency
     select 

@@ -1,4 +1,9 @@
-{{ config(materialized='table') }}
+{{
+  config(
+    materialized='table',
+    post_hook="alter table {{ this }} add primary key (trade_week_key)"
+  )
+}}
 with trade_date as (
     select * from {{ ref('dim_trade_date') }}
 )

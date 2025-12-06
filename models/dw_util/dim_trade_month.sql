@@ -1,4 +1,9 @@
-{{ config(materialized='table') }}
+{{
+  config(
+    materialized='table',
+    post_hook="alter table {{ this }} add primary key (trade_month_pattern_key)"
+  )
+}}
 {#
 dim_trade_month - Trade Calendar Month-level dimension
 One row per trade month per pattern, derived from dim_trade_date for consistency

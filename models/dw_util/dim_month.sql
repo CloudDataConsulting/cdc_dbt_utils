@@ -1,4 +1,9 @@
-{{ config(materialized='table') }}
+{{
+  config(
+    materialized='table',
+    post_hook="alter table {{ this }} add primary key (month_key)"
+  )
+}}
 with date_dimension as (
     select * from {{ ref('dim_date') }}
 )

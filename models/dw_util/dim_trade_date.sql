@@ -1,5 +1,10 @@
-{{ config(materialized='table') }}
-{# 
+{{
+  config(
+    materialized='table',
+    post_hook="alter table {{ this }} add primary key (date_key)"
+  )
+}}
+{#
 Trade Date Dimension with All Patterns
 Provides trade_week_of_month calculations for all three common trade/retail patterns (445, 454, 544)
 in a single table. Column names follow CDC standards with abbreviations (dt, num, ts, flg).

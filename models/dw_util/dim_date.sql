@@ -1,7 +1,9 @@
-{{ config(materialized='table', ) }}
-{# {{ config(
-    post_hook="alter table {{ this }} add primary key (date_key)",
-) }} #}
+{{
+  config(
+    materialized='table',
+    post_hook="alter table {{ this }} add primary key (date_key)"
+  )
+}}
 -- for snowflake only
 -- change the interval on line 8 to reflect the Fiscal offset of the client
 with sequence_gen as (

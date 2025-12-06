@@ -1,4 +1,9 @@
-{{ config(materialized='table') }}
+{{
+  config(
+    materialized='table',
+    post_hook="alter table {{ this }} add primary key (quarter_key)"
+  )
+}}
 with date_dimension as (
     -- Pull from dim_date to ensure consistency
     select 
