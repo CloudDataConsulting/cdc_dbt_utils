@@ -8,9 +8,9 @@ with date_dimension as (
     select * from {{ ref('dim_date') }}
 )
 , date_dimension_filtered as (
-    select 
+    select
         date_key
-        , full_date
+        , full_dt
         , week_begin_dt
         , week_end_dt
         , week_begin_key
@@ -37,10 +37,10 @@ with date_dimension as (
         
         -- Take calendar attributes from the Thursday of the week (ISO standard)
         -- Thursday determines which month/year the week belongs to
-        , max(case when dayofweek(full_date) = 5 then year_num end) as year_num
-        , max(case when dayofweek(full_date) = 5 then quarter_num end) as quarter_num
-        , max(case when dayofweek(full_date) = 5 then month_num end) as month_num
-        , max(case when dayofweek(full_date) = 5 then month_nm end) as month_nm
+        , max(case when dayofweek(full_dt) = 5 then year_num end) as year_num
+        , max(case when dayofweek(full_dt) = 5 then quarter_num end) as quarter_num
+        , max(case when dayofweek(full_dt) = 5 then month_num end) as month_num
+        , max(case when dayofweek(full_dt) = 5 then month_nm end) as month_nm
         
         -- Week attributes (same for all days in the week)
         , max(week_of_year_num) as week_of_year_num
@@ -120,13 +120,11 @@ with date_dimension as (
                 and week_end_dt >= current_date()
             then 1 else 0
         end as current_week_flg
-
         , case
             when week_start_dt <= dateadd(week, -1, current_date())
                 and week_end_dt >= dateadd(week, -1, current_date())
             then 1 else 0
         end as prior_week_flg
-
         , case
             when year_num = year(current_date())
             then 1 else 0

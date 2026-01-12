@@ -11,9 +11,9 @@ with date_dimension as (
     select * from {{ ref('dim_trade_date') }}
 )
 , filtered_date_data as (
-    select 
+    select
         date_key
-        , full_date
+        , full_dt
         , year_num
         , quarter_num
         , month_num
@@ -35,10 +35,9 @@ with date_dimension as (
     -- Aggregate to month level
     select
         yearmonth_num as month_key
-
         -- Month boundaries
-        , min(full_date) as month_begin_dt
-        , max(full_date) as month_end_dt
+        , min(full_dt) as month_begin_dt
+        , max(full_dt) as month_end_dt
         , min(date_key) as month_begin_key
         , max(date_key) as month_end_key
         
@@ -170,7 +169,6 @@ with date_dimension as (
             when month_end_dt < current_date()
             then 1 else 0
         end as is_past_month_flg
-
         -- Relative month numbers
         , datediff(month, month_begin_dt, current_date()) as months_ago_num
         , datediff(month, current_date(), month_begin_dt) as months_from_now_num

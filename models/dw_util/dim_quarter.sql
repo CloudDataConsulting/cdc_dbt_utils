@@ -6,9 +6,9 @@
 }}
 with date_dimension as (
     -- Pull from dim_date to ensure consistency
-    select 
+    select
         date_key
-        , full_date
+        , full_dt
         , year_num
         , quarter_num
         , quarter_nm
@@ -28,8 +28,8 @@ with date_dimension as (
         year_num * 10 + quarter_num as quarter_key
         
         -- Quarter boundaries
-        , min(full_date) as quarter_begin_dt
-        , max(full_date) as quarter_end_dt
+        , min(full_dt) as quarter_begin_dt
+        , max(full_dt) as quarter_end_dt
         , min(date_key) as quarter_begin_key
         , max(date_key) as quarter_end_key
         
@@ -164,7 +164,6 @@ with date_dimension as (
         -- Relative quarter numbers
         , datediff(quarter, quarter_begin_dt, current_date()) as quarters_ago_num
         , datediff(quarter, current_date(), quarter_begin_dt) as quarters_from_now_num
-
         -- Overall quarter number since 1970
         , datediff(quarter, '1970-01-01'::date, quarter_begin_dt) as quarter_overall_num
         
