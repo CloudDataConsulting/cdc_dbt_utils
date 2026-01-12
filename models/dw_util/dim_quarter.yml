@@ -11,13 +11,13 @@ models:
         - not_null
     
     # Quarter dates
-    - name: first_day_of_quarter_dt
+    - name: quarter_begin_dt
       description: "First calendar date of the quarter"
-    - name: last_day_of_quarter_dt
+    - name: quarter_end_dt
       description: "Last calendar date of the quarter"
-    - name: first_day_of_quarter_key
+    - name: quarter_begin_key
       description: "Date key (YYYYMMDD) of the quarter's first day"
-    - name: last_day_of_quarter_key
+    - name: quarter_end_key
       description: "Date key (YYYYMMDD) of the quarter's last day"
     
     # Quarter identifiers

@@ -115,22 +115,22 @@ with date_dimension as (
         , 'W' || lpad(week_of_year_num::varchar, 2, '0') || ' ' || year_num::varchar as week_year_txt
         
         -- Flags
-        , case 
-            when week_start_dt <= current_date() 
-                and week_end_dt >= current_date() 
-            then 1 else 0 
-        end as is_current_week_flg
-        
-        , case 
-            when week_start_dt <= dateadd(week, -1, current_date()) 
-                and week_end_dt >= dateadd(week, -1, current_date()) 
-            then 1 else 0 
-        end as is_prior_week_flg
-        
-        , case 
-            when year_num = year(current_date()) 
-            then 1 else 0 
-        end as is_current_year_flg
+        , case
+            when week_start_dt <= current_date()
+                and week_end_dt >= current_date()
+            then 1 else 0
+        end as current_week_flg
+
+        , case
+            when week_start_dt <= dateadd(week, -1, current_date())
+                and week_end_dt >= dateadd(week, -1, current_date())
+            then 1 else 0
+        end as prior_week_flg
+
+        , case
+            when year_num = year(current_date())
+            then 1 else 0
+        end as current_year_flg
         
         -- Relative week numbers
         , datediff(week, week_start_dt, current_date()) as weeks_ago_num

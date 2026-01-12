@@ -268,8 +268,8 @@ select * from gen_date
 union all 
 select
     -1 as date_key
-    , to_date('99991231','yyyymmdd') as full_date
-    , null as same_date_last_year
+    , to_date('99991231','yyyymmdd') as full_dt
+    , null as prior_year_dt
     , 'Not Set' as day_name
     , null as day_abbreviation
     , null as day_of_week_number
@@ -282,17 +282,17 @@ select
     , null as month_number_overall
     , null as month_in_quarter_number
     , null as day_of_month_number
-    , null as last_day_of_month
+    , null as month_end_dt
     , null as end_of_month_flag
     , null as day_number_suffix
-    , null as first_day_of_month
+    , null as month_begin_dt
     , null as first_day_of_month_flag
     , null as day_of_quarter_number
-    , null as first_day_of_quarter
-    , null as last_day_of_quarter
+    , null as quarter_begin_dt
+    , null as quarter_end_dt
     , null as day_of_year_number
-    , null as first_day_of_year
-    , null as last_day_of_year
+    , null as year_begin_dt
+    , null as year_end_dt
     , null as day_number_overall
     , null as week_of_month
     , null as week_of_year_number
@@ -308,17 +308,17 @@ select
     , null as year_number_iso
     , null as yearmonth_number
     , null as end_of_year_flag
-    , null as epoch
-    , null as yyyymmdd
+    , null as epoch_num
+    , null as yyyymmdd_txt
     , null as create_user_id
     , null as create_timestamp
 )
-select 
+select
     -- Date key
     date_key
-    , full_date
-    , same_date_last_year
-    
+    , full_date as full_dt
+    , same_date_last_year as prior_year_dt
+
     -- Day columns
     , day_name as day_nm
     , day_abbreviation as day_abbr
@@ -326,31 +326,31 @@ select
     , day_of_week_number_iso as iso_day_of_week_num
     , weekday_flag as weekday_flg
     , end_of_week_flag as end_of_week_flg
-    
-    -- Month columns  
+
+    -- Month columns
     , month_name as month_nm
     , month_abbreviation as month_abbr
     , month_number as month_num
     , month_number_overall as month_overall_num
     , month_in_quarter_number as month_in_quarter_num
     , day_of_month_number as day_of_month_num
-    , last_day_of_month
+    , last_day_of_month as month_end_dt
     , end_of_month_flag as end_of_month_flg
     , day_number_suffix as day_suffix_txt
-    , first_day_of_month
+    , first_day_of_month as month_begin_dt
     , first_day_of_month_flag as first_day_of_month_flg
-    
+
     -- Quarter columns
     , day_of_quarter_number as day_of_quarter_num
-    , first_day_of_quarter
-    , last_day_of_quarter
-    
+    , first_day_of_quarter as quarter_begin_dt
+    , last_day_of_quarter as quarter_end_dt
+
     -- Year columns
     , day_of_year_number as day_of_year_num
-    , first_day_of_year
-    , last_day_of_year
+    , first_day_of_year as year_begin_dt
+    , last_day_of_year as year_end_dt
     , day_number_overall as day_overall_num
-    
+
     -- Week columns
     , week_of_month as week_of_month_num
     , week_of_year_number as week_of_year_num
@@ -360,18 +360,18 @@ select
     , week_begin_date_id as week_begin_key
     , week_end_date as week_end_dt
     , week_end_date_id as week_end_key
-    
+
     -- Quarter and Year
     , quarter_number as quarter_num
     , quarter_name as quarter_nm
     , year_number as year_num
     , year_number_iso as iso_year_num
     , yearmonth_number as yearmonth_num
-    
+
     -- Other columns
     , end_of_year_flag as end_of_year_flg
-    , epoch
-    , yyyymmdd
+    , epoch as epoch_num
+    , yyyymmdd as yyyymmdd_txt
     , create_user_id
     , create_timestamp
 from final

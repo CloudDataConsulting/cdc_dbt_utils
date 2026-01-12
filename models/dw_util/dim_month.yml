@@ -11,13 +11,13 @@ models:
         - not_null
     
     # Month dates
-    - name: first_day_of_month_dt
+    - name: month_begin_dt
       description: "First calendar date of the month"
-    - name: last_day_of_month_dt
+    - name: month_end_dt
       description: "Last calendar date of the month"
-    - name: first_day_of_month_key
+    - name: month_begin_key
       description: "Date key (YYYYMMDD) of the month's first day"
-    - name: last_day_of_month_key
+    - name: month_end_key
       description: "Date key (YYYYMMDD) of the month's last day"
     
     # Month identifiers

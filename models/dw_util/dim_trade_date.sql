@@ -204,8 +204,8 @@ with date_sequence as (
         , day(calendar_date) as day_of_month_num
         , datediff('month', date('1970-01-01'), calendar_date) as month_overall_num
         , mod(month(calendar_date) - 1, 3) + 1 as month_in_quarter_num
-        , date_trunc('month', calendar_date) as first_day_of_month
-        , last_day(calendar_date, 'month') as last_day_of_month
+        , date_trunc('month', calendar_date) as month_begin_dt
+        , last_day(calendar_date, 'month') as month_end_dt
         , case when date_trunc('month', calendar_date) = calendar_date then 1 else 0 end as first_day_of_month_flg
         , case when last_day(calendar_date, 'month') = calendar_date then 1 else 0 end as end_of_month_flg
         
@@ -217,8 +217,8 @@ with date_sequence as (
             when quarter(calendar_date) = 4 then 'Fourth'
         end as quarter_nm
         , datediff(day, date_trunc('quarter', calendar_date), calendar_date) + 1 as day_of_quarter_num
-        , date_trunc('quarter', calendar_date) as first_day_of_quarter
-        , last_day(calendar_date, 'quarter') as last_day_of_quarter
+        , date_trunc('quarter', calendar_date) as quarter_begin_dt
+        , last_day(calendar_date, 'quarter') as quarter_end_dt
         
         -- Year details
         , yearofweekiso(calendar_date) as iso_year_num
@@ -241,8 +241,8 @@ with date_sequence as (
         , to_char(dateadd(day, 7 - dayofweekiso(calendar_date), calendar_date), 'yyyymmdd')::int as week_end_key
         
         -- Other date formats
-        , date_part(epoch_second, calendar_date) as epoch
-        , to_char(calendar_date, 'yyyymmdd')::int as yyyymmdd
+        , date_part(epoch_second, calendar_date) as epoch_num
+        , to_char(calendar_date, 'yyyymmdd')::int as yyyymmdd_num
         
         -- Core retail calendar (same for all patterns, using CDC abbreviations)
         , retail_year as trade_year_num

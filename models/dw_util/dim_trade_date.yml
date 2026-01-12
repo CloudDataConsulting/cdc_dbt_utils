@@ -145,12 +145,12 @@ models:
         tests:
           - not_null
       
-      - name: first_day_of_month
+      - name: month_begin_dt
         description: First date of the month
         tests:
           - not_null
-      
-      - name: last_day_of_month
+
+      - name: month_end_dt
         description: Last date of the month
         tests:
           - not_null
@@ -171,12 +171,12 @@ models:
         tests:
           - not_null
       
-      - name: first_day_of_quarter
+      - name: quarter_begin_dt
         description: First date of the quarter
         tests:
           - not_null
-      
-      - name: last_day_of_quarter
+
+      - name: quarter_end_dt
         description: Last date of the quarter
         tests:
           - not_null
@@ -249,12 +249,12 @@ models:
           - not_null
       
       # Other date formats
-      - name: epoch
+      - name: epoch_num
         description: Unix timestamp (seconds since 1970-01-01)
         tests:
           - not_null
-      
-      - name: yyyymmdd
+
+      - name: yyyymmdd_num
         description: Date as YYYYMMDD integer
         tests:
           - not_null
