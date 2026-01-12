@@ -318,7 +318,6 @@ select
     date_key
     , full_date as full_dt
     , same_date_last_year as prior_year_dt
-
     -- Day columns
     , day_name as day_nm
     , day_abbreviation as day_abbr
@@ -326,7 +325,6 @@ select
     , day_of_week_number_iso as iso_day_of_week_num
     , weekday_flag as weekday_flg
     , end_of_week_flag as end_of_week_flg
-
     -- Month columns
     , month_name as month_nm
     , month_abbreviation as month_abbr
@@ -339,18 +337,15 @@ select
     , day_number_suffix as day_suffix_txt
     , first_day_of_month as month_begin_dt
     , first_day_of_month_flag as first_day_of_month_flg
-
     -- Quarter columns
     , day_of_quarter_number as day_of_quarter_num
     , first_day_of_quarter as quarter_begin_dt
     , last_day_of_quarter as quarter_end_dt
-
     -- Year columns
     , day_of_year_number as day_of_year_num
     , first_day_of_year as year_begin_dt
     , last_day_of_year as year_end_dt
     , day_number_overall as day_overall_num
-
     -- Week columns
     , week_of_month as week_of_month_num
     , week_of_year_number as week_of_year_num
@@ -360,14 +355,12 @@ select
     , week_begin_date_id as week_begin_key
     , week_end_date as week_end_dt
     , week_end_date_id as week_end_key
-
     -- Quarter and Year
     , quarter_number as quarter_num
     , quarter_name as quarter_nm
     , year_number as year_num
     , year_number_iso as iso_year_num
     , yearmonth_number as yearmonth_num
-
     -- Other columns
     , end_of_year_flag as end_of_year_flg
     , epoch as epoch_num
