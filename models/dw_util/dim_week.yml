@@ -80,5 +80,5 @@ models:
     # Metadata
     - name: create_user_id
       description: "User ID who created the record"
-    - name: create_timestamp
+    - name: create_ts
       description: "Timestamp when the record was created"

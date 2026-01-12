@@ -436,7 +436,7 @@ with trade_date as (
         , current_timestamp as dw_synced_ts
         , 'dim_trade_quarter' as dw_source_nm
         , current_user as create_user_id
-        , current_timestamp as create_timestamp
+        , current_timestamp as create_ts
         
     from unified_quarters
 )

@@ -314,7 +314,7 @@ month_445_aggregated as (
         , current_timestamp as dw_synced_ts
         , 'dim_trade_month' as dw_source_nm
         , current_user as create_user_id
-        , current_timestamp as create_timestamp
+        , current_timestamp as create_ts
     from unified_months
 )
 select * from final

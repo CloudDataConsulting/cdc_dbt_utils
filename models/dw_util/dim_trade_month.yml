@@ -275,7 +275,7 @@ models:
         data_tests:
           - not_null
 
-      - name: create_timestamp
+      - name: create_ts
         description: "Timestamp when record was created"
         data_tests:
           - not_null

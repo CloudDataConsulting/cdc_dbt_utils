@@ -259,7 +259,7 @@ select
   , extract(epoch_second from datum)                               as epoch_num
   , to_char(datum, 'yyyymmdd')::varchar(10)                        as yyyymmdd_txt
   , current_user::varchar(100)                                     as create_user_id
-  , current_timestamp                                              as create_timestamp
+  , current_timestamp                                              as create_ts
 from sequence_gen
 )
 , final as 
@@ -311,7 +311,7 @@ select
     , null as epoch_num
     , null as yyyymmdd_txt
     , null as create_user_id
-    , null as create_timestamp
+    , null as create_ts
 )
 select
     date_key
@@ -358,5 +358,5 @@ select
     , epoch_num
     , yyyymmdd_txt
     , create_user_id
-    , create_timestamp
+    , create_ts
 from final

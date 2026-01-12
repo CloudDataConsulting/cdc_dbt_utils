@@ -332,7 +332,7 @@ with date_sequence as (
         , current_timestamp as dw_synced_ts
         , 'dim_trade_date' as dw_source_nm
         , current_user as create_user_id
-        , current_timestamp as create_timestamp
+        , current_timestamp as create_ts
         
     from retail_dates
     where calendar_date between '1995-01-01' and '2045-12-31'
