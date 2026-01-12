@@ -149,27 +149,27 @@ with date_dimension as (
         , month_num as month_of_year_fiscal_num  -- Can be overridden for fiscal calendars
         
         -- Flags
-        , case 
-            when year_num = year(current_date()) 
-                and month_num = month(current_date()) 
-            then 1 else 0 
-        end as is_current_month_flg
-        
-        , case 
+        , case
+            when year_num = year(current_date())
+                and month_num = month(current_date())
+            then 1 else 0
+        end as current_month_flg
+
+        , case
             when year_num = year(dateadd(month, -1, current_date()))
                 and month_num = month(dateadd(month, -1, current_date()))
-            then 1 else 0 
-        end as is_prior_month_flg
-        
-        , case 
-            when year_num = year(current_date()) 
-            then 1 else 0 
-        end as is_current_year_flg
-        
+            then 1 else 0
+        end as prior_month_flg
+
+        , case
+            when year_num = year(current_date())
+            then 1 else 0
+        end as current_year_flg
+
         , case
             when month_end_dt < current_date()
             then 1 else 0
-        end as is_past_month_flg
+        end as past_month_flg
         -- Relative month numbers
         , datediff(month, month_begin_dt, current_date()) as months_ago_num
         , datediff(month, current_date(), month_begin_dt) as months_from_now_num

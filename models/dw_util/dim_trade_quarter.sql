@@ -389,33 +389,33 @@ with trade_date as (
         end as trade_week_span_txt
         
         -- Flags
-        , case 
-            when trade_quarter_start_dt <= current_date() 
-                and trade_quarter_end_dt >= current_date() 
-            then 1 else 0 
-        end as is_current_trade_quarter_flg
-        
-        , case 
-            when trade_quarter_start_dt <= dateadd(quarter, -1, current_date()) 
-                and trade_quarter_end_dt >= dateadd(quarter, -1, current_date()) 
-            then 1 else 0 
-        end as is_prior_trade_quarter_flg
-        
-        , case 
-            when trade_year_num = year(current_date()) 
-            then 1 else 0 
-        end as is_current_trade_year_flg
-        
-        , case 
-            when trade_quarter_end_dt < current_date() 
-            then 1 else 0 
-        end as is_past_trade_quarter_flg
-        
+        , case
+            when trade_quarter_start_dt <= current_date()
+                and trade_quarter_end_dt >= current_date()
+            then 1 else 0
+        end as current_trade_quarter_flg
+
+        , case
+            when trade_quarter_start_dt <= dateadd(quarter, -1, current_date())
+                and trade_quarter_end_dt >= dateadd(quarter, -1, current_date())
+            then 1 else 0
+        end as prior_trade_quarter_flg
+
+        , case
+            when trade_year_num = year(current_date())
+            then 1 else 0
+        end as current_trade_year_flg
+
+        , case
+            when trade_quarter_end_dt < current_date()
+            then 1 else 0
+        end as past_trade_quarter_flg
+
         -- Check if this is a leap quarter (53-week year Q4)
-        , case 
-            when trade_quarter_num = 4 and weeks_in_quarter_num = 14 
-            then 1 else 0 
-        end as is_leap_quarter_flg
+        , case
+            when trade_quarter_num = 4 and weeks_in_quarter_num = 14
+            then 1 else 0
+        end as leap_quarter_flg
         
         -- Relative quarter calculations
         , datediff(quarter, trade_quarter_start_dt, current_date()) as trade_quarters_ago_num

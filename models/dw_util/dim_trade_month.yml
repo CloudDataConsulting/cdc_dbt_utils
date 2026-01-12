@@ -199,22 +199,22 @@ models:
           - not_null
 
       # Flags
-      - name: is_current_trade_month_flg
+      - name: current_trade_month_flg
         description: "Flag indicating if this is the current trade month"
         data_tests:
           - not_null
 
-      - name: is_prior_trade_month_flg
+      - name: prior_trade_month_flg
         description: "Flag indicating if this is the prior trade month"
         data_tests:
           - not_null
 
-      - name: is_current_trade_year_flg
+      - name: current_trade_year_flg
         description: "Flag indicating if this month is in the current trade year"
         data_tests:
           - not_null
 
-      - name: is_past_trade_month_flg
+      - name: past_trade_month_flg
         description: "Flag indicating if this trade month is in the past"
         data_tests:
           - not_null

@@ -168,22 +168,22 @@ models:
           - not_null
 
       # Flags
-      - name: is_current_quarter_flg
+      - name: current_quarter_flg
         description: "Flag indicating if this is the current quarter (1 = yes, 0 = no)"
         data_tests:
           - not_null
 
-      - name: is_prior_quarter_flg
+      - name: prior_quarter_flg
         description: "Flag indicating if this is the prior quarter (1 = yes, 0 = no)"
         data_tests:
           - not_null
 
-      - name: is_current_year_flg
+      - name: current_year_flg
         description: "Flag indicating if this quarter is in the current year (1 = yes, 0 = no)"
         data_tests:
           - not_null
 
-      - name: is_past_quarter_flg
+      - name: past_quarter_flg
         description: "Flag indicating if this quarter has ended (1 = yes, 0 = no)"
         data_tests:
           - not_null

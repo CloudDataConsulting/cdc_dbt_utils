@@ -140,27 +140,27 @@ with date_dimension as (
         , 'RY' || trade_year_num::varchar || '-Q' || trade_quarter_num::varchar as trade_quarter_txt
         
         -- Flags
-        , case 
-            when year_num = year(current_date()) 
-                and quarter_num = quarter(current_date()) 
-            then 1 else 0 
-        end as is_current_quarter_flg
-        
-        , case 
+        , case
+            when year_num = year(current_date())
+                and quarter_num = quarter(current_date())
+            then 1 else 0
+        end as current_quarter_flg
+
+        , case
             when year_num = year(dateadd(quarter, -1, current_date()))
                 and quarter_num = quarter(dateadd(quarter, -1, current_date()))
-            then 1 else 0 
-        end as is_prior_quarter_flg
-        
-        , case 
-            when year_num = year(current_date()) 
-            then 1 else 0 
-        end as is_current_year_flg
-        
+            then 1 else 0
+        end as prior_quarter_flg
+
+        , case
+            when year_num = year(current_date())
+            then 1 else 0
+        end as current_year_flg
+
         , case
             when quarter_end_dt < current_date()
             then 1 else 0
-        end as is_past_quarter_flg
+        end as past_quarter_flg
         
         -- Relative quarter numbers
         , datediff(quarter, quarter_begin_dt, current_date()) as quarters_ago_num

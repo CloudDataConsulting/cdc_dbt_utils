@@ -242,27 +242,27 @@ models:
           - not_null
 
       # Flags
-      - name: is_current_trade_quarter_flg
+      - name: current_trade_quarter_flg
         description: "Flag indicating if this is the current trade quarter"
         data_tests:
           - not_null
 
-      - name: is_prior_trade_quarter_flg
+      - name: prior_trade_quarter_flg
         description: "Flag indicating if this is the prior trade quarter"
         data_tests:
           - not_null
 
-      - name: is_current_trade_year_flg
+      - name: current_trade_year_flg
         description: "Flag indicating if this quarter is in the current trade year"
         data_tests:
           - not_null
 
-      - name: is_past_trade_quarter_flg
+      - name: past_trade_quarter_flg
         description: "Flag indicating if this trade quarter is in the past"
         data_tests:
           - not_null
 
-      - name: is_leap_quarter_flg
+      - name: leap_quarter_flg
         description: "Flag indicating if this is a leap quarter (Q4 with 14 weeks in 53-week years)"
         data_tests:
           - not_null
@@ -399,7 +399,7 @@ models:
           arguments:
             expression: |
               case
-                when is_leap_quarter_flg = 1 then trade_quarter_num = 4 and weeks_in_quarter_num = 14
+                when leap_quarter_flg = 1 then trade_quarter_num = 4 and weeks_in_quarter_num = 14
                 else trade_quarter_num != 4 or weeks_in_quarter_num = 13
               end
           config:

@@ -150,27 +150,27 @@ with trade_date as (
         
         -- Flags and indicators
         , is_leap_week_flg
-        
-        , case 
-            when trade_week_start_dt <= current_date() 
-                and trade_week_end_dt >= current_date() 
-            then 1 else 0 
-        end as is_current_trade_week_flg
-        
-        , case 
-            when trade_week_start_dt <= dateadd(week, -1, current_date()) 
-                and trade_week_end_dt >= dateadd(week, -1, current_date()) 
-            then 1 else 0 
-        end as is_prior_trade_week_flg
-        
-        , case 
+
+        , case
+            when trade_week_start_dt <= current_date()
+                and trade_week_end_dt >= current_date()
+            then 1 else 0
+        end as current_trade_week_flg
+
+        , case
+            when trade_week_start_dt <= dateadd(week, -1, current_date())
+                and trade_week_end_dt >= dateadd(week, -1, current_date())
+            then 1 else 0
+        end as prior_trade_week_flg
+
+        , case
             when trade_year_num = (
-                select max(trade_year_num) 
-                from trade_date 
+                select max(trade_year_num)
+                from trade_date
                 where full_dt <= current_date()
             )
-            then 1 else 0 
-        end as is_current_trade_year_flg
+            then 1 else 0
+        end as current_trade_year_flg
         
         -- Relative metrics
         , datediff(week, trade_week_start_dt, current_date()) as trade_weeks_ago_num
