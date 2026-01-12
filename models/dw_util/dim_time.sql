@@ -12,11 +12,11 @@ with gapless_row_numbers as (
 , time_list as (
 select
    to_number(to_char(timeadd('second', row_number, time('00:00')), 'hh24miss')) as time_key
-  , timeadd('second', row_number, time('00:00'))                                as full_time -- dimension starts at 00:00
-  , extract(hour from full_time)                                                as hour_num
-  , extract(minute from full_time)                                              as minute_num
-  , extract(second from full_time)                                              as second_num
-  , to_varchar(full_time, 'hh12:mi:ss am')                                      as time_12h_txt
+  , timeadd('second', row_number, time('00:00'))                                as full_tm -- dimension starts at 00:00
+  , extract(hour from full_tm)                                                  as hour_num
+  , extract(minute from full_tm)                                                as minute_num
+  , extract(second from full_tm)                                                as second_num
+  , to_varchar(full_tm, 'hh12:mi:ss am')                                        as time_12h_txt
   , minute_num = 0 and second_num = 0                                           as hour_flg
   , minute_num%15 = 0 and second_num = 0                                        as quarter_hour_flg
   , hour_num >= 6 and hour_num < 18                                             as day_shift_flg
@@ -28,7 +28,7 @@ from gapless_row_numbers
 , null_values as (
   select
      -1 as time_key
-  , time('00:00:00')                                    as full_time
+  , time('00:00:00')                                    as full_tm
   , -1                                                  as hour_num
   , -1                                                  as minute_num
   , -1                                                  as second_num

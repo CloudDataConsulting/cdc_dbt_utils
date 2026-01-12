@@ -16,7 +16,7 @@ models:
             config:
               where: "time_key = 0 or time_key = 86399"
     
-    - name: full_time
+    - name: full_tm
       description: "Time value in HH:MM:SS format (e.g., 14:30:45)"
       data_tests:
         - not_null

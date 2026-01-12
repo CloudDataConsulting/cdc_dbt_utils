@@ -174,7 +174,7 @@ with date_dimension as (
         -- ETL metadata
         , current_user as create_user_id
         , current_timestamp as create_timestamp
-        
+
     from quarter_with_retail_calendar
 )
 select * from final_quarter_dimension

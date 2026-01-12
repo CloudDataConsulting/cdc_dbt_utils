@@ -11,7 +11,7 @@ models:
         - not_null
 
     # Week dates
-    - name: week_start_dt
+    - name: week_begin_dt
       description: "First day (Monday) of the week"
     - name: week_end_dt
       description: "Last day (Sunday) of the week"
@@ -32,10 +32,10 @@ models:
 
     # ISO week
     - name: iso_week_num
-      description: "ISO week number extracted from iso_week_txt"
+      description: "ISO week number extracted from iso_week_of_year_txt"
     - name: iso_year_num
       description: "ISO week year, which may differ from calendar year for weeks spanning year boundaries"
-    - name: iso_week_txt
+    - name: iso_week_of_year_txt
       description: "ISO 8601 week notation (YYYY-Www format, e.g., 2023-W15)"
 
     # Trade/Retail calendar

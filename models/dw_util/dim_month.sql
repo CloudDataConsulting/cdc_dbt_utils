@@ -183,7 +183,7 @@ with date_dimension as (
         -- ETL metadata
         , current_user as create_user_id
         , current_timestamp as create_timestamp
-        
+
     from monthly_data_with_trade_calendar
 )
 select * from final
