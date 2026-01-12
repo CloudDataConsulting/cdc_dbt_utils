@@ -2,96 +2,221 @@ version: 2
 
 models:
   - name: dim_quarter
-    description: "Quarter dimension table containing one row per calendar quarter, derived from dim_date. Provides quarter-level aggregations and attributes for time series analysis at quarterly granularity. Essential for financial reporting, quarterly business reviews, and year-over-year quarterly comparisons."
+    description: |
+      Quarter dimension table containing one row per calendar quarter, derived from dim_date.
+      Provides quarter-level aggregations and attributes for time series analysis at quarterly granularity.
+      Essential for financial reporting, quarterly business reviews, and year-over-year quarterly comparisons.
+
+      Column naming follows CDC standards:
+      - _dt for dates/timestamps
+      - _num for numbers
+      - _flg for boolean flags
+      - _nm for names
+      - _key for date keys in YYYYMMDD format
+      - _txt for text strings
+      - _abbr for abbreviations
+
     columns:
-    - name: quarter_key
-      description: "Primary key as YYYYQ integer (e.g., 20231 for Q1 2023)"
-      data_tests:
-        - unique
-        - not_null
-    
-    # Quarter dates
-    - name: quarter_begin_dt
-      description: "First calendar date of the quarter"
-    - name: quarter_end_dt
-      description: "Last calendar date of the quarter"
-    - name: quarter_begin_key
-      description: "Date key (YYYYMMDD) of the quarter's first day"
-    - name: quarter_end_key
-      description: "Date key (YYYYMMDD) of the quarter's last day"
-    
-    # Quarter identifiers
-    - name: quarter_num
-      description: "Quarter number within the year (1-4)"
-    - name: quarter_nm
-      description: "Quarter name (First, Second, Third, Fourth)"
-    - name: quarter_abbr
-      description: "Quarter abbreviation (Q1, Q2, Q3, Q4)"
-    - name: quarter_overall_num
-      description: "Sequential quarter number since 1970-01-01, useful for quarter-over-quarter calculations"
-    
-    # Year context
-    - name: year_num
-      description: "Calendar year as 4-digit integer"
-    - name: yearquarter_txt
-      description: "Year-quarter formatted as YYYY-Q# string (e.g., 2023-Q1)"
-    
-    # Quarter characteristics
-    - name: days_in_quarter
-      description: "Total number of days in the quarter (90-92)"
-    - name: workdays_in_quarter
-      description: "Number of weekdays (Monday-Friday) in the quarter"
-    - name: weekends_in_quarter
-      description: "Number of weekend days (Saturday-Sunday) in the quarter"
-    - name: weeks_in_quarter
-      description: "Number of weeks that overlap with this quarter"
-    - name: months_in_quarter
-      description: "Number of months in the quarter (always 3)"
-    
-    # Month composition
-    - name: first_month_num
-      description: "First month number in the quarter (1, 4, 7, or 10)"
-    - name: first_month_nm
-      description: "Name of the first month in the quarter"
-    - name: second_month_num
-      description: "Second month number in the quarter (2, 5, 8, or 11)"
-    - name: second_month_nm
-      description: "Name of the second month in the quarter"
-    - name: third_month_num
-      description: "Third month number in the quarter (3, 6, 9, or 12)"
-    - name: third_month_nm
-      description: "Name of the third month in the quarter"
-    
-    # Relative quarter indicators
-    - name: same_quarter_last_year_key
-      description: "Quarter key (YYYYQ) of the same quarter from the previous year"
-    - name: same_quarter_last_year_begin_dt
-      description: "First day of the same quarter from the previous year"
-    - name: same_quarter_last_year_end_dt
-      description: "Last day of the same quarter from the previous year"
-    - name: prior_quarter_key
-      description: "Quarter key (YYYYQ) of the previous quarter"
-    - name: next_quarter_key
-      description: "Quarter key (YYYYQ) of the following quarter"
-    
-    # Fiscal calendar support (when applicable)
-    - name: fiscal_quarter_num
-      description: "Quarter number in fiscal year (if fiscal calendar is configured)"
-    - name: fiscal_year_num
-      description: "Fiscal year (if fiscal calendar is configured)"
-    - name: fiscal_yearquarter_num
-      description: "Fiscal year-quarter combination as integer"
-    
-    # Retail calendar support
-    - name: retail_quarter_num
-      description: "Retail quarter number (1-4)"
-    - name: retail_year_num
-      description: "Retail year (starts in February for NRF calendar)"
-    - name: retail_weeks_in_quarter
-      description: "Number of weeks in this retail quarter (13 or 14 for 53-week years)"
-    
-    # Metadata
-    - name: create_user_id
-      description: "User ID who created the record"
-    - name: create_timestamp
-      description: "Timestamp when the record was created"
+      # Primary key
+      - name: quarter_key
+        description: "Primary key as YYYYQ integer (e.g., 20231 for Q1 2023)"
+        data_tests:
+          - unique
+          - not_null
+
+      # Quarter dates
+      - name: quarter_begin_dt
+        description: "First calendar date of the quarter"
+        data_tests:
+          - not_null
+
+      - name: quarter_end_dt
+        description: "Last calendar date of the quarter"
+        data_tests:
+          - not_null
+
+      - name: quarter_begin_key
+        description: "Date key (YYYYMMDD) of the quarter's first day"
+        data_tests:
+          - not_null
+
+      - name: quarter_end_key
+        description: "Date key (YYYYMMDD) of the quarter's last day"
+        data_tests:
+          - not_null
+
+      # Standard calendar
+      - name: year_num
+        description: "Calendar year as 4-digit integer"
+        data_tests:
+          - not_null
+
+      - name: quarter_num
+        description: "Quarter number within the year (1-4)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4]
+
+      # Quarter naming
+      - name: quarter_txt
+        description: "Quarter abbreviation (Q1, Q2, Q3, Q4)"
+        data_tests:
+          - not_null
+
+      - name: quarter_nm
+        description: "Quarter name (First, Second, Third, Fourth)"
+        data_tests:
+          - not_null
+
+      - name: quarter_year_txt
+        description: "Quarter and year text (e.g., 'Q1 2023')"
+        data_tests:
+          - not_null
+
+      - name: year_quarter_txt
+        description: "Year and quarter formatted as YYYY-Q# (e.g., '2023-Q1')"
+        data_tests:
+          - not_null
+
+      # Month composition
+      - name: first_month_num
+        description: "First month number in the quarter (1, 4, 7, or 10)"
+        data_tests:
+          - not_null
+
+      - name: second_month_num
+        description: "Second month number in the quarter (2, 5, 8, or 11)"
+        data_tests:
+          - not_null
+
+      - name: third_month_num
+        description: "Third month number in the quarter (3, 6, 9, or 12)"
+        data_tests:
+          - not_null
+
+      - name: first_month_nm
+        description: "Name of the first month in the quarter"
+        data_tests:
+          - not_null
+
+      - name: second_month_nm
+        description: "Name of the second month in the quarter"
+        data_tests:
+          - not_null
+
+      - name: third_month_nm
+        description: "Name of the third month in the quarter"
+        data_tests:
+          - not_null
+
+      - name: quarter_months_abbr
+        description: "Abbreviations of all months in quarter (e.g., 'Jan-Feb-Mar')"
+        data_tests:
+          - not_null
+
+      # Quarter metrics
+      - name: days_in_quarter_num
+        description: "Total number of days in the quarter (90-92)"
+        data_tests:
+          - not_null
+
+      - name: weeks_in_quarter_num
+        description: "Number of distinct weeks that overlap with this quarter"
+        data_tests:
+          - not_null
+
+      - name: months_in_quarter_num
+        description: "Number of months in the quarter (always 3 - incomplete quarters are excluded)"
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [3]
+
+      # Fiscal calendar
+      - name: fiscal_year_num
+        description: "Fiscal year (defaults to calendar year, can be customized)"
+        data_tests:
+          - not_null
+
+      - name: fiscal_quarter_num
+        description: "Fiscal quarter number (1-4)"
+        data_tests:
+          - not_null
+
+      - name: fiscal_quarter_txt
+        description: "Fiscal quarter text (e.g., 'FY2023-Q1')"
+        data_tests:
+          - not_null
+
+      # Trade/Retail calendar
+      - name: trade_year_num
+        description: "Trade/retail year (may differ from calendar year)"
+        data_tests:
+          - not_null
+
+      - name: trade_quarter_num
+        description: "Trade/retail quarter number (1-4)"
+        data_tests:
+          - not_null
+
+      - name: trade_quarter_txt
+        description: "Trade quarter text (e.g., 'RY2023-Q1')"
+        data_tests:
+          - not_null
+
+      # Flags
+      - name: is_current_quarter_flg
+        description: "Flag indicating if this is the current quarter (1 = yes, 0 = no)"
+        data_tests:
+          - not_null
+
+      - name: is_prior_quarter_flg
+        description: "Flag indicating if this is the prior quarter (1 = yes, 0 = no)"
+        data_tests:
+          - not_null
+
+      - name: is_current_year_flg
+        description: "Flag indicating if this quarter is in the current year (1 = yes, 0 = no)"
+        data_tests:
+          - not_null
+
+      - name: is_past_quarter_flg
+        description: "Flag indicating if this quarter has ended (1 = yes, 0 = no)"
+        data_tests:
+          - not_null
+
+      # Relative quarter numbers
+      - name: quarters_ago_num
+        description: "Number of quarters ago from current date (negative for future quarters)"
+        data_tests:
+          - not_null
+
+      - name: quarters_from_now_num
+        description: "Number of quarters from now (negative for past quarters)"
+        data_tests:
+          - not_null
+
+      # Overall metrics
+      - name: quarter_overall_num
+        description: "Sequential quarter number since 1970-01-01, useful for quarter-over-quarter calculations"
+        data_tests:
+          - not_null
+
+      - name: quarter_sort_num
+        description: "Sorting helper calculated as year * 4 + quarter - 1"
+        data_tests:
+          - not_null
+
+      # ETL metadata
+      - name: create_user_id
+        description: "User who created the record"
+        data_tests:
+          - not_null
+
+      - name: create_timestamp
+        description: "Timestamp when the record was created"
+        data_tests:
+          - not_null

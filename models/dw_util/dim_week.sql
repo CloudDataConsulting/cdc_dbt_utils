@@ -54,6 +54,7 @@ with date_dimension as (
         
     from date_dimension_filtered
     group by week_begin_key
+    having count(*) = 7  -- Only include complete weeks
 )
 , retail_calendar_dimension as (
     select * from {{ ref('dim_trade_date') }}

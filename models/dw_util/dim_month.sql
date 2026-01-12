@@ -58,6 +58,7 @@ with date_dimension as (
         
     from filtered_date_data
     group by yearmonth_num
+    having count(*) >= 28  -- Only include complete months (minimum 28 days for February)
 )
 , monthly_data_with_trade_calendar as (
     -- Add retail calendar from dim_trade_date if it exists

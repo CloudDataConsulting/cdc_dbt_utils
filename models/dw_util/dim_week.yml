@@ -68,7 +68,12 @@ models:
 
     # Week metrics
     - name: days_in_week_num
-      description: "Number of days in the week (may be less than 7 for partial weeks at year boundaries)"
+      description: "Number of days in the week (always 7 - incomplete weeks are excluded)"
+      data_tests:
+        - not_null
+        - accepted_values:
+            arguments:
+              values: [7]
     - name: week_overall_num
       description: "Sequential week number since 1970-01-01, useful for week-over-week calculations"
 

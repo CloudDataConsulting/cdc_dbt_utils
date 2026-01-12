@@ -268,31 +268,26 @@ select * from gen_date
 union all 
 select
     -1 as date_key
-    , to_date('99991231','yyyymmdd') as full_dt
-    , null as prior_year_dt
+    , to_date('99991231','yyyymmdd') as full_date
+    , null as same_date_last_year
     , 'Not Set' as day_name
     , null as day_abbreviation
     , null as day_of_week_number
     , null as day_of_week_number_iso
     , null as weekday_flag
     , null as end_of_week_flag
-    , null as month_name
-    , null as month_abbreviation
-    , null as month_number
-    , null as month_number_overall
-    , null as month_in_quarter_number
     , null as day_of_month_number
-    , null as month_end_dt
+    , null as last_day_of_month
     , null as end_of_month_flag
     , null as day_number_suffix
-    , null as month_begin_dt
+    , null as first_day_of_month
     , null as first_day_of_month_flag
     , null as day_of_quarter_number
-    , null as quarter_begin_dt
-    , null as quarter_end_dt
+    , null as first_day_of_quarter
+    , null as last_day_of_quarter
     , null as day_of_year_number
-    , null as year_begin_dt
-    , null as year_end_dt
+    , null as first_day_of_year
+    , null as last_day_of_year
     , null as day_number_overall
     , null as week_of_month
     , null as week_of_year_number
@@ -302,14 +297,19 @@ select
     , null as week_begin_date_id
     , null as week_end_date
     , null as week_end_date_id
+    , null as month_name
+    , null as month_abbreviation
+    , null as month_number
+    , null as month_number_overall
+    , null as month_in_quarter_number
     , null as quarter_number
     , null as quarter_name
     , null as year_number
     , null as year_number_iso
     , null as yearmonth_number
     , null as end_of_year_flag
-    , null as epoch_num
-    , null as yyyymmdd_txt
+    , null as epoch
+    , null as yyyymmdd
     , null as create_user_id
     , null as create_timestamp
 )

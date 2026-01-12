@@ -58,6 +58,7 @@ with date_dimension as (
         
     from date_dimension
     group by year_num, quarter_num
+    having count(distinct month_num) = 3  -- Only include complete quarters
 )
 , quarter_with_retail_calendar as (
     -- Add retail calendar from dim_trade_date if it exists
