@@ -254,8 +254,8 @@ models:
         tests:
           - not_null
 
-      - name: yyyymmdd_num
-        description: Date as YYYYMMDD integer
+      - name: yyyymmdd_txt
+        description: Date as YYYYMMDD text string
         tests:
           - not_null
       

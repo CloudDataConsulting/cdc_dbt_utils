@@ -242,7 +242,7 @@ with date_sequence as (
         
         -- Other date formats
         , date_part(epoch_second, calendar_date) as epoch_num
-        , to_char(calendar_date, 'yyyymmdd')::int as yyyymmdd_num
+        , to_char(calendar_date, 'yyyymmdd')::varchar(10) as yyyymmdd_txt
         
         -- Core retail calendar (same for all patterns, using CDC abbreviations)
         , retail_year as trade_year_num
