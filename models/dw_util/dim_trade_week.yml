@@ -218,17 +218,17 @@ models:
         data_tests:
           - not_null
       
-      - name: is_current_trade_week_flg
+      - name: current_trade_week_flg
         description: "Flag indicating if this is the current trade week"
         data_tests:
           - not_null
-      
-      - name: is_prior_trade_week_flg
+
+      - name: prior_trade_week_flg
         description: "Flag indicating if this is the prior trade week"
         data_tests:
           - not_null
-      
-      - name: is_current_trade_year_flg
+
+      - name: current_trade_year_flg
         description: "Flag indicating if this week is in the current trade year"
         data_tests:
           - not_null
@@ -287,7 +287,7 @@ models:
         data_tests:
           - not_null
       
-      - name: create_timestamp
+      - name: create_ts
         description: "Timestamp when record was created"
         data_tests:
           - not_null

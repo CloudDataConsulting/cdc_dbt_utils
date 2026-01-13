@@ -285,20 +285,20 @@ month_445_aggregated as (
             when trade_month_start_dt <= current_date()
                 and trade_month_end_dt >= current_date()
             then 1 else 0
-        end as is_current_trade_month_flg
+        end as current_trade_month_flg
         , case
             when trade_month_start_dt <= dateadd(month, -1, current_date())
                 and trade_month_end_dt >= dateadd(month, -1, current_date())
             then 1 else 0
-        end as is_prior_trade_month_flg
+        end as prior_trade_month_flg
         , case
             when trade_year_num = year(current_date())
             then 1 else 0
-        end as is_current_trade_year_flg
+        end as current_trade_year_flg
         , case
             when trade_month_end_dt < current_date()
             then 1 else 0
-        end as is_past_trade_month_flg
+        end as past_trade_month_flg
         -- Relative month calculations
         , datediff(month, trade_month_start_dt, current_date()) as trade_months_ago_num
         , datediff(month, current_date(), trade_month_start_dt) as trade_months_from_now_num
@@ -314,7 +314,7 @@ month_445_aggregated as (
         , current_timestamp as dw_synced_ts
         , 'dim_trade_month' as dw_source_nm
         , current_user as create_user_id
-        , current_timestamp as create_timestamp
+        , current_timestamp as create_ts
     from unified_months
 )
 select * from final

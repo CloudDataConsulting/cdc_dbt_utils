@@ -6,17 +6,17 @@
 }}
 with date_dimension as (
     -- Pull from dim_date to ensure consistency
-    select 
+    select
         date_key
-        , full_date
+        , full_dt
         , year_num
         , quarter_num
         , quarter_nm
         , month_num
         , month_nm
         , month_abbr
-        , first_day_of_quarter
-        , last_day_of_quarter
+        , quarter_begin_dt
+        , quarter_end_dt
         , day_of_quarter_num
         , week_of_year_num
     from {{ ref('dim_date') }}
@@ -28,10 +28,10 @@ with date_dimension as (
         year_num * 10 + quarter_num as quarter_key
         
         -- Quarter boundaries
-        , min(full_date) as first_day_of_quarter_dt
-        , max(full_date) as last_day_of_quarter_dt
-        , min(date_key) as first_day_of_quarter_key
-        , max(date_key) as last_day_of_quarter_key
+        , min(full_dt) as quarter_begin_dt
+        , max(full_dt) as quarter_end_dt
+        , min(date_key) as quarter_begin_key
+        , max(date_key) as quarter_end_key
         
         -- Calendar attributes
         , max(year_num) as year_num
@@ -58,6 +58,7 @@ with date_dimension as (
         
     from date_dimension
     group by year_num, quarter_num
+    having count(distinct month_num) = 3  -- Only include complete quarters
 )
 , quarter_with_retail_calendar as (
     -- Add retail calendar from dim_trade_date if it exists
@@ -73,7 +74,7 @@ with date_dimension as (
         , coalesce(
             (select max(trade_year_num) 
              from {{ ref('dim_trade_date') }} as dr
-             where dr.full_dt = dateadd(day, 45, q.first_day_of_quarter_dt))
+             where dr.full_dt = dateadd(day, 45, q.quarter_begin_dt))
             , q.year_num
         ) as trade_year_num
         
@@ -94,10 +95,10 @@ with date_dimension as (
         quarter_key
         
         -- Quarter dates
-        , first_day_of_quarter_dt
-        , last_day_of_quarter_dt
-        , first_day_of_quarter_key
-        , last_day_of_quarter_key
+        , quarter_begin_dt
+        , quarter_end_dt
+        , quarter_begin_key
+        , quarter_end_key
         
         -- Standard calendar
         , year_num
@@ -139,42 +140,41 @@ with date_dimension as (
         , 'RY' || trade_year_num::varchar || '-Q' || trade_quarter_num::varchar as trade_quarter_txt
         
         -- Flags
-        , case 
-            when year_num = year(current_date()) 
-                and quarter_num = quarter(current_date()) 
-            then 1 else 0 
-        end as is_current_quarter_flg
-        
-        , case 
+        , case
+            when year_num = year(current_date())
+                and quarter_num = quarter(current_date())
+            then 1 else 0
+        end as current_quarter_flg
+
+        , case
             when year_num = year(dateadd(quarter, -1, current_date()))
                 and quarter_num = quarter(dateadd(quarter, -1, current_date()))
-            then 1 else 0 
-        end as is_prior_quarter_flg
-        
-        , case 
-            when year_num = year(current_date()) 
-            then 1 else 0 
-        end as is_current_year_flg
-        
-        , case 
-            when last_day_of_quarter_dt < current_date() 
-            then 1 else 0 
-        end as is_past_quarter_flg
+            then 1 else 0
+        end as prior_quarter_flg
+
+        , case
+            when year_num = year(current_date())
+            then 1 else 0
+        end as current_year_flg
+
+        , case
+            when quarter_end_dt < current_date()
+            then 1 else 0
+        end as past_quarter_flg
         
         -- Relative quarter numbers
-        , datediff(quarter, first_day_of_quarter_dt, current_date()) as quarters_ago_num
-        , datediff(quarter, current_date(), first_day_of_quarter_dt) as quarters_from_now_num
-        
+        , datediff(quarter, quarter_begin_dt, current_date()) as quarters_ago_num
+        , datediff(quarter, current_date(), quarter_begin_dt) as quarters_from_now_num
         -- Overall quarter number since 1970
-        , datediff(quarter, '1970-01-01'::date, first_day_of_quarter_dt) as quarter_overall_num
+        , datediff(quarter, '1970-01-01'::date, quarter_begin_dt) as quarter_overall_num
         
         -- Sorting helpers
         , year_num * 4 + quarter_num - 1 as quarter_sort_num
         
         -- ETL metadata
         , current_user as create_user_id
-        , current_timestamp as create_timestamp
-        
+        , current_timestamp as create_ts
+
     from quarter_with_retail_calendar
 )
 select * from final_quarter_dimension

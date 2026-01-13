@@ -8,7 +8,7 @@ Include in your `packages.yml`:
 ```yaml
 packages:
   - git: "https://github.com/CloudDataConsulting/cdc_dbt_utils.git"
-    revision: v1.0.0  # or main for latest
+    revision: 2.0.0  # or main for latest
 ```
 
 Then add to your `dbt_project.yml`:
@@ -22,17 +22,22 @@ models:
 
 ## Dimensional Models
 
-### Date/Time Dimensions
+### Standard Calendar Dimensions
 - **dim_date**: Daily grain with comprehensive calendar attributes
-- **dim_date_retail**: Daily grain with retail calendar (4-4-5, 4-5-4, 5-4-4)
 - **dim_week**: Weekly grain with ISO week standards
 - **dim_month**: Monthly grain with fiscal attributes
 - **dim_quarter**: Quarterly grain with fiscal year support
-- **dim_time**: Intraday time dimension
+- **dim_time**: Intraday time dimension (86,400 rows - one per second)
+
+### Trade/Retail Calendar Dimensions
+- **dim_trade_date**: Daily grain with trade/retail calendar (4-4-5, 4-5-4, 5-4-4 patterns)
+- **dim_trade_week**: Weekly grain for trade calendar
+- **dim_trade_month**: Monthly grain for trade calendar (separate rows per pattern)
+- **dim_trade_quarter**: Quarterly grain for trade calendar
 
 ## Macros
 
-### drop_dev_scheama
+### drop_dev_schemas
 Allows the user to drop all user specific development databases.
 
 `dbt run-operation drop_dev_schemas --args '{username: bpruss}' `
@@ -61,24 +66,28 @@ This macro appends 4 columns:
     ,current_timestamp dw_modified_ts
 which record valuable timestamps related to when the database objects are created/modified.
 
-## Breaking Changes in v1.0.0
+## Breaking Changes in v2.0.0
 
-The `dim_date` model column naming convention has been standardized:
+All dimension model column naming conventions have been standardized:
 - All columns ending in `_number` are now `_num` 
 - All columns ending in `_name` are now `_nm`
 - Date keys use `_key` suffix (not `_id`)
 - ISO columns have `iso_` prefix
 
-## Migration from v0.x to v1.0.0
+## Migration from v1.x to v2.0.0
 
 Update your models to use the new column names:
 - `quarter_number` → `quarter_num`
-- `quarter_name` → `quarter_nm` 
+- `quarter_name` → `quarter_nm`
 - `day_of_week_number` → `day_of_week_num`
 - `week_begin_date_id` → `week_begin_key`
+- `create_timestamp` → `create_ts`
+- `full_time` → `full_tm` (dim_time)
+- `week_start_dt` → `week_begin_dt` (dim_week)
 - etc.
 
 ## Change Log
+- v2.0.0 - Standardized column naming conventions across all dimensions (class word abbreviations at end)
 - v1.0.0 - Major release with standardized naming conventions and new time dimensions
 - v0.1.4 - Changed tests: to data_tests: per https://docs.getdbt.com/docs/build/data-tests#new-data_tests-syntax
 

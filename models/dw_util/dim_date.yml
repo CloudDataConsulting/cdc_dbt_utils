@@ -9,12 +9,12 @@ models:
       data_tests:
         - unique
         - not_null
-    - name: full_date
+    - name: full_dt
       description: "Full date value as DATE type"
       data_tests:
         - unique
         - not_null
-    - name: same_date_last_year
+    - name: prior_year_dt
       description: "The same calendar date from the previous year, useful for year-over-year comparisons"
     
     # Day attributes
@@ -44,13 +44,13 @@ models:
       description: "Month position within the quarter (1, 2, or 3)"
     - name: day_of_month_num
       description: "Day number within the month (1-31)"
-    - name: last_day_of_month
+    - name: month_end_dt
       description: "Last calendar date of the month"
     - name: end_of_month_flg
       description: "Binary flag: 1 if the date is the last day of the month, 0 otherwise"
     - name: day_suffix_txt
       description: "Day number with ordinal suffix (1st, 2nd, 3rd, 4th, etc.)"
-    - name: first_day_of_month
+    - name: month_begin_dt
       description: "First calendar date of the month"
     - name: first_day_of_month_flg
       description: "Binary flag: 1 if the date is the first day of the month, 0 otherwise"
@@ -58,17 +58,17 @@ models:
     # Quarter attributes
     - name: day_of_quarter_num
       description: "Day number within the quarter (1-92)"
-    - name: first_day_of_quarter
+    - name: quarter_begin_dt
       description: "First calendar date of the quarter"
-    - name: last_day_of_quarter
+    - name: quarter_end_dt
       description: "Last calendar date of the quarter"
     
     # Year attributes
     - name: day_of_year_num
       description: "Day number within the year (1-365 or 366 for leap years)"
-    - name: first_day_of_year
+    - name: year_begin_dt
       description: "First calendar date of the year (January 1st)"
-    - name: last_day_of_year
+    - name: year_end_dt
       description: "Last calendar date of the year (December 31st)"
     - name: day_overall_num
       description: "Sequential day number since 1970-01-01, useful for date arithmetic"
@@ -106,11 +106,11 @@ models:
     # Other attributes
     - name: end_of_year_flg
       description: "Binary flag: 1 if the date is December 31st, 0 otherwise"
-    - name: epoch
+    - name: epoch_num
       description: "Unix timestamp - seconds since 1970-01-01 00:00:00 UTC"
-    - name: yyyymmdd
+    - name: yyyymmdd_txt
       description: "Date formatted as YYYYMMDD string"
     - name: create_user_id
       description: "User ID who created the record (populated with CURRENT_USER)"
-    - name: create_timestamp
+    - name: create_ts
       description: "Timestamp when the record was created"

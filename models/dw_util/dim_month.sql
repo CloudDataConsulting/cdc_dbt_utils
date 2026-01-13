@@ -11,9 +11,9 @@ with date_dimension as (
     select * from {{ ref('dim_trade_date') }}
 )
 , filtered_date_data as (
-    select 
+    select
         date_key
-        , full_date
+        , full_dt
         , year_num
         , quarter_num
         , month_num
@@ -21,9 +21,9 @@ with date_dimension as (
         , month_abbr
         , month_in_quarter_num
         , day_of_month_num
-        , first_day_of_month
+        , month_begin_dt
         , first_day_of_month_flg
-        , last_day_of_month
+        , month_end_dt
         , end_of_month_flg
         , week_of_year_num
         , month_overall_num
@@ -35,12 +35,11 @@ with date_dimension as (
     -- Aggregate to month level
     select
         yearmonth_num as month_key
-        
         -- Month boundaries
-        , min(full_date) as first_day_of_month_dt
-        , max(full_date) as last_day_of_month_dt
-        , min(date_key) as first_day_of_month_key
-        , max(date_key) as last_day_of_month_key
+        , min(full_dt) as month_begin_dt
+        , max(full_dt) as month_end_dt
+        , min(date_key) as month_begin_key
+        , max(date_key) as month_end_key
         
         -- Calendar attributes (same for all days in month)
         , max(year_num) as year_num
@@ -59,6 +58,7 @@ with date_dimension as (
         
     from filtered_date_data
     group by yearmonth_num
+    having count(*) >= 28  -- Only include complete months (minimum 28 days for February)
 )
 , monthly_data_with_trade_calendar as (
     -- Add retail calendar from dim_trade_date if it exists
@@ -102,10 +102,10 @@ with date_dimension as (
         month_key
         
         -- Month dates
-        , first_day_of_month_dt
-        , last_day_of_month_dt
-        , first_day_of_month_key
-        , last_day_of_month_key
+        , month_begin_dt
+        , month_end_dt
+        , month_begin_key
+        , month_end_key
         
         -- Standard calendar
         , year_num
@@ -149,31 +149,30 @@ with date_dimension as (
         , month_num as month_of_year_fiscal_num  -- Can be overridden for fiscal calendars
         
         -- Flags
-        , case 
-            when year_num = year(current_date()) 
-                and month_num = month(current_date()) 
-            then 1 else 0 
-        end as is_current_month_flg
-        
-        , case 
+        , case
+            when year_num = year(current_date())
+                and month_num = month(current_date())
+            then 1 else 0
+        end as current_month_flg
+
+        , case
             when year_num = year(dateadd(month, -1, current_date()))
                 and month_num = month(dateadd(month, -1, current_date()))
-            then 1 else 0 
-        end as is_prior_month_flg
-        
-        , case 
-            when year_num = year(current_date()) 
-            then 1 else 0 
-        end as is_current_year_flg
-        
-        , case 
-            when last_day_of_month_dt < current_date() 
-            then 1 else 0 
-        end as is_past_month_flg
-        
+            then 1 else 0
+        end as prior_month_flg
+
+        , case
+            when year_num = year(current_date())
+            then 1 else 0
+        end as current_year_flg
+
+        , case
+            when month_end_dt < current_date()
+            then 1 else 0
+        end as past_month_flg
         -- Relative month numbers
-        , datediff(month, first_day_of_month_dt, current_date()) as months_ago_num
-        , datediff(month, current_date(), first_day_of_month_dt) as months_from_now_num
+        , datediff(month, month_begin_dt, current_date()) as months_ago_num
+        , datediff(month, current_date(), month_begin_dt) as months_from_now_num
         
         -- Overall month number
         , month_overall_num
@@ -183,8 +182,8 @@ with date_dimension as (
         
         -- ETL metadata
         , current_user as create_user_id
-        , current_timestamp as create_timestamp
-        
+        , current_timestamp as create_ts
+
     from monthly_data_with_trade_calendar
 )
 select * from final

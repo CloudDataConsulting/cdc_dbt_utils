@@ -8,9 +8,9 @@ with date_dimension as (
     select * from {{ ref('dim_date') }}
 )
 , date_dimension_filtered as (
-    select 
+    select
         date_key
-        , full_date
+        , full_dt
         , week_begin_dt
         , week_end_dt
         , week_begin_key
@@ -31,21 +31,21 @@ with date_dimension as (
     -- Aggregate to week level, taking values from Monday (first day of ISO week)
     select
         week_begin_key as week_key
-        , min(week_begin_dt) as week_start_dt
+        , min(week_begin_dt) as week_begin_dt
         , max(week_end_dt) as week_end_dt
         , min(week_end_key) as week_end_key
         
         -- Take calendar attributes from the Thursday of the week (ISO standard)
         -- Thursday determines which month/year the week belongs to
-        , max(case when dayofweek(full_date) = 5 then year_num end) as year_num
-        , max(case when dayofweek(full_date) = 5 then quarter_num end) as quarter_num
-        , max(case when dayofweek(full_date) = 5 then month_num end) as month_num
-        , max(case when dayofweek(full_date) = 5 then month_nm end) as month_nm
+        , max(case when dayofweek(full_dt) = 5 then year_num end) as year_num
+        , max(case when dayofweek(full_dt) = 5 then quarter_num end) as quarter_num
+        , max(case when dayofweek(full_dt) = 5 then month_num end) as month_num
+        , max(case when dayofweek(full_dt) = 5 then month_nm end) as month_nm
         
         -- Week attributes (same for all days in the week)
         , max(week_of_year_num) as week_of_year_num
         , max(week_of_month_num) as week_of_month_num
-        , max(iso_week_of_year_txt) as iso_week_txt
+        , max(iso_week_of_year_txt) as iso_week_of_year_txt
         , max(iso_year_num) as iso_year_num
         , max(week_overall_num) as week_overall_num
         
@@ -54,6 +54,7 @@ with date_dimension as (
         
     from date_dimension_filtered
     group by week_begin_key
+    having count(*) = 7  -- Only include complete weeks
 )
 , retail_calendar_dimension as (
     select * from {{ ref('dim_trade_date') }}
@@ -68,7 +69,7 @@ with date_dimension as (
         , coalesce(
             (select max(trade_year_num) 
              from retail_calendar_dimension as dr
-             where dr.full_dt between w.week_start_dt and w.week_end_dt
+             where dr.full_dt between w.week_begin_dt and w.week_end_dt
                and dayofweek(dr.full_dt) = 5)
             , w.year_num
         ) as trade_year_num
@@ -76,7 +77,7 @@ with date_dimension as (
         , coalesce(
             (select max(trade_week_num) 
              from retail_calendar_dimension as dr
-             where dr.full_dt between w.week_start_dt and w.week_end_dt
+             where dr.full_dt between w.week_begin_dt and w.week_end_dt
                and dayofweek(dr.full_dt) = 5)
             , w.week_of_year_num
         ) as trade_week_num
@@ -89,7 +90,7 @@ with date_dimension as (
         week_key
         
         -- Week dates
-        , week_start_dt
+        , week_begin_dt
         , week_end_dt
         , week_end_key
         
@@ -100,10 +101,10 @@ with date_dimension as (
         , week_of_year_num
         , week_of_month_num
         
-        -- ISO week (iso_week_txt format is YYYY-Www-d, extract just the week number)
-        , split_part(split_part(iso_week_txt, '-W', 2), '-', 1)::int as iso_week_num
+        -- ISO week (iso_week_of_year_txt format is YYYY-Www-d, extract just the week number)
+        , split_part(split_part(iso_week_of_year_txt, '-W', 2), '-', 1)::int as iso_week_num
         , iso_year_num
-        , iso_week_txt
+        , iso_week_of_year_txt
         
         -- Retail calendar
         , trade_year_num
@@ -115,26 +116,24 @@ with date_dimension as (
         , 'W' || lpad(week_of_year_num::varchar, 2, '0') || ' ' || year_num::varchar as week_year_txt
         
         -- Flags
-        , case 
-            when week_start_dt <= current_date() 
-                and week_end_dt >= current_date() 
-            then 1 else 0 
-        end as is_current_week_flg
-        
-        , case 
-            when week_start_dt <= dateadd(week, -1, current_date()) 
-                and week_end_dt >= dateadd(week, -1, current_date()) 
-            then 1 else 0 
-        end as is_prior_week_flg
-        
-        , case 
-            when year_num = year(current_date()) 
-            then 1 else 0 
-        end as is_current_year_flg
+        , case
+            when week_begin_dt <= current_date()
+                and week_end_dt >= current_date()
+            then 1 else 0
+        end as current_week_flg
+        , case
+            when week_begin_dt <= dateadd(week, -1, current_date())
+                and week_end_dt >= dateadd(week, -1, current_date())
+            then 1 else 0
+        end as prior_week_flg
+        , case
+            when year_num = year(current_date())
+            then 1 else 0
+        end as current_year_flg
         
         -- Relative week numbers
-        , datediff(week, week_start_dt, current_date()) as weeks_ago_num
-        , datediff(week, date_trunc(year, week_start_dt), week_start_dt) + 1 as week_of_year_fiscal_num
+        , datediff(week, week_begin_dt, current_date()) as weeks_ago_num
+        , datediff(week, date_trunc(year, week_begin_dt), week_begin_dt) + 1 as week_of_year_fiscal_num
         
         -- Week metrics
         , days_in_week_num
@@ -142,7 +141,7 @@ with date_dimension as (
         
         -- ETL metadata
         , current_user as create_user_id
-        , current_timestamp as create_timestamp
+        , current_timestamp as create_ts
         
     from week_with_retail_calendar
 )

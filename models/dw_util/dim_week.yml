@@ -9,77 +9,76 @@ models:
       data_tests:
         - unique
         - not_null
-    
+
     # Week dates
     - name: week_begin_dt
       description: "First day (Monday) of the week"
     - name: week_end_dt
       description: "Last day (Sunday) of the week"
-    - name: week_begin_key
-      description: "Date key (YYYYMMDD) of the week's Monday"
     - name: week_end_key
       description: "Date key (YYYYMMDD) of the week's Sunday"
-    
-    # Week identifiers
+
+    # Standard calendar
+    - name: year_num
+      description: "Calendar year of the week (based on Thursday of the week per ISO standard)"
+    - name: quarter_num
+      description: "Quarter number (1-4) of the week (based on Thursday of the week)"
+    - name: month_num
+      description: "Month number (1-12) of the week (based on Thursday of the week)"
     - name: week_of_year_num
       description: "Week number within the year (1-53)"
-    - name: iso_week_txt
-      description: "ISO 8601 week notation (YYYY-Www format, e.g., 2023-W15)"
-    - name: week_overall_num
-      description: "Sequential week number since 1970-01-01, useful for week-over-week calculations"
-    
-    # Month context
-    - name: month_nm
-      description: "Name of the month containing the week's start date"
-    - name: month_num
-      description: "Month number (1-12) of the week's start date"
-    - name: yearmonth_num
-      description: "Year-month combination (YYYYMM) of the week's start date"
-    
-    # Quarter context
-    - name: quarter_num
-      description: "Quarter number (1-4) of the week's start date"
-    - name: quarter_nm
-      description: "Quarter name (First, Second, Third, Fourth) of the week's start date"
-    
-    # Year context
-    - name: year_num
-      description: "Calendar year of the week's start date"
+    - name: week_of_month_num
+      description: "Week number within the month"
+
+    # ISO week
+    - name: iso_week_num
+      description: "ISO week number extracted from iso_week_of_year_txt"
     - name: iso_year_num
       description: "ISO week year, which may differ from calendar year for weeks spanning year boundaries"
-    
-    # Week characteristics
-    - name: days_in_week
-      description: "Number of days in the week (always 7 for complete weeks)"
-    - name: workdays_in_week
-      description: "Number of weekdays (Monday-Friday) in the week"
-    - name: weekends_in_week
-      description: "Number of weekend days (Saturday-Sunday) in the week"
-    
-    # Relative week indicators
-    - name: same_week_last_year_begin_dt
-      description: "Start date of the same week number from the previous year"
-    - name: same_week_last_year_end_dt
-      description: "End date of the same week number from the previous year"
-    
-    # Fiscal calendar support (when applicable)
-    - name: fiscal_week_num
-      description: "Week number in fiscal year (if fiscal calendar is configured)"
-    - name: fiscal_year_num
-      description: "Fiscal year (if fiscal calendar is configured)"
-    
-    # Retail calendar support
-    - name: retail_week_num
-      description: "Week number in retail calendar"
-    - name: retail_period_num
-      description: "Retail period/month number (1-12)"
-    - name: retail_quarter_num
-      description: "Retail quarter number (1-4)"
-    - name: retail_year_num
-      description: "Retail year (starts in February for NRF calendar)"
-    
+    - name: iso_week_of_year_txt
+      description: "ISO 8601 week notation (YYYY-Www format, e.g., 2023-W15)"
+
+    # Trade/Retail calendar
+    - name: trade_year_num
+      description: "Trade/retail calendar year (from dim_trade_date)"
+    - name: trade_week_num
+      description: "Trade/retail calendar week number (from dim_trade_date)"
+
+    # Week descriptions
+    - name: month_year_nm
+      description: "Month and year text (e.g., 'January 2024')"
+    - name: week_of_month_nm
+      description: "Week of month description (e.g., 'Week 2 of January')"
+    - name: week_year_txt
+      description: "Week and year text (e.g., 'W15 2024')"
+
+    # Flags
+    - name: current_week_flg
+      description: "Flag indicating if this is the current week (1=yes, 0=no)"
+    - name: prior_week_flg
+      description: "Flag indicating if this is the prior week (1=yes, 0=no)"
+    - name: current_year_flg
+      description: "Flag indicating if this week is in the current year (1=yes, 0=no)"
+
+    # Relative week numbers
+    - name: weeks_ago_num
+      description: "Number of weeks ago from current date (0=current week, 1=last week, etc.)"
+    - name: week_of_year_fiscal_num
+      description: "Week number within the fiscal year"
+
+    # Week metrics
+    - name: days_in_week_num
+      description: "Number of days in the week (always 7 - incomplete weeks are excluded)"
+      data_tests:
+        - not_null
+        - accepted_values:
+            arguments:
+              values: [7]
+    - name: week_overall_num
+      description: "Sequential week number since 1970-01-01, useful for week-over-week calculations"
+
     # Metadata
     - name: create_user_id
       description: "User ID who created the record"
-    - name: create_timestamp
+    - name: create_ts
       description: "Timestamp when the record was created"
