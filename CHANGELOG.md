@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-03-26
+### Added
+- Composite year+period columns to dim_trade_date for BI grouping and filtering:
+  - `trade_year_week_num` (YYYYWW) — composite year+week key, same for all patterns
+  - `trade_yearmonth_{445,454,544}_num` (YYYYMM) — composite year+month keys per pattern
+  - `trade_yearquarter_{445,454,544}_num` (YYYYQ) — composite year+quarter keys per pattern
+  - `trade_month_year_{445,454,544}_nm` — display names with year (e.g., 'March 2026')
+  - `trade_month_year_{445,454,544}_abbr` — abbreviated display (e.g., 'Mar 2026')
+  - `trade_year_month_{445,454,544}_txt` — sortable text format (e.g., '2026-03')
+  - `trade_quarter_year_{445,454,544}_txt` — quarter display with year (e.g., 'Q1 2026')
+  - `trade_month_{445,454,544}_abbr` — three-letter month abbreviations (e.g., 'Mar')
+
 ## [1.0.2] - 2025-12-05
 ### Fixed
 - Extended dim_trade_date range from 2040 to 2045 to ensure complete trade calendar coverage

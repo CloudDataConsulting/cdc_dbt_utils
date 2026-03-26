@@ -321,7 +321,90 @@ with date_sequence as (
             when 7 then 'July' when 8 then 'August' when 9 then 'September'
             when 10 then 'October' when 11 then 'November' when 12 then 'December'
         end as trade_month_544_nm
-        
+
+        -- Trade month abbreviations for each pattern
+        , case retail_month_445
+            when 1 then 'Jan' when 2 then 'Feb' when 3 then 'Mar'
+            when 4 then 'Apr' when 5 then 'May' when 6 then 'Jun'
+            when 7 then 'Jul' when 8 then 'Aug' when 9 then 'Sep'
+            when 10 then 'Oct' when 11 then 'Nov' when 12 then 'Dec'
+        end as trade_month_445_abbr
+        , case retail_month_454
+            when 1 then 'Jan' when 2 then 'Feb' when 3 then 'Mar'
+            when 4 then 'Apr' when 5 then 'May' when 6 then 'Jun'
+            when 7 then 'Jul' when 8 then 'Aug' when 9 then 'Sep'
+            when 10 then 'Oct' when 11 then 'Nov' when 12 then 'Dec'
+        end as trade_month_454_abbr
+        , case retail_month_544
+            when 1 then 'Jan' when 2 then 'Feb' when 3 then 'Mar'
+            when 4 then 'Apr' when 5 then 'May' when 6 then 'Jun'
+            when 7 then 'Jul' when 8 then 'Aug' when 9 then 'Sep'
+            when 10 then 'Oct' when 11 then 'Nov' when 12 then 'Dec'
+        end as trade_month_544_abbr
+
+        -- Composite year+week key (YYYYWW format, same for all patterns)
+        , retail_year * 100 + retail_week_num as trade_year_week_num
+
+        -- Composite year+month keys (YYYYMM format, pattern-specific)
+        , retail_year * 100 + retail_month_445 as trade_yearmonth_445_num
+        , retail_year * 100 + retail_month_454 as trade_yearmonth_454_num
+        , retail_year * 100 + retail_month_544 as trade_yearmonth_544_num
+
+        -- Composite year+quarter keys (YYYYQ format, pattern-specific)
+        , retail_year * 10 + ceil(retail_month_445 / 3.0)::int as trade_yearquarter_445_num
+        , retail_year * 10 + ceil(retail_month_454 / 3.0)::int as trade_yearquarter_454_num
+        , retail_year * 10 + ceil(retail_month_544 / 3.0)::int as trade_yearquarter_544_num
+
+        -- Trade month+year display names (e.g., 'March 2026')
+        , case retail_month_445
+            when 1 then 'January' when 2 then 'February' when 3 then 'March'
+            when 4 then 'April' when 5 then 'May' when 6 then 'June'
+            when 7 then 'July' when 8 then 'August' when 9 then 'September'
+            when 10 then 'October' when 11 then 'November' when 12 then 'December'
+        end || ' ' || retail_year::varchar as trade_month_year_445_nm
+        , case retail_month_454
+            when 1 then 'January' when 2 then 'February' when 3 then 'March'
+            when 4 then 'April' when 5 then 'May' when 6 then 'June'
+            when 7 then 'July' when 8 then 'August' when 9 then 'September'
+            when 10 then 'October' when 11 then 'November' when 12 then 'December'
+        end || ' ' || retail_year::varchar as trade_month_year_454_nm
+        , case retail_month_544
+            when 1 then 'January' when 2 then 'February' when 3 then 'March'
+            when 4 then 'April' when 5 then 'May' when 6 then 'June'
+            when 7 then 'July' when 8 then 'August' when 9 then 'September'
+            when 10 then 'October' when 11 then 'November' when 12 then 'December'
+        end || ' ' || retail_year::varchar as trade_month_year_544_nm
+
+        -- Trade month+year abbreviated display (e.g., 'Mar 2026')
+        , case retail_month_445
+            when 1 then 'Jan' when 2 then 'Feb' when 3 then 'Mar'
+            when 4 then 'Apr' when 5 then 'May' when 6 then 'Jun'
+            when 7 then 'Jul' when 8 then 'Aug' when 9 then 'Sep'
+            when 10 then 'Oct' when 11 then 'Nov' when 12 then 'Dec'
+        end || ' ' || retail_year::varchar as trade_month_year_445_abbr
+        , case retail_month_454
+            when 1 then 'Jan' when 2 then 'Feb' when 3 then 'Mar'
+            when 4 then 'Apr' when 5 then 'May' when 6 then 'Jun'
+            when 7 then 'Jul' when 8 then 'Aug' when 9 then 'Sep'
+            when 10 then 'Oct' when 11 then 'Nov' when 12 then 'Dec'
+        end || ' ' || retail_year::varchar as trade_month_year_454_abbr
+        , case retail_month_544
+            when 1 then 'Jan' when 2 then 'Feb' when 3 then 'Mar'
+            when 4 then 'Apr' when 5 then 'May' when 6 then 'Jun'
+            when 7 then 'Jul' when 8 then 'Aug' when 9 then 'Sep'
+            when 10 then 'Oct' when 11 then 'Nov' when 12 then 'Dec'
+        end || ' ' || retail_year::varchar as trade_month_year_544_abbr
+
+        -- Trade year-month sortable text (e.g., '2026-03')
+        , retail_year::varchar || '-' || lpad(retail_month_445::varchar, 2, '0') as trade_year_month_445_txt
+        , retail_year::varchar || '-' || lpad(retail_month_454::varchar, 2, '0') as trade_year_month_454_txt
+        , retail_year::varchar || '-' || lpad(retail_month_544::varchar, 2, '0') as trade_year_month_544_txt
+
+        -- Trade quarter+year display (e.g., 'Q1 2026')
+        , 'Q' || ceil(retail_month_445 / 3.0)::int::varchar || ' ' || retail_year::varchar as trade_quarter_year_445_txt
+        , 'Q' || ceil(retail_month_454 / 3.0)::int::varchar || ' ' || retail_year::varchar as trade_quarter_year_454_txt
+        , 'Q' || ceil(retail_month_544 / 3.0)::int::varchar || ' ' || retail_year::varchar as trade_quarter_year_544_txt
+
         -- Common attributes (using CDC abbreviations)
         , is_leap_week as is_leap_week_flg
         , weeks_in_year as weeks_in_trade_year_num
