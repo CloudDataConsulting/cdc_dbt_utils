@@ -447,6 +447,32 @@ models:
         tests:
           - not_null
 
+      # Dense sequential counters (for offset arithmetic across year boundaries)
+      - name: trade_day_overall_num
+        description: Dense sequential day number across the entire trade calendar. Enables BI offset arithmetic (e.g., today - N days) without year-boundary gaps.
+        tests:
+          - not_null
+
+      - name: trade_week_overall_num
+        description: Dense sequential week number across the entire trade calendar. All days in the same trade week share the same value. Enables week offset arithmetic across year boundaries.
+        tests:
+          - not_null
+
+      - name: trade_month_445_overall_num
+        description: Dense sequential month number for 4-4-5 pattern. All days in the same trade month share the same value. Enables month offset arithmetic across year boundaries.
+        tests:
+          - not_null
+
+      - name: trade_month_454_overall_num
+        description: Dense sequential month number for 4-5-4 pattern. All days in the same trade month share the same value. Enables month offset arithmetic across year boundaries.
+        tests:
+          - not_null
+
+      - name: trade_month_544_overall_num
+        description: Dense sequential month number for 5-4-4 pattern. All days in the same trade month share the same value. Enables month offset arithmetic across year boundaries.
+        tests:
+          - not_null
+
       # Pattern-specific quarter columns
       - name: trade_quarter_445_num
         description: Trade quarter for 4-4-5 pattern

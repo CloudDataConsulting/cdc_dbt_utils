@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `trade_year_month_{445,454,544}_txt` — sortable text format (e.g., '2026-03')
   - `trade_quarter_year_{445,454,544}_txt` — quarter display with year (e.g., 'Q1 2026')
   - `trade_month_{445,454,544}_abbr` — three-letter month abbreviations (e.g., 'Mar')
+  - Dense sequential counters for offset arithmetic across year boundaries:
+    - `trade_day_overall_num` — sequential day number across entire trade calendar
+    - `trade_week_overall_num` — sequential week number (same for all days in a trade week)
+    - `trade_month_{445,454,544}_overall_num` — sequential month number per pattern
 
 ## [1.0.2] - 2025-12-05
 ### Fixed

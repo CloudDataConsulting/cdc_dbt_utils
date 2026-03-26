@@ -405,6 +405,13 @@ with date_sequence as (
         , 'Q' || ceil(retail_month_454 / 3.0)::int::varchar || ' ' || retail_year::varchar as trade_quarter_year_454_txt
         , 'Q' || ceil(retail_month_544 / 3.0)::int::varchar || ' ' || retail_year::varchar as trade_quarter_year_544_txt
 
+        -- Dense sequential counters (for offset arithmetic across year boundaries)
+        , dense_rank() over (order by calendar_date) as trade_day_overall_num
+        , dense_rank() over (order by retail_week_start) as trade_week_overall_num
+        , dense_rank() over (order by retail_year, retail_month_445) as trade_month_445_overall_num
+        , dense_rank() over (order by retail_year, retail_month_454) as trade_month_454_overall_num
+        , dense_rank() over (order by retail_year, retail_month_544) as trade_month_544_overall_num
+
         -- Common attributes (using CDC abbreviations)
         , is_leap_week as is_leap_week_flg
         , weeks_in_year as weeks_in_trade_year_num
