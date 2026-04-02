@@ -135,6 +135,9 @@ with trade_date as (
         , trade_week_of_month_544_num
         , trade_week_of_quarter_544_num
         
+        -- Composite keys
+        , trade_year_num * 100 + trade_week_num as trade_year_week_num
+
         -- Week descriptions (445 pattern as default)
         , trade_month_445_nm || ' ' || trade_year_num::varchar as trade_month_year_445_nm
         , 'Week ' || trade_week_of_month_445_num::varchar || ' of ' || trade_month_445_nm as trade_week_of_month_445_txt

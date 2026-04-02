@@ -85,6 +85,12 @@ models:
               arguments:
                 values: [1, 2, 3]
 
+      # Composite keys
+      - name: year_month_num
+        description: "Calendar year and month as YYYYMM integer (e.g., 202603)"
+        data_tests:
+          - not_null
+
       # Quarter information
       - name: quarter_txt
         description: "Quarter text (Q1, Q2, Q3, Q4)"

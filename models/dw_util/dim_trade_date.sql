@@ -424,6 +424,34 @@ with date_sequence as (
         , dense_rank() over (order by retail_year, retail_month_454) as trade_month_454_overall_num
         , dense_rank() over (order by retail_year, retail_month_544) as trade_month_544_overall_num
 
+        -- Trade month boundaries (445 pattern)
+        , min(calendar_date) over (partition by retail_year, retail_month_445) as trade_month_445_start_dt
+        , max(calendar_date) over (partition by retail_year, retail_month_445) as trade_month_445_end_dt
+        -- Trade month boundaries (454 pattern)
+        , min(calendar_date) over (partition by retail_year, retail_month_454) as trade_month_454_start_dt
+        , max(calendar_date) over (partition by retail_year, retail_month_454) as trade_month_454_end_dt
+        -- Trade month boundaries (544 pattern)
+        , min(calendar_date) over (partition by retail_year, retail_month_544) as trade_month_544_start_dt
+        , max(calendar_date) over (partition by retail_year, retail_month_544) as trade_month_544_end_dt
+        -- Trade quarter boundaries (445 pattern)
+        , min(calendar_date) over (partition by retail_year, ceil(retail_month_445 / 3.0)) as trade_quarter_445_start_dt
+        , max(calendar_date) over (partition by retail_year, ceil(retail_month_445 / 3.0)) as trade_quarter_445_end_dt
+        -- Trade quarter boundaries (454 pattern)
+        , min(calendar_date) over (partition by retail_year, ceil(retail_month_454 / 3.0)) as trade_quarter_454_start_dt
+        , max(calendar_date) over (partition by retail_year, ceil(retail_month_454 / 3.0)) as trade_quarter_454_end_dt
+        -- Trade quarter boundaries (544 pattern)
+        , min(calendar_date) over (partition by retail_year, ceil(retail_month_544 / 3.0)) as trade_quarter_544_start_dt
+        , max(calendar_date) over (partition by retail_year, ceil(retail_month_544 / 3.0)) as trade_quarter_544_end_dt
+        -- Trade year boundaries
+        , min(calendar_date) over (partition by retail_year) as trade_year_start_dt
+        , max(calendar_date) over (partition by retail_year) as trade_year_end_dt
+
+        -- Boolean flag variants
+        , date_trunc('month', calendar_date) = calendar_date as is_first_day_of_month_flg
+        , last_day(calendar_date, 'month') = calendar_date as is_last_day_of_month_flg
+        , calendar_date = dateadd(day, 6, date_trunc('week', calendar_date)) as is_last_day_of_week_flg
+        , month(calendar_date) = 12 and day(calendar_date) = 31 as is_last_day_of_year_flg
+
         -- Common attributes (using CDC abbreviations)
         , is_leap_week as is_leap_week_flg
         , weeks_in_year as weeks_in_trade_year_num

@@ -237,6 +237,9 @@ month_445_aggregated as (
         , trade_month_end_dt
         , trade_month_start_key
         , trade_month_end_key
+        -- Composite keys
+        , trade_year_num * 100 + trade_month_num as trade_yearmonth_num
+
         -- Quarter information
         , case trade_quarter_num
             when 1 then 'Q1'

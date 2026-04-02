@@ -38,6 +38,12 @@ models:
     - name: iso_week_of_year_txt
       description: "ISO 8601 week notation (YYYY-Www format, e.g., 2023-W15)"
 
+    # Composite keys
+    - name: year_week_num
+      description: "Calendar year and week as YYYYWW integer (e.g., 202613)"
+      data_tests:
+        - not_null
+
     # Trade/Retail calendar
     - name: trade_year_num
       description: "Trade/retail calendar year (from dim_trade_date)"

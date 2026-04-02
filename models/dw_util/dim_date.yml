@@ -106,6 +106,41 @@ models:
     # Other attributes
     - name: end_of_year_flg
       description: "Binary flag: 1 if the date is December 31st, 0 otherwise"
+
+    # Boolean flag variants (2.2.0)
+    - name: is_weekday_flg
+      description: "Boolean flag indicating if the date is a weekday (Monday-Friday)"
+    - name: is_weekend_flg
+      description: "Boolean flag indicating if the date is a weekend (Saturday-Sunday)"
+    - name: is_first_day_of_month_flg
+      description: "Boolean flag indicating if the date is the first day of the calendar month"
+    - name: is_last_day_of_month_flg
+      description: "Boolean flag indicating if the date is the last day of the calendar month"
+    - name: is_last_day_of_week_flg
+      description: "Boolean flag indicating if the date is the last day of the ISO week (Sunday)"
+    - name: is_last_day_of_year_flg
+      description: "Boolean flag indicating if the date is December 31st"
+
+    # Quarter enhancements (2.2.0)
+    - name: quarter_cd
+      description: "Standard quarter code (Q1, Q2, Q3, Q4)"
+    - name: is_first_day_of_quarter_flg
+      description: "Boolean flag indicating if the date is the first day of the calendar quarter"
+    - name: is_last_day_of_quarter_flg
+      description: "Boolean flag indicating if the date is the last day of the calendar quarter"
+
+    # Year enhancements (2.2.0)
+    - name: is_first_day_of_year_flg
+      description: "Boolean flag indicating if the date is January 1st"
+
+    # Composite keys (2.2.0)
+    - name: year_month_num
+      description: "Calendar year and month as YYYYMM integer (e.g., 202603)"
+    - name: year_week_num
+      description: "Calendar year and week as YYYYWW integer (e.g., 202613)"
+    - name: year_quarter_num
+      description: "Calendar year and quarter as YYYYQ integer (e.g., 20261)"
+
     - name: epoch_num
       description: "Unix timestamp - seconds since 1970-01-01 00:00:00 UTC"
     - name: yyyymmdd_txt

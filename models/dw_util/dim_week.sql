@@ -110,6 +110,9 @@ with date_dimension as (
         , trade_year_num
         , trade_week_num
         
+        -- Composite keys
+        , year_num * 100 + week_of_year_num as year_week_num
+
         -- Week descriptions
         , month_nm || ' ' || year_num::varchar as month_year_nm
         , 'Week ' || week_of_month_num::varchar || ' of ' || month_nm as week_of_month_nm

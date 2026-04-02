@@ -13,11 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `month_nm` now contains full month names (January, February...) instead of abbreviations
 
 ### Added
-- `is_weekday_flg` (boolean) — replaces varchar `weekday_flg`
-- `is_weekend_flg` (boolean)
+- `is_weekday_flg` (boolean), `is_weekend_flg` (boolean)
 - `quarter_cd` — standard Q1/Q2/Q3/Q4 format
 - `is_first_day_of_quarter_flg`, `is_last_day_of_quarter_flg`, `is_first_day_of_year_flg`
+- `is_first_day_of_month_flg`, `is_last_day_of_month_flg`, `is_last_day_of_week_flg`, `is_last_day_of_year_flg` (boolean variants of integer flags)
 - `year_month_num`, `year_week_num`, `year_quarter_num` composite keys
+- Trade period boundaries: month/quarter/year start_dt and end_dt for all 3 NRF patterns (445, 454, 544)
+- Applied same fixes to dim_date, dim_week, dim_month, dim_quarter, dim_trade_week, dim_trade_month, dim_trade_quarter
 
 ### Deprecated
 - `weekday_flg` (varchar) — use `is_weekday_flg` (boolean) instead

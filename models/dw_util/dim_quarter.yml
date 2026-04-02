@@ -59,6 +59,12 @@ models:
               arguments:
                 values: [1, 2, 3, 4]
 
+      # Composite keys
+      - name: year_quarter_num
+        description: "Calendar year and quarter as YYYYQ integer (e.g., 20261)"
+        data_tests:
+          - not_null
+
       # Quarter naming
       - name: quarter_txt
         description: "Quarter abbreviation (Q1, Q2, Q3, Q4)"

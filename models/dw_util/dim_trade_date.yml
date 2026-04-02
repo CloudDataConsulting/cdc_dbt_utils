@@ -594,6 +594,98 @@ models:
         data_tests:
           - not_null
       
+      # Trade period boundaries
+      - name: trade_month_445_start_dt
+        description: "First calendar date of the 4-4-5 trade month"
+        data_tests:
+          - not_null
+
+      - name: trade_month_445_end_dt
+        description: "Last calendar date of the 4-4-5 trade month"
+        data_tests:
+          - not_null
+
+      - name: trade_month_454_start_dt
+        description: "First calendar date of the 4-5-4 trade month"
+        data_tests:
+          - not_null
+
+      - name: trade_month_454_end_dt
+        description: "Last calendar date of the 4-5-4 trade month"
+        data_tests:
+          - not_null
+
+      - name: trade_month_544_start_dt
+        description: "First calendar date of the 5-4-4 trade month"
+        data_tests:
+          - not_null
+
+      - name: trade_month_544_end_dt
+        description: "Last calendar date of the 5-4-4 trade month"
+        data_tests:
+          - not_null
+
+      - name: trade_quarter_445_start_dt
+        description: "First calendar date of the 4-4-5 trade quarter"
+        data_tests:
+          - not_null
+
+      - name: trade_quarter_445_end_dt
+        description: "Last calendar date of the 4-4-5 trade quarter"
+        data_tests:
+          - not_null
+
+      - name: trade_quarter_454_start_dt
+        description: "First calendar date of the 4-5-4 trade quarter"
+        data_tests:
+          - not_null
+
+      - name: trade_quarter_454_end_dt
+        description: "Last calendar date of the 4-5-4 trade quarter"
+        data_tests:
+          - not_null
+
+      - name: trade_quarter_544_start_dt
+        description: "First calendar date of the 5-4-4 trade quarter"
+        data_tests:
+          - not_null
+
+      - name: trade_quarter_544_end_dt
+        description: "Last calendar date of the 5-4-4 trade quarter"
+        data_tests:
+          - not_null
+
+      - name: trade_year_start_dt
+        description: "First calendar date of the trade year"
+        data_tests:
+          - not_null
+
+      - name: trade_year_end_dt
+        description: "Last calendar date of the trade year"
+        data_tests:
+          - not_null
+
+      # Boolean flag variants
+      - name: is_first_day_of_month_flg
+        description: "Boolean flag indicating if the date is the first day of the calendar month"
+        data_tests:
+          - not_null
+
+      - name: is_last_day_of_month_flg
+        description: "Boolean flag indicating if the date is the last day of the calendar month"
+        data_tests:
+          - not_null
+
+      - name: is_last_day_of_week_flg
+        description: "Boolean flag indicating if the date is the last day of the ISO week (Sunday)"
+        data_tests:
+          - not_null
+
+      - name: is_last_day_of_year_flg
+        description: "Boolean flag indicating if the date is December 31st"
+        data_tests:
+          - not_null
+
       # Common attributes
       - name: is_leap_week_flg
         description: Flag indicating if this date falls in the 53rd week

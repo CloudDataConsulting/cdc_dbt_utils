@@ -121,6 +121,12 @@ models:
         data_tests:
           - not_null
 
+      # Composite keys
+      - name: trade_yearmonth_num
+        description: "Trade year and month as YYYYMM integer (e.g., 202603). Use for GROUP BY or filtering by trade month across years."
+        data_tests:
+          - not_null
+
       # Quarter and month descriptions
       - name: trade_quarter_txt
         description: "Trade quarter text (Q1, Q2, Q3, Q4)"
