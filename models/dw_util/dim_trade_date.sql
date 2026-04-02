@@ -174,12 +174,15 @@ with date_sequence as (
         , calendar_week as calendar_week_num
         , day_of_week as day_of_week_num
         , dayofweekiso(calendar_date) as iso_day_of_week_num
-        , day_name as day_nm
-        , left(day_name, 3) as day_abbr
-        , case 
+        , decode(dayofweekiso(calendar_date), 1, 'Monday', 2, 'Tuesday', 3, 'Wednesday', 4, 'Thursday', 5, 'Friday', 6, 'Saturday', 7, 'Sunday') as day_nm
+        , dayname(calendar_date) as day_abbr
+        , -- Deprecated: use is_weekday_flg (boolean) instead
+        case
             when day_of_week in (1, 7) then 'Weekend'
             else 'Weekday'
         end as weekday_flg
+        , dayofweekiso(calendar_date) <= 5 as is_weekday_flg
+        , dayofweekiso(calendar_date) > 5 as is_weekend_flg
         , case 
             when calendar_date = dateadd(day, 6, date_trunc('week', calendar_date)) then 1
             else 0
@@ -198,8 +201,8 @@ with date_sequence as (
         , datediff('d', date('1970-01-01'), calendar_date) as day_overall_num
         
         -- Month details
-        , monthname(calendar_date) as month_nm
-        , left(monthname(calendar_date), 3) as month_abbr
+        , decode(month(calendar_date), 1, 'January', 2, 'February', 3, 'March', 4, 'April', 5, 'May', 6, 'June', 7, 'July', 8, 'August', 9, 'September', 10, 'October', 11, 'November', 12, 'December') as month_nm
+        , monthname(calendar_date) as month_abbr
         , month(calendar_date) as month_num
         , day(calendar_date) as day_of_month_num
         , datediff('month', date('1970-01-01'), calendar_date) as month_overall_num
@@ -210,6 +213,7 @@ with date_sequence as (
         , case when last_day(calendar_date, 'month') = calendar_date then 1 else 0 end as end_of_month_flg
         
         -- Quarter details
+        , 'Q' || quarter(calendar_date) as quarter_cd
         , case
             when quarter(calendar_date) = 1 then 'First'
             when quarter(calendar_date) = 2 then 'Second'
@@ -219,6 +223,8 @@ with date_sequence as (
         , datediff(day, date_trunc('quarter', calendar_date), calendar_date) + 1 as day_of_quarter_num
         , date_trunc('quarter', calendar_date) as quarter_begin_dt
         , last_day(calendar_date, 'quarter') as quarter_end_dt
+        , calendar_date = date_trunc('quarter', calendar_date) as is_first_day_of_quarter_flg
+        , calendar_date = last_day(calendar_date, 'quarter') as is_last_day_of_quarter_flg
         
         -- Year details
         , yearofweekiso(calendar_date) as iso_year_num
@@ -227,6 +233,7 @@ with date_sequence as (
         , dateadd(day, -1, dateadd(year, 1, date_trunc('year', calendar_date))) as last_day_of_year_dt
         , dayofyear(calendar_date) as day_of_year_num
         , case when month(calendar_date) = 12 and day(calendar_date) = 31 then 1 else 0 end as end_of_year_flg
+        , month(calendar_date) = 1 and day(calendar_date) = 1 as is_first_day_of_year_flg
         
         -- Week details  
         , weekofyear(calendar_date) as week_of_year_num
@@ -240,6 +247,11 @@ with date_sequence as (
         , dateadd(day, 7 - dayofweekiso(calendar_date), calendar_date) as week_end_dt
         , to_char(dateadd(day, 7 - dayofweekiso(calendar_date), calendar_date), 'yyyymmdd')::int as week_end_key
         
+        -- Standard calendar composite keys
+        , year(calendar_date) * 100 + month(calendar_date) as year_month_num
+        , year(calendar_date) * 100 + weekofyear(calendar_date) as year_week_num
+        , year(calendar_date) * 10 + quarter(calendar_date) as year_quarter_num
+
         -- Other date formats
         , date_part(epoch_second, calendar_date) as epoch_num
         , to_char(calendar_date, 'yyyymmdd')::varchar(10) as yyyymmdd_txt

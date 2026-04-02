@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-04-01
+### Fixed
+- `day_nm` now contains full day names (Monday, Tuesday...) instead of abbreviations
+- `month_nm` now contains full month names (January, February...) instead of abbreviations
+
+### Added
+- `is_weekday_flg` (boolean) — replaces varchar `weekday_flg`
+- `is_weekend_flg` (boolean)
+- `quarter_cd` — standard Q1/Q2/Q3/Q4 format
+- `is_first_day_of_quarter_flg`, `is_last_day_of_quarter_flg`, `is_first_day_of_year_flg`
+- `year_month_num`, `year_week_num`, `year_quarter_num` composite keys
+
+### Deprecated
+- `weekday_flg` (varchar) — use `is_weekday_flg` (boolean) instead
+
 ## [2.1.0] - 2026-03-26
 ### Added
 - Composite year+period columns to dim_trade_date for BI grouping and filtering:

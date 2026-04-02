@@ -69,22 +69,32 @@ models:
           - not_null
       
       - name: day_nm
-        description: Day name abbreviation (Mon, Tue, etc.)
+        description: "Full day of week name (Monday, Tuesday, etc.)"
         tests:
           - not_null
-      
+
       - name: day_abbr
         description: Three-letter day abbreviation (Mon, Tue, etc.)
         tests:
           - not_null
-      
+
       - name: iso_day_of_week_num
         description: ISO day of week (1=Monday through 7=Sunday)
         tests:
           - not_null
-      
+
       - name: weekday_flg
-        description: Flag indicating Weekday or Weekend
+        description: "Deprecated -- use is_weekday_flg instead. Contains 'Weekday' or 'Weekend' as varchar for backwards compatibility."
+        tests:
+          - not_null
+
+      - name: is_weekday_flg
+        description: Boolean flag indicating if the date is a weekday (Monday-Friday)
+        tests:
+          - not_null
+
+      - name: is_weekend_flg
+        description: Boolean flag indicating if the date is a weekend (Saturday-Sunday)
         tests:
           - not_null
       
@@ -121,10 +131,10 @@ models:
       
       # Month attributes
       - name: month_nm
-        description: Full month name (January, February, etc.)
+        description: "Full month name (January, February, etc.)"
         tests:
           - not_null
-      
+
       - name: month_abbr
         description: Three-letter month abbreviation (Jan, Feb, etc.)
         tests:
@@ -166,6 +176,14 @@ models:
           - not_null
       
       # Quarter attributes
+      - name: quarter_cd
+        description: "Standard quarter code (Q1, Q2, Q3, Q4)"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Q1', 'Q2', 'Q3', 'Q4']
+
       - name: quarter_nm
         description: Quarter name (First, Second, Third, Fourth)
         tests:
@@ -180,7 +198,17 @@ models:
         description: Last date of the quarter
         tests:
           - not_null
-      
+
+      - name: is_first_day_of_quarter_flg
+        description: Boolean flag indicating if the date is the first day of the calendar quarter
+        tests:
+          - not_null
+
+      - name: is_last_day_of_quarter_flg
+        description: Boolean flag indicating if the date is the last day of the calendar quarter
+        tests:
+          - not_null
+
       # Year attributes
       - name: iso_year_num
         description: ISO week year
@@ -206,7 +234,12 @@ models:
         description: Binary flag for last day of year
         tests:
           - not_null
-      
+
+      - name: is_first_day_of_year_flg
+        description: Boolean flag indicating if the date is January 1st
+        tests:
+          - not_null
+
       # Week attributes
       - name: week_of_year_num
         description: Week of the year (1-53)
@@ -248,6 +281,22 @@ models:
         tests:
           - not_null
       
+      # Standard calendar composite keys
+      - name: year_month_num
+        description: "Calendar year and month as YYYYMM integer (e.g., 202603)"
+        tests:
+          - not_null
+
+      - name: year_week_num
+        description: "Calendar year and week as YYYYWW integer (e.g., 202613)"
+        tests:
+          - not_null
+
+      - name: year_quarter_num
+        description: "Calendar year and quarter as YYYYQ integer (e.g., 20261)"
+        tests:
+          - not_null
+
       # Other date formats
       - name: epoch_num
         description: Unix timestamp (seconds since 1970-01-01)
