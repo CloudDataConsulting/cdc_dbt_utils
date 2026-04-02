@@ -303,6 +303,9 @@ with trade_date as (
         , trade_quarter_start_key
         , trade_quarter_end_key
         
+        -- Composite keys
+        , trade_year_num * 10 + trade_quarter_num as trade_yearquarter_num
+
         -- Quarter naming
         , 'Q' || trade_quarter_num::varchar as trade_quarter_txt
         , 'Q' || trade_quarter_num::varchar || ' ' || trade_year_num::varchar as trade_quarter_year_txt

@@ -130,6 +130,9 @@ with date_dimension as (
             when quarter_num = 4 then 'Fourth'
         end as quarter_nm
         
+        -- Composite keys
+        , year_num * 100 + month_num as year_month_num
+
         -- Month descriptions
         , month_nm || ' ' || year_num::varchar as month_year_nm
         , month_abbr || ' ' || year_num::varchar as month_year_abbr

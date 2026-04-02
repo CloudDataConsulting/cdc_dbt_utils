@@ -104,6 +104,9 @@ with date_dimension as (
         , year_num
         , quarter_num
         
+        -- Composite keys
+        , year_num * 10 + quarter_num as year_quarter_num
+
         -- Quarter naming
         , 'Q' || quarter_num::varchar as quarter_txt
         , quarter_nm
