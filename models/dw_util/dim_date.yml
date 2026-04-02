@@ -110,36 +110,60 @@ models:
     # Boolean flag variants (2.2.0)
     - name: is_weekday_flg
       description: "Boolean flag indicating if the date is a weekday (Monday-Friday)"
+      data_tests:
+        - not_null
     - name: is_weekend_flg
       description: "Boolean flag indicating if the date is a weekend (Saturday-Sunday)"
+      data_tests:
+        - not_null
     - name: is_first_day_of_month_flg
       description: "Boolean flag indicating if the date is the first day of the calendar month"
+      data_tests:
+        - not_null
     - name: is_last_day_of_month_flg
       description: "Boolean flag indicating if the date is the last day of the calendar month"
+      data_tests:
+        - not_null
     - name: is_last_day_of_week_flg
       description: "Boolean flag indicating if the date is the last day of the ISO week (Sunday)"
+      data_tests:
+        - not_null
     - name: is_last_day_of_year_flg
       description: "Boolean flag indicating if the date is December 31st"
+      data_tests:
+        - not_null
 
     # Quarter enhancements (2.2.0)
     - name: quarter_cd
       description: "Standard quarter code (Q1, Q2, Q3, Q4)"
     - name: is_first_day_of_quarter_flg
       description: "Boolean flag indicating if the date is the first day of the calendar quarter"
+      data_tests:
+        - not_null
     - name: is_last_day_of_quarter_flg
       description: "Boolean flag indicating if the date is the last day of the calendar quarter"
+      data_tests:
+        - not_null
 
     # Year enhancements (2.2.0)
     - name: is_first_day_of_year_flg
       description: "Boolean flag indicating if the date is January 1st"
+      data_tests:
+        - not_null
 
     # Composite keys (2.2.0)
     - name: year_month_num
       description: "Calendar year and month as YYYYMM integer (e.g., 202603)"
+      data_tests:
+        - not_null
     - name: year_week_num
-      description: "Calendar year and week as YYYYWW integer (e.g., 202613)"
+      description: "Calendar year and ISO week as YYYYWW integer (e.g., 202613)"
+      data_tests:
+        - not_null
     - name: year_quarter_num
       description: "Calendar year and quarter as YYYYQ integer (e.g., 20261)"
+      data_tests:
+        - not_null
 
     - name: epoch_num
       description: "Unix timestamp - seconds since 1970-01-01 00:00:00 UTC"

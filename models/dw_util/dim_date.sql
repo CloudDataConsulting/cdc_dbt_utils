@@ -259,7 +259,7 @@ select
   -- Boolean flag variants (2.2.0)
   , extract(dayofweekiso from datum) <= 5 as is_weekday_flg
   , extract(dayofweekiso from datum) > 5 as is_weekend_flg
-  , date_trunc('month', datum) = datum as is_first_day_of_month_flg_bool
+  , date_trunc('month', datum) = datum as is_first_day_of_month_flg
   , last_day(datum, 'month') = datum as is_last_day_of_month_flg
   , dateadd(day, 7 - extract(dayofweekiso from datum), datum) = datum as is_last_day_of_week_flg
   , month(datum) = 12 and day(datum) = 31 as is_last_day_of_year_flg
@@ -271,7 +271,7 @@ select
   , month(datum) = 1 and day(datum) = 1 as is_first_day_of_year_flg
   -- Composite keys (2.2.0)
   , extract(year from datum) * 100 + extract(month from datum) as year_month_num
-  , yearofweekiso(datum) * 100 + extract(week from datum) as year_week_num
+  , yearofweekiso(datum) * 100 + weekiso(datum) as year_week_num
   , extract(year from datum) * 10 + extract(quarter from datum) as year_quarter_num
   , extract(epoch_second from datum)                               as epoch_num
   , to_char(datum, 'yyyymmdd')::varchar(10)                        as yyyymmdd_txt
@@ -325,19 +325,19 @@ select
     , null as iso_year_num
     , null as yearmonth_num
     , null as end_of_year_flg
-    , null as is_weekday_flg
-    , null as is_weekend_flg
-    , null as is_first_day_of_month_flg_bool
-    , null as is_last_day_of_month_flg
-    , null as is_last_day_of_week_flg
-    , null as is_last_day_of_year_flg
+    , false as is_weekday_flg
+    , false as is_weekend_flg
+    , false as is_first_day_of_month_flg
+    , false as is_last_day_of_month_flg
+    , false as is_last_day_of_week_flg
+    , false as is_last_day_of_year_flg
     , null as quarter_cd
-    , null as is_first_day_of_quarter_flg
-    , null as is_last_day_of_quarter_flg
-    , null as is_first_day_of_year_flg
-    , null as year_month_num
-    , null as year_week_num
-    , null as year_quarter_num
+    , false as is_first_day_of_quarter_flg
+    , false as is_last_day_of_quarter_flg
+    , false as is_first_day_of_year_flg
+    , -1 as year_month_num
+    , -1 as year_week_num
+    , -1 as year_quarter_num
     , null as epoch_num
     , null as yyyymmdd_txt
     , null as create_user_id
@@ -387,7 +387,7 @@ select
     , end_of_year_flg
     , is_weekday_flg
     , is_weekend_flg
-    , is_first_day_of_month_flg_bool as is_first_day_of_month_flg
+    , is_first_day_of_month_flg
     , is_last_day_of_month_flg
     , is_last_day_of_week_flg
     , is_last_day_of_year_flg
