@@ -28,612 +28,605 @@ models:
     columns:
       - name: date_key
         description: Date in YYYYMMDD format as integer
-        tests:
+        data_tests:
           - unique
           - not_null
       
       - name: full_dt
         description: Full date value
-        tests:
+        data_tests:
           - not_null
       
       - name: same_dt_last_year
         description: Same date from the previous year for YoY comparisons
-        tests:
+        data_tests:
           - not_null
       
       # Standard calendar columns with CDC naming
       - name: calendar_year_num
         description: Standard calendar year
-        tests:
+        data_tests:
           - not_null
       
       - name: calendar_quarter_num
         description: Standard calendar quarter (1-4)
-        tests:
+        data_tests:
           - not_null
       
       - name: calendar_month_num
         description: Standard calendar month (1-12)
-        tests:
+        data_tests:
           - not_null
       
       - name: calendar_week_num
         description: Standard ISO week number
-        tests:
+        data_tests:
           - not_null
       
       - name: day_of_week_num
         description: Day of week (0=Sunday through 6=Saturday)
-        tests:
+        data_tests:
           - not_null
       
       - name: day_nm
         description: "Full day of week name (Monday, Tuesday, etc.)"
-        tests:
+        data_tests:
           - not_null
 
       - name: day_abbr
         description: Three-letter day abbreviation (Mon, Tue, etc.)
-        tests:
+        data_tests:
           - not_null
 
       - name: iso_day_of_week_num
         description: ISO day of week (1=Monday through 7=Sunday)
-        tests:
+        data_tests:
           - not_null
 
       - name: weekday_flg
         description: "Deprecated -- use is_weekday_flg instead. Contains 'Weekday' or 'Weekend' as varchar for backwards compatibility."
-        tests:
+        data_tests:
           - not_null
 
       - name: is_weekday_flg
         description: Boolean flag indicating if the date is a weekday (Monday-Friday)
-        tests:
+        data_tests:
           - not_null
 
       - name: is_weekend_flg
         description: Boolean flag indicating if the date is a weekend (Saturday-Sunday)
-        tests:
+        data_tests:
           - not_null
       
       - name: end_of_week_flg
         description: Binary flag for end of week (Sunday)
-        tests:
+        data_tests:
           - not_null
       
       # Day attributes
       - name: day_suffix_txt
         description: Day with ordinal suffix (1st, 2nd, 3rd, etc.)
-        tests:
+        data_tests:
           - not_null
       
       - name: day_overall_num
         description: Sequential day number since 1970-01-01
-        tests:
+        data_tests:
           - not_null
       
       - name: day_of_month_num
         description: Day of the month (1-31)
-        tests:
+        data_tests:
           - not_null
       
       - name: day_of_quarter_num
         description: Day number within the quarter (1-92)
-        tests:
+        data_tests:
           - not_null
       
       - name: day_of_year_num
         description: Day of the year (1-365/366)
-        tests:
+        data_tests:
           - not_null
       
       # Month attributes
       - name: month_nm
         description: "Full month name (January, February, etc.)"
-        tests:
+        data_tests:
           - not_null
 
       - name: month_abbr
         description: Three-letter month abbreviation (Jan, Feb, etc.)
-        tests:
+        data_tests:
           - not_null
       
       - name: month_num
         description: Month number (1-12)
-        tests:
+        data_tests:
           - not_null
       
       - name: month_overall_num
         description: Sequential month number since 1970-01-01
-        tests:
+        data_tests:
           - not_null
       
       - name: month_in_quarter_num
         description: Month position within quarter (1, 2, or 3)
-        tests:
+        data_tests:
           - not_null
       
       - name: month_begin_dt
         description: First date of the month
-        tests:
+        data_tests:
           - not_null
 
       - name: month_end_dt
         description: Last date of the month
-        tests:
+        data_tests:
           - not_null
       
       - name: first_day_of_month_flg
         description: Binary flag for first day of month
-        tests:
+        data_tests:
           - not_null
       
       - name: end_of_month_flg
         description: Binary flag for last day of month
-        tests:
+        data_tests:
           - not_null
       
       # Quarter attributes
       - name: quarter_cd
         description: "Standard quarter code (Q1, Q2, Q3, Q4)"
-        tests:
+        data_tests:
           - not_null
           - accepted_values:
-              arguments:
-                values: ['Q1', 'Q2', 'Q3', 'Q4']
+              values: ['Q1', 'Q2', 'Q3', 'Q4']
 
       - name: quarter_nm
         description: Quarter name (First, Second, Third, Fourth)
-        tests:
+        data_tests:
           - not_null
       
       - name: quarter_begin_dt
         description: First date of the quarter
-        tests:
+        data_tests:
           - not_null
 
       - name: quarter_end_dt
         description: Last date of the quarter
-        tests:
+        data_tests:
           - not_null
 
       - name: is_first_day_of_quarter_flg
         description: Boolean flag indicating if the date is the first day of the calendar quarter
-        tests:
+        data_tests:
           - not_null
 
       - name: is_last_day_of_quarter_flg
         description: Boolean flag indicating if the date is the last day of the calendar quarter
-        tests:
+        data_tests:
           - not_null
 
       # Year attributes
       - name: iso_year_num
         description: ISO week year
-        tests:
+        data_tests:
           - not_null
       
       - name: yearmonth_num
         description: Year-month as YYYYMM integer
-        tests:
+        data_tests:
           - not_null
       
       - name: first_day_of_year_dt
         description: First date of the year (January 1)
-        tests:
+        data_tests:
           - not_null
       
       - name: last_day_of_year_dt
         description: Last date of the year (December 31)
-        tests:
+        data_tests:
           - not_null
       
       - name: end_of_year_flg
         description: Binary flag for last day of year
-        tests:
+        data_tests:
           - not_null
 
       - name: is_first_day_of_year_flg
         description: Boolean flag indicating if the date is January 1st
-        tests:
+        data_tests:
           - not_null
 
       # Week attributes
       - name: week_of_year_num
         description: Week of the year (1-53)
-        tests:
+        data_tests:
           - not_null
       
       - name: week_of_month_num
         description: Week of the month (1-5)
-        tests:
+        data_tests:
           - not_null
       
       - name: iso_week_of_year_txt
         description: ISO week format (YYYY-Www-d)
-        tests:
+        data_tests:
           - not_null
       
       - name: week_overall_num
         description: Sequential week number since 1970-01-01
-        tests:
+        data_tests:
           - not_null
       
       - name: week_begin_dt
         description: First day (Monday) of the week
-        tests:
+        data_tests:
           - not_null
       
       - name: week_begin_key
         description: Date key of week start (YYYYMMDD)
-        tests:
+        data_tests:
           - not_null
       
       - name: week_end_dt
         description: Last day (Sunday) of the week
-        tests:
+        data_tests:
           - not_null
       
       - name: week_end_key
         description: Date key of week end (YYYYMMDD)
-        tests:
+        data_tests:
           - not_null
       
       # Standard calendar composite keys
       - name: year_month_num
         description: "Calendar year and month as YYYYMM integer (e.g., 202603)"
-        tests:
+        data_tests:
           - not_null
 
       - name: year_week_num
         description: "Calendar year and week as YYYYWW integer (e.g., 202613)"
-        tests:
+        data_tests:
           - not_null
 
       - name: year_quarter_num
         description: "Calendar year and quarter as YYYYQ integer (e.g., 20261)"
-        tests:
+        data_tests:
           - not_null
 
       # Other date formats
       - name: epoch_num
         description: Unix timestamp (seconds since 1970-01-01)
-        tests:
+        data_tests:
           - not_null
 
       - name: yyyymmdd_txt
         description: Date as YYYYMMDD text string
-        tests:
+        data_tests:
           - not_null
       
       # Audit columns
       - name: create_user_id
         description: User who created the record
-        tests:
+        data_tests:
           - not_null
       
       - name: create_ts
         description: Timestamp when record was created
-        tests:
+        data_tests:
           - not_null
       
       # Core trade calendar columns (same for all patterns)
       - name: trade_year_num
         description: Trade year (same for all patterns)
-        tests:
+        data_tests:
           - not_null
       
       - name: trade_week_num
         description: Trade week number within the year (1-52 or 1-53)
-        tests:
+        data_tests:
           - not_null
       
       - name: trade_week_start_dt
         description: Start date of the trade week
-        tests:
+        data_tests:
           - not_null
       
       - name: trade_week_end_dt
         description: End date of the trade week
-        tests:
+        data_tests:
           - not_null
       
       # Pattern-specific month columns
       - name: trade_month_445_num
         description: Trade month for 4-4-5 pattern
-        tests:
+        data_tests:
           - not_null
           - accepted_values:
-              arguments:
-                values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
       
       - name: trade_month_454_num
         description: Trade month for 4-5-4 pattern
-        tests:
+        data_tests:
           - not_null
           - accepted_values:
-              arguments:
-                values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
       
       - name: trade_month_544_num
         description: Trade month for 5-4-4 pattern
-        tests:
+        data_tests:
           - not_null
           - accepted_values:
-              arguments:
-                values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
       
       # Pattern-specific month name columns
       - name: trade_month_445_nm
         description: Trade month name for 4-4-5 pattern
-        tests:
+        data_tests:
           - not_null
       
       - name: trade_month_454_nm
         description: Trade month name for 4-5-4 pattern
-        tests:
+        data_tests:
           - not_null
       
       - name: trade_month_544_nm
         description: Trade month name for 5-4-4 pattern
-        tests:
+        data_tests:
           - not_null
 
       # Pattern-specific month abbreviation columns
       - name: trade_month_445_abbr
         description: Three-letter trade month abbreviation for 4-4-5 pattern (Jan, Feb, etc.)
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_month_454_abbr
         description: Three-letter trade month abbreviation for 4-5-4 pattern (Jan, Feb, etc.)
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_month_544_abbr
         description: Three-letter trade month abbreviation for 5-4-4 pattern (Jan, Feb, etc.)
-        tests:
+        data_tests:
           - not_null
 
       # Composite year+period keys for grouping and filtering
       - name: trade_year_week_num
         description: Trade year and week as YYYYWW integer (e.g., 202613). Same for all patterns. Use for GROUP BY or filtering by trade week across years.
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_yearmonth_445_num
         description: Trade year and month as YYYYMM integer for 4-4-5 pattern (e.g., 202603). Use for GROUP BY or filtering by trade month across years.
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_yearmonth_454_num
         description: Trade year and month as YYYYMM integer for 4-5-4 pattern (e.g., 202603). Use for GROUP BY or filtering by trade month across years.
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_yearmonth_544_num
         description: Trade year and month as YYYYMM integer for 5-4-4 pattern (e.g., 202603). Use for GROUP BY or filtering by trade month across years.
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_yearquarter_445_num
         description: Trade year and quarter as YYYYQ integer for 4-4-5 pattern (e.g., 20261). Use for GROUP BY or filtering by trade quarter across years.
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_yearquarter_454_num
         description: Trade year and quarter as YYYYQ integer for 4-5-4 pattern (e.g., 20261). Use for GROUP BY or filtering by trade quarter across years.
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_yearquarter_544_num
         description: Trade year and quarter as YYYYQ integer for 5-4-4 pattern (e.g., 20261). Use for GROUP BY or filtering by trade quarter across years.
-        tests:
+        data_tests:
           - not_null
 
       # Month+year display names (for BI labels)
       - name: trade_month_year_445_nm
         description: "Trade month and year display name for 4-4-5 pattern (e.g., 'March 2026')"
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_month_year_454_nm
         description: "Trade month and year display name for 4-5-4 pattern (e.g., 'March 2026')"
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_month_year_544_nm
         description: "Trade month and year display name for 5-4-4 pattern (e.g., 'March 2026')"
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_month_year_445_abbr
         description: "Trade month and year abbreviated display for 4-4-5 pattern (e.g., 'Mar 2026')"
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_month_year_454_abbr
         description: "Trade month and year abbreviated display for 4-5-4 pattern (e.g., 'Mar 2026')"
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_month_year_544_abbr
         description: "Trade month and year abbreviated display for 5-4-4 pattern (e.g., 'Mar 2026')"
-        tests:
+        data_tests:
           - not_null
 
       # Year-month sortable text
       - name: trade_year_month_445_txt
         description: "Trade year and month as sortable text for 4-4-5 pattern (e.g., '2026-03')"
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_year_month_454_txt
         description: "Trade year and month as sortable text for 4-5-4 pattern (e.g., '2026-03')"
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_year_month_544_txt
         description: "Trade year and month as sortable text for 5-4-4 pattern (e.g., '2026-03')"
-        tests:
+        data_tests:
           - not_null
 
       # Quarter+year display text
       - name: trade_quarter_year_445_txt
         description: "Trade quarter and year display for 4-4-5 pattern (e.g., 'Q1 2026')"
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_quarter_year_454_txt
         description: "Trade quarter and year display for 4-5-4 pattern (e.g., 'Q1 2026')"
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_quarter_year_544_txt
         description: "Trade quarter and year display for 5-4-4 pattern (e.g., 'Q1 2026')"
-        tests:
+        data_tests:
           - not_null
 
       # Dense sequential counters (for offset arithmetic across year boundaries)
       - name: trade_day_overall_num
         description: Dense sequential day number across the entire trade calendar. Enables BI offset arithmetic (e.g., today - N days) without year-boundary gaps.
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_week_overall_num
         description: Dense sequential week number across the entire trade calendar. All days in the same trade week share the same value. Enables week offset arithmetic across year boundaries.
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_month_445_overall_num
         description: Dense sequential month number for 4-4-5 pattern. All days in the same trade month share the same value. Enables month offset arithmetic across year boundaries.
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_month_454_overall_num
         description: Dense sequential month number for 4-5-4 pattern. All days in the same trade month share the same value. Enables month offset arithmetic across year boundaries.
-        tests:
+        data_tests:
           - not_null
 
       - name: trade_month_544_overall_num
         description: Dense sequential month number for 5-4-4 pattern. All days in the same trade month share the same value. Enables month offset arithmetic across year boundaries.
-        tests:
+        data_tests:
           - not_null
 
       # Pattern-specific quarter columns
       - name: trade_quarter_445_num
         description: Trade quarter for 4-4-5 pattern
-        tests:
+        data_tests:
           - not_null
           - accepted_values:
-              arguments:
-                values: [1, 2, 3, 4]
+              values: [1, 2, 3, 4]
       
       - name: trade_quarter_454_num
         description: Trade quarter for 4-5-4 pattern
-        tests:
+        data_tests:
           - not_null
           - accepted_values:
-              arguments:
-                values: [1, 2, 3, 4]
+              values: [1, 2, 3, 4]
       
       - name: trade_quarter_544_num
         description: Trade quarter for 5-4-4 pattern
-        tests:
+        data_tests:
           - not_null
           - accepted_values:
-              arguments:
-                values: [1, 2, 3, 4]
+              values: [1, 2, 3, 4]
       
       # Pattern-specific quarter name columns
       - name: trade_quarter_445_nm
         description: Trade quarter name for 4-4-5 pattern (First, Second, Third, Fourth)
-        tests:
+        data_tests:
           - not_null
       
       - name: trade_quarter_454_nm
         description: Trade quarter name for 4-5-4 pattern (First, Second, Third, Fourth)
-        tests:
+        data_tests:
           - not_null
       
       - name: trade_quarter_544_nm
         description: Trade quarter name for 5-4-4 pattern (First, Second, Third, Fourth)
-        tests:
+        data_tests:
           - not_null
       
       # Pattern-specific week of month columns
       - name: trade_week_of_month_445_num
         description: Week number within the month for 4-4-5 pattern
-        tests:
+        data_tests:
           - not_null
       
       - name: trade_week_of_month_454_num
         description: Week number within the month for 4-5-4 pattern
-        tests:
+        data_tests:
           - not_null
       
       - name: trade_week_of_month_544_num
         description: Week number within the month for 5-4-4 pattern
-        tests:
+        data_tests:
           - not_null
       
       # Pattern-specific week of quarter columns
       - name: trade_week_of_quarter_445_num
         description: Week number within the quarter for 4-4-5 pattern (1-13, or 14 for leap weeks)
-        tests:
+        data_tests:
           - not_null
       
       - name: trade_week_of_quarter_454_num
         description: Week number within the quarter for 4-5-4 pattern (1-13, or 14 for leap weeks)
-        tests:
+        data_tests:
           - not_null
       
       - name: trade_week_of_quarter_544_num
         description: Week number within the quarter for 5-4-4 pattern (1-13, or 14 for leap weeks)
-        tests:
+        data_tests:
           - not_null
       
       # Trade week of year
       - name: trade_week_of_year_num
         description: Trade week number within the year (1-52 or 1-53), same for all patterns
-        tests:
+        data_tests:
           - not_null
       
       # Common attributes
       - name: is_leap_week_flg
         description: Flag indicating if this date falls in the 53rd week
-        tests:
+        data_tests:
           - not_null
       
       - name: weeks_in_trade_year_num
         description: Total number of weeks in the trade year (52 or 53)
-        tests:
+        data_tests:
           - not_null
       
       - name: trade_day_of_year_num
         description: Day number within the trade year
-        tests:
+        data_tests:
           - not_null
       
       # ETL metadata
       - name: dw_deleted_flg
         description: Soft delete flag
-        tests:
+        data_tests:
           - not_null
       
       - name: dw_synced_ts
         description: Timestamp when record was created/updated
-        tests:
+        data_tests:
           - not_null
       
       - name: dw_source_nm
         description: Source system name
-        tests:
+        data_tests:
           - not_null
     
-    tests:
+    data_tests:
       # Test 445 pattern: months 1,4,7,10 have max 4 weeks; 2,5,8,11 have max 4 weeks; 3,6,9,12 have max 5 weeks
       - dbt_utils.expression_is_true:
           arguments:

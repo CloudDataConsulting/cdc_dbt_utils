@@ -112,3 +112,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - dim_date: Comprehensive date dimension
   - dim_time: Time dimension for intraday analysis
 - Copyright notices to all CDC created resources
+
+[2.2.0]: https://github.com/CloudDataConsulting/cdc_dbt_utils/compare/2.1.0...2.2.0

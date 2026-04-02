@@ -249,7 +249,7 @@ with date_sequence as (
         
         -- Standard calendar composite keys
         , year(calendar_date) * 100 + month(calendar_date) as year_month_num
-        , year(calendar_date) * 100 + weekofyear(calendar_date) as year_week_num
+        , yearofweekiso(calendar_date) * 100 + weekofyear(calendar_date) as year_week_num
         , year(calendar_date) * 10 + quarter(calendar_date) as year_quarter_num
 
         -- Other date formats
