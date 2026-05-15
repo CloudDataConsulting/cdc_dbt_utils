@@ -181,7 +181,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: ['Q1', 'Q2', 'Q3', 'Q4']
+              arguments:
+                values: ['Q1', 'Q2', 'Q3', 'Q4']
 
       - name: quarter_nm
         description: Quarter name (First, Second, Third, Fourth)
@@ -345,21 +346,24 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
       
       - name: trade_month_454_num
         description: Trade month for 4-5-4 pattern
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
       
       - name: trade_month_544_num
         description: Trade month for 5-4-4 pattern
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
       
       # Pattern-specific month name columns
       - name: trade_month_445_nm
@@ -524,21 +528,24 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4]
+              arguments:
+                values: [1, 2, 3, 4]
       
       - name: trade_quarter_454_num
         description: Trade quarter for 4-5-4 pattern
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4]
+              arguments:
+                values: [1, 2, 3, 4]
       
       - name: trade_quarter_544_num
         description: Trade quarter for 5-4-4 pattern
         data_tests:
           - not_null
           - accepted_values:
-              values: [1, 2, 3, 4]
+              arguments:
+                values: [1, 2, 3, 4]
       
       # Pattern-specific quarter name columns
       - name: trade_quarter_445_nm
