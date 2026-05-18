@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-05-18
+### Fixed
+- Corrected `accepted_values` test arguments in `dim_trade_date.yml` that raised an
+  error under dbt 1.10 (DBT-110)
+
 ## [2.2.0] - 2026-04-01
 ### Fixed
 - `day_nm` now contains full day names (Monday, Tuesday...) instead of abbreviations
@@ -115,4 +120,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - dim_time: Time dimension for intraday analysis
 - Copyright notices to all CDC created resources
 
+[2.2.1]: https://github.com/CloudDataConsulting/cdc_dbt_utils/compare/2.2.0...2.2.1
 [2.2.0]: https://github.com/CloudDataConsulting/cdc_dbt_utils/compare/2.1.0...2.2.0
